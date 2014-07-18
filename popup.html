@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html ng-app="popupApp" ng-csp>
+<head lang="en" >
+    <meta charset="UTF-8">
+    <link href="static/css/angular-csp.css" rel="stylesheet">
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            min-width: 500px;
+        }
+        .vcenter {
+            display: inline-block;
+            vertical-align: middle;
+            float: none;
+        }
+
+        #remove-all {
+            margin-top: 2em;
+            margin-bottom: 1em;
+        }
+
+        #match {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        li {
+            margin-bottom: 0.5em;
+        }
+
+        .date {
+            color: #A0A0A0;
+            font-size: x-small;
+        }
+
+        .separator {
+            color: #CFCFCF;
+        }
+
+        .action {
+            cursor: pointer;
+            color: #A0A0A0;
+            font-size: x-small;
+        }
+
+        .highlight {
+            /* augmented in app.js */
+            cursor: pointer !important;
+            text-decoration: none !important;
+        }
+
+        .info {
+            margin-top: 0.1em;
+        }
+    </style>
+</head>
+
+<body ng-controller="DocumentsController" >
+<div class="container">
+    <!--Top (not nav)
+    http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3
+    -->
+    <div class="row" style="background-color: yellow;">
+        <!--Match & Document Coun-->
+        <div class="col-xs-8 vcenter">
+            <h5 id="match">
+                <span class="badge">{{docs.length}}</span>
+                {{match}}
+            </h5>
+        </div><!-- Search
+        --><div class="col-xs-4 vcenter">
+            <input type="search" class="form-control input-sm" ng-model="search.text" placeholder="Search">
+        </div>
+    </div>
+
+    <!--List-->
+    <div class="list-group">
+        <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
+        <!--isInDOM defaults to undefined-->
+        <div ng-repeat="doc in docs | filter:search"
+            ng-class="{'list-group-item': true, 'disabled': doc.isInDOM === false}"
+            ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
+            <!--Text-->
+            <div class="highlight {{doc.className}}" ng-click="onClickHighlight(doc._id)">
+                    {{doc.text}}
+            </div>
+
+            <!--InfoBar-->
+            <h5 class="info">
+                <span class="date">{{ doc.date | date:'mediumTime' }}</span>
+
+                <!--Only show these if hovering-->
+                <span ng-show="doc.hover">
+                    <!--Copy-->
+                    <span class="action" ng-click="onClickCopy(doc._id)"
+                          title="Copy highlight text to clipboard" >Copy</span>
+                    <span class="separator">&nbsp;//&nbsp;</span>
+                    <!--Speak-->
+                    <span class="action" ng-click="onClickSpeak(doc._id)"title="Speak highlight text" >Speak</span>
+
+                    <!--Remove-->
+                    <span class="action text-danger pull-right" ng-click="onClickRemove(doc._id)"
+                       title="Remove highlight" >Remove</span>
+                </span>
+            </h5>
+        </div>
+    </div>
+
+
+    <!--Remove All-->
+    <button id="remove-all" class="btn btn-danger btn-block" ng-click="onClickRemoveAll(doc.match)"
+            title="Remove every highlight from the page">
+        Remove All
+    </button>
+</div>
+
+
+<script src="static/js/jquery-2.1.1.min.js"></script>
+<script src="static/js/jquery.stylesheet.min.js"></script>
+<script src="static/js/angular.min.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+
+<script src="js/highlight_definitions.js"></script>
+<script src="js/stylesheet.js"></script>
+
+<script src="js/popup/app.js"></script>
+<script src="js/popup/controllers.js"></script>
+<script src="js/popup/filters.js"></script>
+
+</body>
+</html>

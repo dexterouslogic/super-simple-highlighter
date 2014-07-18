@@ -1,0 +1,46 @@
+{
+    "manifest_version": 2,
+
+    "name": "Simple Highlighter NG",
+    "description": "My Description",
+    "version": "3.0",
+
+    "background": {
+        "scripts": [
+            "static/js/purl.min.js",
+            "static/js/pouchdb-2.2.3.min.js",
+            "js/highlight_definitions.js",
+            "js/string_utils.js",
+            "js/background/database.js",
+            "js/background/tabs.js",
+            "js/background/context_menus.js",
+            "js/background/event_page.js"
+        ],
+        "persistent": false
+    },
+
+    "permissions": [
+        "clipboardWrite",
+        "tts",
+        "storage",
+        "contextMenus",
+        "unlimitedStorage",
+        "webNavigation",
+        "tabs",
+        "*://*/*",
+        "file:///*"
+    ],
+
+    "page_action": {
+        "default_popup": "popup.html",
+        "default_title": "Show Highlights",
+        "default_icon": {
+            "19": "static/images/popup/19.png",
+            "38": "static/images/popup/38.png"
+        }
+    },
+
+    "options_page": "options.html",
+
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
