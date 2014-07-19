@@ -23,12 +23,22 @@ var _database = {
     putDesignDocuments: function (callback) {
         _database.getDatabase().bulkDocs([
             {
-                /**
-                 * View of documents, keyed by match string, then date (decreasing  importance)
-                 */
-                _id: '_design/match_view',
+                _id: '_design/matches_count_view',
                 views: {
-                    'match_view': {
+                    'matches_count_view': {
+                        map: function (doc) {
+                            if (doc.match) {
+                                emit(doc.match);
+                            }
+                        }.toString(),
+                        reduce: "_count"
+                    }
+                }
+            },
+            {
+                _id: '_design/match_date_view',
+                views: {
+                    'match_date_view': {
                         map: function (doc) {
                             if (doc.match) {
                                 emit([doc.match, doc.date]);
@@ -38,60 +48,50 @@ var _database = {
                 }
             },
             {
-                /**
-                 * MapReduced view of 'create' and 'delete' documents, to find if there are an equal number
-                 */
                 _id: '_design/sum_view',
                 views: {
                     'sum_view': {
                         reduce: "_sum",
                         map: function (doc) {
                             // the values will be reduced with '_sum'. If that == 0, number of create == delete
-                            var value;
-
                             switch (doc.verb) {
                             case 'create':
-                                value = 1;
+                                emit(doc.match, 1);
                                 break;
                             case 'delete':
-                                value = -1;
+                                emit(doc.match, -1);
                                 break;
-
-                            default:
-                                return;
                             }
-
-                            emit(doc.match, value);
                         }.toString()
                     }
                 }
             },
 
-            {
-                /**
-                 * View of 'create' document's class names
-                 */
-                _id: '_design/class_name_view',
-                views: {
-                    'class_name_view': {
-                        map: function (doc) {
-                            if (doc.verb === "create") {
-                                emit(doc.className);
-                            }
-                        }.toString()
-                    }
-                }
-            }/*,
-
-            {
-                _id: '_design/delete_verb_filter',
-                "filters": {
-                    'delete_verb_filter': function (doc, req) {
-                        // existence of verb property implies not a design document
-                        return doc.verb === "delete";
-                    }.toString()
-                }
-            }*/
+//            {
+//                /**
+//                 * View of 'create' document's class names
+//                 */
+//                _id: '_design/class_name_view',
+//                views: {
+//                    'class_name_view': {
+//                        map: function (doc) {
+//                            if (doc.verb === "create") {
+//                                emit(doc.className);
+//                            }
+//                        }.toString()
+//                    }
+//                }
+//            },
+//
+//            {
+//                _id: '_design/delete_verb_filter',
+//                "filters": {
+//                    'delete_verb_filter': function (doc, req) {
+//                        // existence of verb property implies not a design document
+//                        return doc.verb === "delete";
+//                    }.toString()
+//                }
+//            }
         ], callback);
     },
 
@@ -102,7 +102,7 @@ var _database = {
      * @param {object} [options]
      * @return {string} match (www.techmeme.com/mini?q=abc)
      */
-    getMatch: function (url, options) {
+    buildMatchString: function (url, options) {
         if (!options) {
             options = {
                 exclude_query: false
@@ -128,33 +128,6 @@ var _database = {
         }
 
         return match;
-    },
-
-    /**
-     * map-reduce on a view of all documents associated with a key of 'match'.
-     * The reduce is on the sum of the value of the document, where a 'create' verb is +1 and 'delete' -1.
-     * if the sum is zero we can safely remove all documents with this key.
-     * if it's < 0 somethings wrong.
-     * @param match
-     * @param callback function(err, sum)
-     */
-    getAggregateDocumentCount: function (match, callback) {
-        _database.getDatabase().query('sum_view', {
-            key: match
-        }, function (err, result) {
-            if (callback) {
-                if (err) {
-                    callback(err);
-                } else {
-                    var sum = result.rows[0].value;
-                    if (sum < 0) {
-                        console.log("WARNING: create/delete sum < 0");
-                    }
-
-                    callback(null, sum);
-                }
-            }
-        });
     },
 
     /**
@@ -282,28 +255,54 @@ var _database = {
     },
 
     /**
-     * Delete a specific document (any verb)
+     * Get all documents for a match, in ascending date order.
+     * @param {string} match
+     * @param {function} [callback] function(err, docs)
+     */
+    getDocuments: function (match, callback) {
+        // get all the documents (create & delete) associated with the match, then filter the deleted ones
+        _database.getDatabase().query('match_date_view', {
+            startkey: [match],
+            endkey: [match, {}],
+            descending: false,
+            include_docs: true
+        }, function (err, result) {
+            if (!callback) {
+                return;
+            }
+
+            if (err) {
+                callback(err);
+            } else {
+                var docs = result.rows.map(function (row) {
+                    return row.doc;
+                });
+
+                callback(null, docs);
+            }
+        });
+    },
+
+    /**
+     * Delete a specific document (any verb).
+     * This is usually only called after a postDeleteDocument(), when the check for stale documents finds something
      * @param id
      * @param rev
      * @param [callback]
+     * @private
      */
-    removeDocument: function (id, rev, callback) {
+    _removeDocument: function (id, rev, callback) {
         _database.getDatabase().remove(id, rev, callback);
     },
 
     /**
-     * Delete all documents associated with 'match' key (any verb)
-     * @param match key (eg www.google.com/something?qq)
-     * @param callback function(err, result)
+     * Delete all documents associated with 'match' key (any verb).
+     * Usually called via popup's 'remove all' button
+     * @param {string} match key (eg www.google.com/something?qq)
+     * @param {function} [callback] function(err, result)
      */
     removeDocuments: function (match, callback) {
-        var db = _database.getDatabase();
-
-        db.query('match_view', {
-            startkey: [match],
-            endkey: [match, {}],
-            include_docs: true
-        }, function (err, result) {
+        _database.getDocuments(match, function (err, docs) {
             if (err) {
                 if (callback) {
                     callback(err);
@@ -312,16 +311,119 @@ var _database = {
             }
 
             // map to an array of objects which bulkDocs() can use to delete them
-            var docs = result.rows.map(function (row) {
-                return {
-                    _id: row.doc._id,
-                    _rev: row.doc._rev,
-                    _deleted: true
-                };
+            docs.forEach(function (doc) {
+               doc._deleted = true;
             });
 
-            db.bulkDocs(docs, callback);
+            _database.getDatabase().bulkDocs(docs, callback);
         });
-    }
+    },
+
+    /**
+     * Get an array of unique matches, and the count of documents (of any verb) associated with them
+     * @param {function} callback function(err, rows): rows = [{key: match, value: count}]
+     */
+    getMatches: function(callback) {
+        _database.getDatabase().query('matches_count_view', {
+            group: true,
+            group_level: 1,
+            include_docs: false
+        }, function (err, result) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null, result.rows);
+            }
+        });
+    },
+
+    /**
+     * map-reduce on a view of all documents associated with a key of 'match'.
+     * The reduce is on the sum of the value of the document, where a 'create' verb is +1 and 'delete' -1.
+     * if the sum is zero we can safely remove all documents with this key.
+     * if it's < 0 somethings wrong.
+     * @param {string} match
+     * @param {function} [callback] function(err, sum)
+     */
+    getAggregateDocumentCount: function (match, callback) {
+        _database.getDatabase().query('sum_view', {
+            key: match
+        }, function (err, result) {
+            if (callback) {
+                if (err) {
+                    callback(err);
+                } else {
+                    var sum = result.rows[0].value;
+                    if (sum < 0) {
+                        console.log("WARNING: create/delete sum < 0");
+                    }
+
+                    callback(null, sum);
+                }
+            }
+        });
+    },
+
+    /**
+     * Get all documents for a match, in ascending date order.
+     * If a 'delete' document exists, it is filtered out, along with its corresponding 'create' document.
+     * @param {string} match
+     * @param {function} [callback] function(err, docs)
+     */
+    getCreateDocuments: function (match, callback) {
+        // get all the documents (create & delete) associated with the match, then filter the deleted ones
+        _database.getDocuments(match, function (err, docs) {
+            if (!callback) {
+                return;
+            }
+
+            if (err) {
+                callback(err);
+                return;
+            }
+
+            var filterable = {};
+
+            // map to just the documents,
+            docs = docs.filter(function (doc) {
+                // filter out delete documents, and mark corresponding 'create' document for filtering later
+                if (doc.verb === "delete") {
+                    // remove this, and mark the corresponding doc as being ready for removal later
+                    filterable[doc.correspondingDocumentId] = true;
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }).filter(function (doc) {
+                // filter out corresponding docs collected earlier
+
+                // return FALSE to filter it out
+                return filterable[doc._id] === undefined;
+            });
+
+            callback(null, docs);
+
+        });
+    },
+
+    /**
+     * As design docs are deleted or modified, their associated index files (in CouchDB) or
+     * companion databases (in local PouchDBs) continue to take up space on disk.
+     * viewCleanup() removes these unnecessary index files.
+     * @param {function} [callback] function(result): { ok: "true" }
+     */
+    viewCleanup: function (callback) {
+        _database.getDatabase().viewCleanup(callback);
+    },
+
+    /**
+     * Runs compaction of the database. Fires callback when compaction is done.
+     * @param {function} [callback] ?
+     */
+    compact: function (callback) {
+        _database.getDatabase().compact(callback);
+    },
+
 };
 

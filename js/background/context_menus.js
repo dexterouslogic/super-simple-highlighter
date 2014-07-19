@@ -134,7 +134,7 @@ var _contextMenus = {
                     if (xpathRange) {
                         // create new document for highlight, then update DOM
                         _eventPage.createHighlight(tab.id,
-                            xpathRange, _database.getMatch(tab.url),
+                            xpathRange, _database.buildMatchString(tab.url),
                             info.selectionText, className);
                     }
                 });

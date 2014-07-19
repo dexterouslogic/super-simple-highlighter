@@ -1,5 +1,3 @@
-"use strict";
-
 var _tabs = {
     /**
      * call {@link chrome.tabs.executeScript()} serially
@@ -8,6 +6,7 @@ var _tabs = {
      * @param finalCallback last callback to be called
      */
     executeScripts: function (tabId, injectDetailsArray, finalCallback) {
+        "use strict";
         function createCallback(tabId, injectDetails, innerCallback) {
             return function () {
                 chrome.tabs.executeScript(tabId, injectDetails, innerCallback);
@@ -30,6 +29,7 @@ var _tabs = {
      * @param callback
      */
     executeAllScripts: function (tabId, callback) {
+        "use strict";
         // inject scripts serially
         this.executeScripts(tabId, [
             { file: "static/js/jquery-2.1.1.min.js" },
@@ -51,6 +51,7 @@ var _tabs = {
      * @private
      */
     sendMessage: function (tabId, message, responseCallback) {
+        "use strict";
         chrome.tabs.sendMessage(tabId, message, function (response) {
             // it is possible that the script hasn't yet been injected, so check the response for a undefined param
             if (response === undefined) {
@@ -81,6 +82,7 @@ var _tabs = {
     sendCreateHighlightMessage: function (tabId,
                                           range, className, documentId,
                                           responseCallback) {
+        "use strict";
         _tabs.sendMessage(tabId, {
             id: "create_highlight",
             range: range,
@@ -97,6 +99,7 @@ var _tabs = {
      * @param [responseCallback] function(is_updated)
      */
     sendUpdateHighlightMessage: function (tabId, documentId, className, responseCallback) {
+        "use strict";
         _tabs.sendMessage(tabId, {
             id: "update_highlight",
             highlightId: documentId,
@@ -111,6 +114,7 @@ var _tabs = {
      * @param [responseCallback] function(is_deleted)
      */
     sendDeleteHighlightMessage: function (tabId, documentId, responseCallback) {
+        "use strict";
         _tabs.sendMessage(tabId, {
             id: "delete_highlight",
             highlightId: documentId
@@ -135,6 +139,7 @@ var _tabs = {
      * @param {function} [responseCallback] function(boolean)
      */
     sendIsHighlightInDOMMessage: function (tabId, documentId, responseCallback) {
+        "use strict";
         _tabs.sendMessage(tabId, {
             id: "is_highlight_in_dom",
             highlightId: documentId
@@ -148,9 +153,49 @@ var _tabs = {
      * @param {function} [responseCallback]
      */
     sendScrollToMessage: function (tabId, documentId, responseCallback) {
+        "use strict";
         _tabs.sendMessage(tabId, {
             id: "scroll_to",
             fragment: documentId
         }, responseCallback);
+    },
+
+    /**
+     * 'Play' an array of document's 'create' and 'delete' messages into the DOM
+     * @param {number} tabId
+     * @param {Array} docs
+     * @param {function} [errorCallback] function(doc): called when the DOM reports it can't create highlight for this doc
+     */
+    replayDocuments: function (tabId, docs, errorCallback) {
+        // final callback after all scripts injected
+        // send each transaction to the content script as a message
+        "use strict";
+        docs.forEach(function (doc) {
+            switch (doc.verb) {
+            case "create":
+                // re-use document id as span element's id
+                _tabs.sendCreateHighlightMessage(tabId,
+                    doc.range, doc.className, doc._id, function (response) {
+                        if (errorCallback && response !== true) {
+                            errorCallback(doc);
+                        }
+                    });
+                break;
+
+            case "delete":
+                _tabs.sendDeleteHighlightMessage(tabId,
+                    doc.correspondingDocumentId, function (response) {
+                        // doesn't warrant a callback
+                        if (response !== true) {
+                            console.log("Error deleting highlight in DOM");
+                        }
+                    });
+                break;
+
+            default:
+                console.log("unhandled verb: " + doc.verb);
+                break;
+            }
+        });
     }
 };

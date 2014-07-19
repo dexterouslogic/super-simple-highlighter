@@ -25,7 +25,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
         activeTabId = activeTab.id;
         backgroundPage = _backgroundPage;
 
-        $scope.match = backgroundPage._database.getMatch(activeTab.url);
+        $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
 
         // methods that require eventpage or tab id
         $scope.onClickHighlight = onClickHighlight;
@@ -91,42 +91,21 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clear and fill the 'docs' model
      */
     var updateDocs = function () {
-        // get the database
-
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        backgroundPage._database.getDatabase().query('match_view', {
-            startkey: [$scope.match],
-            endkey: [$scope.match, {}],
-            descending: false,
-            include_docs: true
-        }).then(function (result) {
-            // map to just the documents, and filter out 'delete' documents.
-            var filterable = {};
-
-            $scope.docs = result.rows.map(function (row) {
-                return row.doc;
-            }).filter(function (doc) {
-                if (doc.verb === "delete") {
-                    // remove this, and mark the corresponding doc as being ready for removal later
-                    filterable[doc.correspondingDocumentId] = true;
-                    return false;
-                }
-
-                return true;
-            }).filter(function (doc) {
-                // return FALSE to filter it out
-                return filterable[doc._id] === undefined;
-            });
+        backgroundPage._database.getCreateDocuments($scope.match, function (err, docs) {
+            if (err) {
+                return;
+            }
 
             // if the highlight cant be found in DOM, flag that
-            $scope.docs.forEach(function(doc){
+            docs.forEach(function(doc){
                 // default to undefined, implying it IS in the DOM
                 backgroundPage._eventPage.isHighlightInDOM(activeTabId, doc._id, function (isInDOM) {
                     doc.isInDOM =  isInDOM;
-                    $scope.$apply();
                 });
             });
 
+            $scope.docs = docs;
             $scope.$apply();
         });
     };

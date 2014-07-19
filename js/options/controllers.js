@@ -6,11 +6,6 @@
  */
 var optionsControllers = angular.module('optionsControllers', []);
 
-//optionsControllers.controller('DatabaseController', ["$scope", function ($scope) {
-//    'use strict';
-//
-//}]);
-
 // array this is something to do with minification
 optionsControllers.controller('HighlightDefinitionsController', ["$scope", function ($scope) {
     'use strict';
@@ -66,10 +61,9 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
             return;
         }
 
-        $scope.modalTitle = "Edit Style";
-
         // copy (not reference) definition
         $scope.modalDefinition = _highlightDefinitions.copy($scope.definitions[index]);
+        $scope.modalTitle = "Edit Style";
 
         // activate the 'edit' model
         $modal.modal();
@@ -80,18 +74,8 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
      */
     $scope.onClickAddDefinition = function () {
         // default new definition
+        $scope.modalDefinition = _highlightDefinitions.createDefault();
         $scope.modalTitle = "Add New Style";
-
-        $scope.modalDefinition = {
-            title: "Your Title Here",
-            className: _stringUtils.createUUID({
-                beginWithLetter: true
-            }),
-            style: {
-                "background-color": "#00ff00",
-                "color": "#ffffff"
-            }
-        };
 
         // activate the 'edit' model
         $modal.modal();
@@ -165,6 +149,20 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
             }
         }
     };
+
+    onInit();
+}]);
+
+optionsControllers.controller('DatabaseController', ["$scope", function ($scope) {
+    'use strict';
+    $scope.rows = [];
+
+    function onInit() {
+        // listen for database deletions
+
+        chrome.storage.onChanged.addListener(onStorageChanged);
+
+    }
 
     onInit();
 }]);

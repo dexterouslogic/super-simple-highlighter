@@ -16,26 +16,26 @@
 <body data-spy="scroll" data-target=".navbar">
 <div class="container">
     <!--Nav-->
-    <nav class="navbar navbar-default" role="navigation">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse"
-                        data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">Brand</a>
-            </div>
-        </div>
-    </nav>
+    <!--<nav class="navbar navbar-default" role="navigation">-->
+        <!--<div class="container-fluid">-->
+            <!--&lt;!&ndash; Brand and toggle get grouped for better mobile display &ndash;&gt;-->
+            <!--<div class="navbar-header">-->
+                <!--<button type="button" class="navbar-toggle" data-toggle="collapse"-->
+                        <!--data-target="#bs-example-navbar-collapse-1">-->
+                    <!--<span class="sr-only">Toggle navigation</span>-->
+                    <!--<span class="icon-bar"></span>-->
+                    <!--<span class="icon-bar"></span>-->
+                    <!--<span class="icon-bar"></span>-->
+                <!--</button>-->
+                <!--<a class="navbar-brand" href="#">Brand</a>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</nav>-->
 
     <div ng-controller="HighlightDefinitionsController">
         <h1>Highlight Styles</h1>
 
-        <!-- Modal -->
+        <!-- Shared Modal Dialog-->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog"
              aria-labelledby="myModalTitle" aria-hidden="true">
             <div class="modal-dialog">
@@ -64,8 +64,8 @@
                             <div class="form-group"
                                  ng-class="{'has-error': myForm.title.$invalid && !myForm.title.$pristine}">
 
-                                <label class="control-label" for="titleId">Title</label>
-                                <input class="form-control input-lg" name="title" id="titleId"
+                                <label class="control-label" for="myTitle">Title</label>
+                                <input class="form-control input-lg" name="title" id="myTitle"
                                        type="text" placeholder="Title" ng-model="modalDefinition.title" required>
 
                                 <span ng-show="myForm.title.$error.required && !myForm.title.$pristine"
@@ -87,20 +87,20 @@
                                 <input type="color" class="form-control" id="textColour"
                                        ng-model="modalDefinition.style['color']">
                             </div>
-
                         </div>
+
+                        <!--Footer-->
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-primary" ng-disabled="myForm.$invalid"
-                                    ng-click="onClickMyModalSave()">
-                                Save Changes
-                            </button>
+                                    ng-click="onClickMyModalSave()">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
+        <!--Chips-->
         <ul class="list-inline">
             <li ng-repeat="hd in definitions" class="token {{highlightClassName}} {{hd.className}}"
                     ng-click="onClickEditDefinition(hd.className)">
@@ -113,10 +113,14 @@
             </li>
         </ul>
 
-        <!-- Standard button -->
+        <!-- New Definition -->
         <button type="button" class="btn btn-default" ng-click="onClickAddDefinition()">Add New Style</button>
     </div>
-</div>
+
+    <div ng-controller="DatabaseController">
+        <h1>Database</h1>
+
+    </div>
 
 <script src="static/js/jquery-2.1.1.min.js"></script>
 <script src="static/js/jquery.stylesheet.min.js"></script>

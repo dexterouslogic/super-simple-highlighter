@@ -9,12 +9,15 @@ var _eventPage = {
         console.log("init");
 
         chrome.runtime.onInstalled.addListener(_eventPage.onRuntimeInstalled);
-        chrome.webNavigation.onCompleted.addListener(_eventPage.onWebNavigationCompleted);
+        chrome.runtime.onStartup.addListener(_eventPage.onRuntimeStartup);
         chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
+
+        chrome.webNavigation.onCompleted.addListener(_eventPage.onWebNavigationCompleted);
+
         chrome.tabs.onActivated.addListener(_eventPage.onTabActivated);
+
         chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
 
-        // initial menu state (recreated when a related property changes)
         chrome.contextMenus.onClicked.addListener(_contextMenus.onClicked);
     },
 
@@ -27,9 +30,26 @@ var _eventPage = {
         console.log("onRuntimeInstalled");
 
         // one time initialization
-        _database.putDesignDocuments();
+        _database.putDesignDocuments(function () {
+            // error param might indicate a conflict, which is ok
+
+            // delete stale views associated with design docs
+            _database.viewCleanup();
+        });
 
         _contextMenus.updateMenus();
+    },
+
+    /**
+     * Fired when a profile that has this extension installed first starts up.
+     * This event is not fired when an incognito profile is started, even if this
+     * extension is operating in 'split' incognito mode.
+     */
+    onRuntimeStartup: function () {
+        "use strict";
+        console.log("onRuntimeStartup");
+
+        _database.compact();
     },
 
     /**
@@ -53,67 +73,37 @@ var _eventPage = {
 
         // get all the documents with our desired highlight key, in increasing order
         // query for all documents with this key
-        var match = _database.getMatch(details.url);
+        var match = _database.buildMatchString(details.url);
 
-        _database.getDatabase().query('match_view', {
-            desending: false,
-            startkey: [match],
-            endkey: [match, {}],
-            include_docs: true
-        }).then(function (result) {
-            // configure and show page action
-            console.log(result.rows.length + " document(s) match '" + match + "'");
-
-            if (result.rows.length === 0) {
+        _database.getDocuments(match, function (err, docs) {
+            if (err) {
                 return;
             }
 
-            console.log("Showing page action, injecting scripts");
+            // configure and show page action
+            console.log("Matched " + docs.length + " document(s) with '" + match + "'");
+            if (docs.length === 0) {
+                return;
+            }
 
+            console.log("Showing page action");
             chrome.pageAction.show(details.tabId);
 
+            console.log("Injecting scripts...");
             _tabs.executeAllScripts(details.tabId, function () {
-                console.log("Replaying " + result.rows.length + " documents into DOM");
+                console.log("Replaying documents into DOM");
 
-                // final callback after all scripts injected
-                // send each transaction to the content script as a message
-                result.rows.forEach(function (row) {
-                    var doc = row.doc;
+                _tabs.replayDocuments(details.tabId, docs, function (doc) {
+                    console.log("Error creating highlight in DOM for " + JSON.stringify(doc.range) );
 
-                    switch (doc.verb) {
-                    case "create":
-                        // re-use document id as span element's id
-                        _tabs.sendCreateHighlightMessage(details.tabId,
-                            doc.range,  doc.className, doc._id, function (response) {
-                                if (response !== true) {
-                                    console.log("Error recreating highlight in DOM");
-
-                                    // any errors will changes the page action image
-                                    chrome.pageAction.setIcon({
-                                        "tabId": details.tabId,
-                                        path: {
-                                            19: "static/images/popup/19_warning.png",
-                                            38: "static/images/popup/38_warning.png"
-                                        }
-                                    });
-                                }
-                            });
-                        break;
-
-                    case "delete":
-                        _tabs.sendDeleteHighlightMessage(details.tabId,
-                            doc.correspondingDocumentId, function (response) {
-                                if (response !== true) {
-                                    console.log("Error deleting highlight in DOM");
-                                }
-                            });
-
-                        break;
-
-                    default:
-                        console.log("unhandled verb: " + doc.verb);
-                        break;
-                    }
+                    // any errors will changes the page action image
+                    chrome.pageAction.setIcon({
+                        "tabId": details.tabId,
+                        path: {
+                            19: "static/images/popup/19_warning.png",
+                            38: "static/images/popup/38_warning.png"
+                        }
+                    });
                 });
             });
         });
@@ -195,7 +185,7 @@ var _eventPage = {
                         chrome.pageAction.show(tabId);
                     } else {
                         console.log("Error creating highlight in DOM - Removing associated document");
-                        _database.removeDocument(response.id, response.rev);
+                        _database._removeDocument(response.id, response.rev);
                     }
                 });
         });
@@ -244,7 +234,7 @@ var _eventPage = {
             // check the number of 'create' and 'delete' documents. if equal, there
             // are no highlights for the page, so the page action can be removed
             chrome.tabs.get(tabId, function (tab) {
-                var match = _database.getMatch(tab.url);
+                var match = _database.buildMatchString(tab.url);
 
                 _database.getAggregateDocumentCount(match, function (err, sum) {
                     if (err) {

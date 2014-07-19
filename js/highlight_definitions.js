@@ -1,4 +1,24 @@
+/*global _stringUtils*/
+
 var _highlightDefinitions = {
+    /**
+     * Create a new definition object, with the default properties
+     * @return {{title: string, className: string, style: {background-color: string, color: string}}}
+     */
+    createDefault: function () {
+        "use strict";
+        return {
+            title: "Untitled Style",
+            className: _stringUtils.createUUID({
+                beginWithLetter: true
+            }),
+            style: {
+                "background-color": "#00ff00",
+                "color": "#ffffff"
+            }
+        };
+    },
+
     /**
      * Get an array of objects describing highlight styles
      * @param {object} [callback] function (object), containing highlightDefinitions array, defaultHighlightStyle object
