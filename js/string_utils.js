@@ -18,7 +18,7 @@ var _stringUtils = {
 
             // make sure first letter is a-f
             if (options.beginWithLetter && index === 0) {
-                v = Math.max(v, 0xa);
+                v = (v % 6) + 0xa;// Math.max(v, 0xa);
             }
 
             return v.toString(16);

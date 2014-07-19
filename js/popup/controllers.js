@@ -17,37 +17,25 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 //    $scope.match = "hello";
 
     /**
-     *
-     * @param activeTab
+     * Ini
+     * @param {object} activeTab
      * @param {object} _backgroundPage
      */
     function onInit(activeTab, _backgroundPage){
         activeTabId = activeTab.id;
         backgroundPage = _backgroundPage;
 
+        $scope.title = activeTab.title;
         $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
-
-        // methods that require eventpage or tab id
-        $scope.onClickHighlight = onClickHighlight;
-        $scope.onClickCopy = onClickCopy;
-        $scope.onClickSpeak = onClickSpeak;
-        $scope.onClickRemove = onClickRemove;
-        $scope.onClickRemoveAll = onClickRemoveAll;
 
         updateDocs();
     }
-
-    chrome.tabs.query({ active: true, currentWindow: true }, function (result) {
-        chrome.runtime.getBackgroundPage(function (backgroundPage) {
-            onInit(result[0], backgroundPage);
-        });
-    });
 
     /**
      * Click a highlight. Scroll to it in DOM
      * @param {string} documentId
      */
-    var onClickHighlight = function (documentId) {
+    $scope.onClickHighlight = function (documentId) {
         backgroundPage._eventPage.scrollTo(activeTabId, documentId);
     };
 
@@ -55,15 +43,16 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clicked 'copy' button for a highlight
      * @param documentId
      */
-    var onClickCopy = function (documentId) {
+    $scope.onClickCopy = function (documentId) {
         backgroundPage._eventPage.copyHighlightText(documentId);
+        window.close();
     };
 
     /**
      * Clicked 'speak' button for a highlight
      * @param documentId
      */
-    var onClickSpeak = function (documentId) {
+    $scope.onClickSpeak = function (documentId) {
         backgroundPage._eventPage.speakHighlightText(documentId);
     };
 
@@ -71,7 +60,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clicked 'remove' button for a highlight
      * @param {string} documentId highlight id
      */
-    var onClickRemove = function (documentId) {
+    $scope.onClickRemove = function (documentId) {
         backgroundPage._eventPage.deleteHighlight(activeTabId,  documentId, function (err, result) {
             if (result && result.ok ) {
                 updateDocs();
@@ -82,9 +71,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     /**
      * Clicked 'remove all' button
      */
-    var onClickRemoveAll = function () {
-        backgroundPage._eventPage.deleteHighlights(activeTabId, $scope.match);
-        window.close();
+    $scope.onClickRemoveAll = function () {
+        if(window.confirm("This operation can't be undone. Are you sure you wish to continue?")) {
+            backgroundPage._eventPage.deleteHighlights(activeTabId, $scope.match);
+            window.close();
+        }
     };
 
     /**
@@ -102,6 +93,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 // default to undefined, implying it IS in the DOM
                 backgroundPage._eventPage.isHighlightInDOM(activeTabId, doc._id, function (isInDOM) {
                     doc.isInDOM =  isInDOM;
+                    $scope.$apply();
                 });
             });
 
@@ -109,5 +101,12 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
             $scope.$apply();
         });
     };
+
+    // starter
+    chrome.tabs.query({ active: true, currentWindow: true }, function (result) {
+        chrome.runtime.getBackgroundPage(function (backgroundPage) {
+            onInit(result[0], backgroundPage);
+        });
+    });
 
 }]);

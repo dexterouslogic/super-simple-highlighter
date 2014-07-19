@@ -34,10 +34,13 @@ var _eventPage = {
             // error param might indicate a conflict, which is ok
 
             // delete stale views associated with design docs
+            console.log("Cleaning database");
             _database.viewCleanup();
         });
 
         _contextMenus.updateMenus();
+
+//        _eventPage.onRuntimeStartup();
     },
 
     /**
@@ -49,7 +52,21 @@ var _eventPage = {
         "use strict";
         console.log("onRuntimeStartup");
 
-        _database.compact();
+        // remove entries in which the number of 'create' doc == number of 'delete' docs
+        _database.getMatchSums(function (err, rows) {
+            if (rows) {
+                rows.forEach(function (row) {
+                    // if the aggregate count of documents for this match is 0, remove all of them
+                    if (row.value === 0) {
+                        console.log("Removing stale matches for '" + row.key + "'");
+                        _database.removeDocuments(row.key);
+                    }
+                });
+            }
+
+            console.log("Compacting database");
+            _database.compact();
+        });
     },
 
     /**
@@ -86,14 +103,11 @@ var _eventPage = {
                 return;
             }
 
-            console.log("Showing page action");
-            chrome.pageAction.show(details.tabId);
-
             console.log("Injecting scripts...");
             _tabs.executeAllScripts(details.tabId, function () {
                 console.log("Replaying documents into DOM");
 
-                _tabs.replayDocuments(details.tabId, docs, function (doc) {
+                var sum = _tabs.replayDocuments(details.tabId, docs, function (doc) {
                     console.log("Error creating highlight in DOM for " + JSON.stringify(doc.range) );
 
                     // any errors will changes the page action image
@@ -105,6 +119,13 @@ var _eventPage = {
                         }
                     });
                 });
+
+                console.log("Create/Delete document sum is " + sum);
+
+                if (sum > 0) {
+                    console.log("Showing page action");
+                    chrome.pageAction.show(details.tabId);
+                }
             });
         });
     },
@@ -185,7 +206,8 @@ var _eventPage = {
                         chrome.pageAction.show(tabId);
                     } else {
                         console.log("Error creating highlight in DOM - Removing associated document");
-                        _database._removeDocument(response.id, response.rev);
+
+                        _database.removeDocument(response.id, response.rev);
                     }
                 });
         });
@@ -228,15 +250,13 @@ var _eventPage = {
                 return;
             }
 
-            // remove in DOM
-            _tabs.sendDeleteHighlightMessage(tabId, documentId);
-
             // check the number of 'create' and 'delete' documents. if equal, there
             // are no highlights for the page, so the page action can be removed
             chrome.tabs.get(tabId, function (tab) {
                 var match = _database.buildMatchString(tab.url);
 
-                _database.getAggregateDocumentCount(match, function (err, sum) {
+                // sum of +create-delete verbs for a specific match
+                _database.getMatchSum(match, function (err, sum) {
                     if (err) {
                         return;
                     }
@@ -246,6 +266,10 @@ var _eventPage = {
                     }
                 });
             });
+
+
+            // remove in DOM
+            _tabs.sendDeleteHighlightMessage(tabId, documentId);
 
             if (callback) {
                 callback(null, response);

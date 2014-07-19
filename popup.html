@@ -4,8 +4,30 @@
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
 
     <style>
+        html {
+            font-family: "Open Sans",Arial,"Lucida Grande",sans-serif;
+            color: #777
+        }
+
+        body {
+            font-size: 13px;
+            color: #777
+        }
+
+        h1,h2,h3,h4,h5,h6 {
+            font-family: "Open Sans",Arial,"Lucida Grande",sans-serif;
+            font-weight: 600;
+        }
+
+
+
+
+
+
+
         body {
             min-width: 500px;
         }
@@ -16,11 +38,11 @@
         }
 
         #remove-all {
-            margin-top: 2em;
+            margin-top: 1em;
             margin-bottom: 1em;
         }
 
-        #match {
+        #title {
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -30,8 +52,8 @@
         }
 
         .date {
-            color: #A0A0A0;
-            font-size: x-small;
+            color: #696;
+            font-size: smaller;
         }
 
         .separator {
@@ -39,19 +61,20 @@
         }
 
         .action {
-            cursor: pointer;
             color: #A0A0A0;
             font-size: x-small;
         }
 
-        .highlight {
-            /* augmented in app.js */
-            cursor: pointer !important;
-            text-decoration: none !important;
+
+        .simple-highlight {
+            /*augmented in app.js*/
+            /*cursor: pointer;*/
+            /*text-decoration: none !important;*/
         }
 
-        .info {
-            margin-top: 0.1em;
+
+        .infobar {
+            margin-bottom: 0px;
         }
     </style>
 </head>
@@ -61,12 +84,12 @@
     <!--Top (not nav)
     http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3
     -->
-    <div class="row" style="background-color: yellow;">
+    <div class="row">
         <!--Match & Document Coun-->
         <div class="col-xs-8 vcenter">
-            <h5 id="match">
-                <span class="badge">{{docs.length}}</span>
-                {{match}}
+            <h5 id="title" title="{{match}}">
+                <!--<span class="badge">{{docs.length}}</span>-->
+                {{title}}
             </h5>
         </div><!-- Search
         --><div class="col-xs-4 vcenter">
@@ -79,29 +102,31 @@
         <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
         <!--isInDOM defaults to undefined-->
         <div ng-repeat="doc in docs | filter:search"
-            ng-class="{'list-group-item': true, 'disabled': doc.isInDOM === false}"
+            class="simple-highlight {{doc.className}} list-group-item"
+            ng-class="{'disabled': doc.isInDOM === false}"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
             <!--Text-->
-            <div class="highlight {{doc.className}}" ng-click="onClickHighlight(doc._id)">
+            <div ng-click="onClickHighlight(doc._id)">
                     {{doc.text}}
             </div>
 
             <!--InfoBar-->
-            <h5 class="info">
+            <h5 class="infobar">
                 <span class="date">{{ doc.date | date:'mediumTime' }}</span>
 
                 <!--Only show these if hovering-->
                 <span ng-show="doc.hover">
                     <!--Copy-->
-                    <span class="action" ng-click="onClickCopy(doc._id)"
-                          title="Copy highlight text to clipboard" >Copy</span>
+                    <a href="" class="action" ng-click="onClickCopy(doc._id)"
+                          title="Copy highlight text to clipboard" >Copy</a>
+
                     <span class="separator">&nbsp;//&nbsp;</span>
                     <!--Speak-->
-                    <span class="action" ng-click="onClickSpeak(doc._id)"title="Speak highlight text" >Speak</span>
+                    <a href="" class="action" ng-click="onClickSpeak(doc._id)" title="Speak highlight text" >Speak</a>
 
                     <!--Remove-->
-                    <span class="action text-danger pull-right" ng-click="onClickRemove(doc._id)"
-                       title="Remove highlight" >Remove</span>
+                    <a href="" class="action text-danger pull-right" ng-click="onClickRemove(doc._id)"
+                       title="Remove highlight" >Remove</a>
                 </span>
             </h5>
         </div>

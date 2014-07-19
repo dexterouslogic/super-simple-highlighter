@@ -6,7 +6,7 @@ var _database = {
 
     /**
      * Lazy getter for database instance
-     * @return {null}
+     * @return {object} database
      */
     getDatabase: function () {
         if (!_database.db) {
@@ -18,23 +18,23 @@ var _database = {
 
     /**
      * Put the standard design documents
-     * @param [callback] function(err, result)
+     * @param [callback] function(err, result) result = [{ok:"true,id:"123",rev:"456"}, ...]
      */
     putDesignDocuments: function (callback) {
         _database.getDatabase().bulkDocs([
-            {
-                _id: '_design/matches_count_view',
-                views: {
-                    'matches_count_view': {
-                        map: function (doc) {
-                            if (doc.match) {
-                                emit(doc.match);
-                            }
-                        }.toString(),
-                        reduce: "_count"
-                    }
-                }
-            },
+//            {
+//                _id: '_design/matches_count_view',
+//                views: {
+//                    'matches_count_view': {
+//                        map: function (doc) {
+//                            if (doc.match) {
+//                                emit(doc.match);
+//                            }
+//                        }.toString(),
+//                        reduce: "_count"
+//                    }
+//                }
+//            },
             {
                 _id: '_design/match_date_view',
                 views: {
@@ -51,7 +51,6 @@ var _database = {
                 _id: '_design/sum_view',
                 views: {
                     'sum_view': {
-                        reduce: "_sum",
                         map: function (doc) {
                             // the values will be reduced with '_sum'. If that == 0, number of create == delete
                             switch (doc.verb) {
@@ -62,10 +61,11 @@ var _database = {
                                 emit(doc.match, -1);
                                 break;
                             }
-                        }.toString()
+                        }.toString(),
+                        reduce: "_sum"
                     }
                 }
-            },
+            }
 
 //            {
 //                /**
@@ -96,8 +96,28 @@ var _database = {
     },
 
     /**
+     * Destroy the database, then create it again, and put its design documents (as runtime.onInstalled does)
+     * @param {function} [callback] function(err, response) (see putDesignDocuments)
+     */
+    resetDatabase: function (callback) {
+        _database.getDatabase().destroy(function (err) {
+            if (err) {
+                if (callback) {
+                    callback(err);
+                }
+                return;
+            }
+
+            _database.db = null;
+            _database.getDatabase();
+
+            _database.putDesignDocuments(callback);
+        });
+    },
+
+    /**
      * Get the parts of the url used as a key for transactions based on the url
-     * Basically, url minus scheme, port and fragment
+     * Basically, url minus fragment
      * @param {string} url full uri (http://www.techmeme.com/mini?q=abc#here)
      * @param {object} [options]
      * @return {string} match (www.techmeme.com/mini?q=abc)
@@ -105,26 +125,37 @@ var _database = {
     buildMatchString: function (url, options) {
         if (!options) {
             options = {
-                exclude_query: false
+                include_query: true,
+                include_fragment: false
             };
         }
 
-        var u = purl(url), port = u.attr('port'), query = u.attr('query');
+        // shortcut - basically the match is the entire url
+        if( options.include_query && options.include_fragment ) {
+            return url;
+        }
 
-        // www.techmeme.com
-        var match = u.attr('host');
+        var u = purl(url), port = u.attr('port'), query = u.attr('query'), fragment = u.attr('fragment');
 
-        // :80
+        // http://techmeme.com
+        var match = u.attr('protocol') + "://" + u.attr('host');
+
+        // [:80]
         if (port && port.length !== 0) {
             match += (":" + port);
         }
+
         // /mini
         match += u.attr('path');
 
-        // ?q=123
-        if (!options.exclude_query && query && query.length !== 0) {
-            //
+        // [?q=123]
+        if (options.include_query && query && query.length !== 0) {
             match += ("?" + query);
+        }
+
+        // [#something]
+        if (options.include_fragment && fragment && fragment.length !== 0) {
+            match += ("#" + fragment);
         }
 
         return match;
@@ -179,27 +210,29 @@ var _database = {
                 correspondingDocumentId: documentId
             }, _stringUtils.createUUID({
                 beginWithLetter: true
-            }), function (err, result) {
-                if (result) {
-                    // does the creation of the delete document cause there to be no highlights in total?
-                    _database.getAggregateDocumentCount(match, function (err, sum) {
-                        if (err) {
-                            return;
-                        }
+            }), callback);
 
-                        console.log("Document sum for match '" + match + "' is " + sum);
-
-                        if (sum <= 0) {
-                            // remove stale documents
-                            _database.removeDocuments(match);
-                        }
-                    });
-                }
-
-                if (callback) {
-                    callback(err, result);
-                }
-            });
+//            }), function (err, result) {
+//                if (result) {
+//                    // does the creation of the delete document cause there to be no highlights in total?
+//                    _database.getMatchSum(match, function (err, sum) {
+//                        if (err) {
+//                            return;
+//                        }
+//
+//                        console.log("Document sum for match '" + match + "' is " + sum);
+//
+//                        if (sum <= 0) {
+//                            // remove stale documents
+//                            _database.removeDocuments(match);
+//                        }
+//                    });
+//                }
+//
+//                if (callback) {
+//                    callback(err, result);
+//                }
+//            });
         });
     },
 
@@ -285,13 +318,13 @@ var _database = {
 
     /**
      * Delete a specific document (any verb).
-     * This is usually only called after a postDeleteDocument(), when the check for stale documents finds something
+     * This is usually only called after a postDeleteDocument(), when the check for stale documents finds something,
+     * or from eventpage's createHighlight(), when something went wrong inserting it in the DOM
      * @param id
      * @param rev
      * @param [callback]
-     * @private
      */
-    _removeDocument: function (id, rev, callback) {
+    removeDocument: function (id, rev, callback) {
         _database.getDatabase().remove(id, rev, callback);
     },
 
@@ -319,23 +352,6 @@ var _database = {
         });
     },
 
-    /**
-     * Get an array of unique matches, and the count of documents (of any verb) associated with them
-     * @param {function} callback function(err, rows): rows = [{key: match, value: count}]
-     */
-    getMatches: function(callback) {
-        _database.getDatabase().query('matches_count_view', {
-            group: true,
-            group_level: 1,
-            include_docs: false
-        }, function (err, result) {
-            if (err) {
-                callback(err);
-            } else {
-                callback(null, result.rows);
-            }
-        });
-    },
 
     /**
      * map-reduce on a view of all documents associated with a key of 'match'.
@@ -345,7 +361,7 @@ var _database = {
      * @param {string} match
      * @param {function} [callback] function(err, sum)
      */
-    getAggregateDocumentCount: function (match, callback) {
+    getMatchSum: function (match, callback) {
         _database.getDatabase().query('sum_view', {
             key: match
         }, function (err, result) {
@@ -360,6 +376,25 @@ var _database = {
 
                     callback(null, sum);
                 }
+            }
+        });
+    },
+
+    /**
+     * Get an array of unique matches, and the number of documents (accounting for 'delete' documents)
+     * If the value is zero, all documents with its match (key) can be removed
+     * @param {function} callback function(err, rows): rows = [{key: match, value: count}]
+     */
+    getMatchSums: function(callback) {
+        _database.getDatabase().query('sum_view', {
+            group: true,
+            group_level: 1,
+            include_docs: false
+        }, function (err, result) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null, result.rows);
             }
         });
     },
@@ -423,7 +458,7 @@ var _database = {
      */
     compact: function (callback) {
         _database.getDatabase().compact(callback);
-    },
+    }
 
 };
 

@@ -6,20 +6,23 @@
  */
 var optionsControllers = angular.module('optionsControllers', []);
 
+// TODO: rewrite, this is too linked with storage stuff
+
 // array this is something to do with minification
-optionsControllers.controller('HighlightDefinitionsController', ["$scope", function ($scope) {
+optionsControllers.controller('DefinitionsController', ["$scope", function ($scope) {
     'use strict';
     var $modal;
 
     // model
     $scope.highlightClassName = "highlight";
 
-    $scope.definitions = [];
-    $scope.modalDefinition = null;//change.newValue[0];
-
-    $scope.modalTitle = null;
-
     function onInit () {
+        // cache
+        $modal = $('#myModal');
+
+        // listen for edit modal close
+//        $modal.on('hidden.bs.modal', onModalHidden);
+
         // listen for changes to styles
         chrome.storage.onChanged.addListener(onStorageChanged);
 
@@ -35,14 +38,9 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
             }, "sync");
         });
 
-        // cache
-        $modal = $('#myModal');
-
-        // listen for edit modal close
-        $modal.on('hidden.bs.modal', onModalHidden);
     }
 
-    $scope.onClickMyModalSave = function () {
+    $scope.onClickModalSave = function () {
         // set contents of selectedDefintion into storage
         if ($scope.modalDefinition) {
             _highlightDefinitions.set($scope.modalDefinition);
@@ -52,15 +50,31 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
     };
 
     /**
-     * Clicked an existing definition
-     * @param className
+     * Clicked the 'add new definition' button
      */
-    $scope.onClickEditDefinition = function (className) {
-        var index = _highlightDefinitions.getIndex(className, $scope.definitions);
-        if( index === -1 ) {
-            return;
-        }
+    $scope.onClickAdd = function () {
+        // default new definition
+        $scope.modalTitle = "Add New Style";
+        $scope.modalDefinition = _highlightDefinitions.create();
 
+        // activate the 'edit' model
+        $modal.modal();
+    };
+
+    /**
+     * Clicked the 'reset styles' button
+     */
+    $scope.onClickReset = function () {
+        if (window.confirm("All existing highlights will lose their style. Are you sure you wish to continue?")) {
+            _highlightDefinitions.removeAll();
+        }
+    };
+
+    /**
+     * Clicked an existing definition
+     * @param {number} index index of definition in local array
+     */
+    $scope.onClickEdit = function (index) {
         // copy (not reference) definition
         $scope.modalDefinition = _highlightDefinitions.copy($scope.definitions[index]);
         $scope.modalTitle = "Edit Style";
@@ -70,32 +84,12 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
     };
 
     /**
-     * Clicked the 'add new definition' button
-     */
-    $scope.onClickAddDefinition = function () {
-        // default new definition
-        $scope.modalDefinition = _highlightDefinitions.createDefault();
-        $scope.modalTitle = "Add New Style";
-
-        // activate the 'edit' model
-        $modal.modal();
-    };
-
-    /**
      * Clicked the per-definition 'delete' button
      * @param className
      */
-    $scope.onClickDeleteDefinition = function (className) {
+    $scope.onClickDelete = function (className) {
         // delete from storage. model should update automatically
         _highlightDefinitions.remove(className);
-    };
-
-    /**
-     * Edit modal dialog closed
-     * @param e
-     */
-    var onModalHidden = function (e) {
-        $scope.modalDefinition = null;
     };
 
     /**
@@ -135,16 +129,26 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
                     });
                 }
 
-                if (change.newValue) {
+                // if we remove all teh styles (with reset button), newValue will be undefined.
+                // so in that case, get the default styles
+                var setDefinitions = function (definitions) {
                     // update model
-                    $scope.definitions = change.newValue;
-
+                    $scope.definitions = definitions;
                     $scope.$apply();
 
                     // update stylesheet
-                    change.newValue.forEach( function (h) {
-                        _stylesheet.setHighlightStyle(h);
+                    definitions.forEach( function (definition) {
+                        _stylesheet.setHighlightStyle(definition);
                     });
+                };
+
+                if (!change.newValue) {
+                    // get defaults
+                    _highlightDefinitions.getAll(function (items) {
+                        setDefinitions(items.highlightDefinitions);
+                    });
+                } else {
+                    setDefinitions (change.newValue);
                 }
             }
         }
@@ -153,16 +157,62 @@ optionsControllers.controller('HighlightDefinitionsController', ["$scope", funct
     onInit();
 }]);
 
+
+
 optionsControllers.controller('DatabaseController', ["$scope", function ($scope) {
     'use strict';
-    $scope.rows = [];
+    var backgroundPage;
 
-    function onInit() {
-        // listen for database deletions
+    /**
+     * Init
+     * @param {object} _backgroundPage
+     */
+    function onInit(_backgroundPage){
+        backgroundPage = _backgroundPage;
 
-        chrome.storage.onChanged.addListener(onStorageChanged);
-
+        // get an array of each unique match, and the number of associated documents (which is of no use)
+        backgroundPage._database.getMatchSums(function (err, rows) {
+            if (rows) {
+                $scope.rows = rows.filter (function (row) {
+                    return row.value > 0;
+                });
+                $scope.$apply();
+            }
+        });
     }
 
-    onInit();
+    /**
+     * Clicked 'remove site' button
+     * @param {number} index
+     */
+    $scope.onClickRemove = function (index){
+        var match = $scope.rows[index].key;
+
+        backgroundPage._database.removeDocuments(match, function (err, result) {
+            if (!err) {
+                $scope.rows.splice(index, 1);
+                $scope.$apply();
+            }
+        });
+    };
+
+    /**
+     * Clicked 'remove all sites' button.
+     */
+    $scope.onClickRemoveAll = function () {
+        if (window.confirm("This operation can't be undone. Are you sure you wish to continue?")) {
+            // destroy and re-create the database
+            backgroundPage._database.resetDatabase(function (err, response) {
+                if (!err) {
+                    $scope.rows = [];
+                    $scope.$apply();
+                }
+            });
+        }
+    };
+
+    // starter
+    chrome.runtime.getBackgroundPage(function (backgroundPage) {
+        onInit(backgroundPage);
+    });
 }]);

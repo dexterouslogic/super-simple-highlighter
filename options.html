@@ -32,8 +32,8 @@
         <!--</div>-->
     <!--</nav>-->
 
-    <div ng-controller="HighlightDefinitionsController">
-        <h1>Highlight Styles</h1>
+    <div ng-controller="DefinitionsController">
+        <h1>Styles</h1>
 
         <!-- Shared Modal Dialog-->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog"
@@ -93,7 +93,7 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-primary" ng-disabled="myForm.$invalid"
-                                    ng-click="onClickMyModalSave()">Save</button>
+                                    ng-click="onClickModalSave()">Save</button>
                         </div>
                     </form>
                 </div>
@@ -102,11 +102,10 @@
 
         <!--Chips-->
         <ul class="list-inline">
-            <li ng-repeat="hd in definitions" class="token {{highlightClassName}} {{hd.className}}"
-                    ng-click="onClickEditDefinition(hd.className)">
-                <span>{{hd.title}}</span>
+            <li ng-repeat="hd in definitions" class="token {{highlightClassName}} {{hd.className}}">
+                <a href="" ng-click="onClickEdit($index)">{{hd.title}}</a>
                 <!--Delete Button-->
-                <button type="button" class="close" ng-click="onClickDeleteDefinition(hd.className)">
+                <button type="button" class="close" ng-click="onClickDelete(hd.className)">
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
@@ -114,15 +113,29 @@
         </ul>
 
         <!-- New Definition -->
-        <button type="button" class="btn btn-default" ng-click="onClickAddDefinition()">Add New Style</button>
+        <button type="button" class="btn btn-default" ng-click="onClickAdd()">Add New Style</button>
+        <button type="button" class="btn btn-default" ng-click="onClickReset()">Reset</button>
     </div>
 
     <div ng-controller="DatabaseController">
-        <h1>Database</h1>
+        <h1>Sites</h1>
 
+        <ul>
+            <li ng-repeat="row in rows">
+                <span class="badge">{{row.value}}</span>
+                <a href="{{row.key}}" target="_blank">{{row.key}}</a>
+
+                <button type="button" class="close pull-right" ng-click="onClickRemove($index)">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+            </li>
+        </ul>
+
+        <button type="button" class="btn btn-default" ng-click="onClickRemoveAll()">Remove All</button>
     </div>
 
-<script src="static/js/jquery-2.1.1.min.js"></script>
+    <script src="static/js/jquery-2.1.1.min.js"></script>
 <script src="static/js/jquery.stylesheet.min.js"></script>
 <script src="static/js/angular.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>

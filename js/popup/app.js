@@ -1,4 +1,4 @@
-/*global angular, _storage, _stylesheet*/
+/*global angular, _highlightDefinitions, _stylesheet*/
 
 /**
  * App Module
@@ -13,19 +13,23 @@ $().ready(function () {
     "use strict";
     // 1 - get current highlight styles, and apply to DOM
     // Note that we share this script with the content page (directly)
-    _highlightDefinitions.getAll(function (result) {
+    _highlightDefinitions.getAll(function (items) {
+        if (!items) {
+            return;
+        }
+
         // shared highlight styles
-        if (result.defaultHighlightStyle) {
+        if (items.sharedHighlightStyle) {
             _stylesheet.setHighlightStyle({
-                className: "highlight",
-                style: result.defaultHighlightStyle
+                className: "simple-highlight",
+                style: items.sharedHighlightStyle
             });
         }
 
         // must apply per-style rules last
-        if (result.highlightDefinitions) {
-            result.highlightDefinitions.forEach(function (h) {
-                _stylesheet.setHighlightStyle(h);
+        if (items.highlightDefinitions) {
+            items.highlightDefinitions.forEach(function (definition) {
+                _stylesheet.setHighlightStyle(definition);
             });
         }
     });

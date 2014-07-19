@@ -4,8 +4,8 @@ var _stylesheet = {
     /**
      * Apply rules of a single highlight style
      */
-    setHighlightStyle: function (h) {
-        var $ss = $.stylesheet('.' + h.className);
+    setHighlightStyle: function (definition) {
+        var $ss = $.stylesheet('.' + definition.className);
 //        if (reset) {
 //            $ss.css(null);
 //
@@ -14,7 +14,7 @@ var _stylesheet = {
 //        }
 //
 
-        $ss.css(null).css(h.style);
+        $ss.css(null).css(definition.style);
 
 //        // also modify DOM to include a style element which can be saved
 //        var rules = $ss.rules();
