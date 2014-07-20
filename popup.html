@@ -25,22 +25,34 @@
             text-overflow: ellipsis;
         }
 
+        .highlight-text{
+            padding: 10px 15px !important;
+        }
+
+        .not-in-dom {
+
+        }
+
         li {
-            margin-bottom: 0.5em;
+            margin-bottom: 10px;
+        }
+
+        .actions {
+            margin-top: 2px;
+            font-size: smaller;
+        }
+
+        .actions a {
+            color: #A0A0A0;
         }
 
         .date {
             color: #696;
-            font-size: smaller;
+            margin-right: 10px;
         }
 
         .separator {
             color: #CFCFCF;
-        }
-
-        .action {
-            color: #A0A0A0;
-            font-size: x-small;
         }
 
 
@@ -51,24 +63,30 @@
         }
 
 
-        .infobar {
-            margin-bottom: 0px;
-        }
     </style>
 </head>
 
-<body ng-controller="DocumentsController" >
-<div class="container">
+<body >
+<div class="container" ng-controller="DocumentsController">
     <!--Top (not nav)
     http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3
     -->
+    <!--Header-->
     <div class="row">
-        <!--Match & Document Coun-->
-        <div class="col-xs-8 vcenter">
-            <h5 id="title" title="{{match}}">
+        <div class="col-xs-8 vcenter" style="margin: 10px 0">
+            <span id="title" title="{{match}}">
                 <!--<span class="badge">{{docs.length}}</span>-->
                 {{title}}
-            </h5>
+            </span>
+
+            <div class="dropdown" style="display: inline">
+                <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickRemoveAll(match)">Remove All</a>
+                    </li>
+                </ul>
+            </div>
         </div><!-- Search
         --><div class="col-xs-4 vcenter">
             <input type="search" class="form-control input-sm" ng-model="search.text" placeholder="Search">
@@ -76,46 +94,52 @@
     </div>
 
     <!--List-->
-    <div class="list-group">
+    <ul class="list-unstyled">
         <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
         <!--isInDOM defaults to undefined-->
-        <div ng-repeat="doc in docs | filter:search"
-            class="simple-highlight {{doc.className}} list-group-item"
-            ng-class="{'disabled': doc.isInDOM === false}"
+        <li ng-repeat="doc in docs | filter:search"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
             <!--Text-->
-            <div ng-click="onClickHighlight(doc._id)">
-                    {{doc.text}}
+            <div class="highlight {{doc.className}} highlight-text"
+                 ng-class="{'not-in-dom': doc.isInDOM === false}"
+                 ng-click="onClickHighlight(doc._id)">
+                <!--Delete Button-->
+                <button type="button" class="close"  title="Remove Highlight"
+                        ng-click="onClickRemove(doc._id); $event.preventDefault(); $event.stopPropagation();">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <span>{{doc.text}}</span>
+
             </div>
 
             <!--InfoBar-->
-            <h5 class="infobar">
+            <div class="actions">
                 <span class="date">{{ doc.date | date:'mediumTime' }}</span>
 
                 <!--Only show these if hovering-->
                 <span ng-show="doc.hover">
                     <!--Copy-->
-                    <a href="" class="action" ng-click="onClickCopy(doc._id)"
-                          title="Copy highlight text to clipboard" >Copy</a>
+                    <a href="" ng-click="onClickCopy(doc._id)"
+                          title="Copy Highlight to Clipboard" >Copy</a>
 
                     <span class="separator">&nbsp;//&nbsp;</span>
-                    <!--Speak-->
-                    <a href="" class="action" ng-click="onClickSpeak(doc._id)" title="Speak highlight text" >Speak</a>
 
-                    <!--Remove-->
-                    <a href="" class="action text-danger pull-right" ng-click="onClickRemove(doc._id)"
-                       title="Remove highlight" >Remove</a>
+                    <!--Speak-->
+                    <a href="" ng-click="onClickSpeak(doc._id)" title="Speak Highlight" >Speak</a>
                 </span>
-            </h5>
-        </div>
-    </div>
+            </div>
+        </li>
+    </ul>
 
 
     <!--Remove All-->
-    <button id="remove-all" class="btn btn-danger btn-block" ng-click="onClickRemoveAll(doc.match)"
+<!--
+    <button id="remove-all" class="btn btn-danger pull-right" ng-click="onClickRemoveAll(doc.match)"
             title="Remove every highlight from the page">
-        Remove All
+        <span class="glyphicon glyphicon-remove" style="vertical-align: text-top"></span> Remove All
     </button>
+-->
 </div>
 
 

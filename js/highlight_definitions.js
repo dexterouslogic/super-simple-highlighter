@@ -45,7 +45,7 @@ var _highlightDefinitions = {
                 ],
                     'sharedHighlightStyle': {
                         "border-radius": "0.2em",
-//                        "padding": "0.2em",
+                        "padding": "0.2em",
                         "transition-property": "color, background-color",
                         "transition-duration": "0.1s, 0.1s",
                         "transition-timing-function": "linear, linear",

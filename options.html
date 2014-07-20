@@ -25,6 +25,7 @@
 
         .site > .close {
             float: none;
+            margin-left: 0.5em;
             vertical-align: middle;
         }
 
@@ -59,7 +60,7 @@
 
     <div class="row" ng-controller="SitesController">
         <!--Nav Pills-->
-        <div class="col-xs-4">
+        <div class="col-xs-2">
             <ul class="nav nav-pills nav-stacked" role="tablist">
                 <li class="active"><a href="#styles" role="tab" data-toggle="pill">Styles</a></li>
                 <li><a href="#sites" role="tab" data-toggle="pill">Sites</a></li>
@@ -68,7 +69,7 @@
         </div>
 
         <!--Nav Content-->
-        <div class="col-xs-8 tab-content">
+        <div class="col-xs-10 tab-content">
             <!--Styles Pane-->
             <div class="tab-pane active" id="styles" ng-controller="StylesController">
                 <!-- Shared Modal Dialog-->

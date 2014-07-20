@@ -21,7 +21,7 @@ $().ready(function () {
         // shared highlight styles
         if (items.sharedHighlightStyle) {
             _stylesheet.setHighlightStyle({
-                className: "simple-highlight",
+                className: "highlight",
                 style: items.sharedHighlightStyle
             });
         }
