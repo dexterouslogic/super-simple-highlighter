@@ -8,134 +8,181 @@
 
     <style>
         .token {
+            margin: 0.1em;
+            font-size: 36pt;
+            padding-left: 0.3em !important;
             cursor: pointer;
+        }
+
+        .token > .close {
+            margin: 0.3em;
+        }
+
+        .token > a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .site > .close {
+            float: none;
+            vertical-align: middle;
+        }
+
+        .row-buttons {
+            margin-top: 2em;
         }
     </style>
 </head>
 
-<body data-spy="scroll" data-target=".navbar">
+<body>
+<nav class="navbar navbar-inverse" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Brand</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        </div>
+    </div>
+</nav>
+
 <div class="container">
-    <!--Nav-->
-    <!--<nav class="navbar navbar-default" role="navigation">-->
-        <!--<div class="container-fluid">-->
-            <!--&lt;!&ndash; Brand and toggle get grouped for better mobile display &ndash;&gt;-->
-            <!--<div class="navbar-header">-->
-                <!--<button type="button" class="navbar-toggle" data-toggle="collapse"-->
-                        <!--data-target="#bs-example-navbar-collapse-1">-->
-                    <!--<span class="sr-only">Toggle navigation</span>-->
-                    <!--<span class="icon-bar"></span>-->
-                    <!--<span class="icon-bar"></span>-->
-                    <!--<span class="icon-bar"></span>-->
-                <!--</button>-->
-                <!--<a class="navbar-brand" href="#">Brand</a>-->
-            <!--</div>-->
-        <!--</div>-->
-    <!--</nav>-->
 
-    <div ng-controller="DefinitionsController">
-        <h1>Styles</h1>
+    <div class="row" ng-controller="SitesController">
+        <!--Nav Pills-->
+        <div class="col-xs-4">
+            <ul class="nav nav-pills nav-stacked" role="tablist">
+                <li class="active"><a href="#styles" role="tab" data-toggle="pill">Styles</a></li>
+                <li><a href="#sites" role="tab" data-toggle="pill">Sites</a></li>
+                <li><a href="#about" role="tab" data-toggle="pill">About</a></li>
+            </ul>
+        </div>
 
-        <!-- Shared Modal Dialog-->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog"
-             aria-labelledby="myModalTitle" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form name="myForm" role="form">
-                        <!--Header-->
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span aria-hidden="true">&times;</span>
-                                <span class="sr-only">Close</span>
-                            </button>
+        <!--Nav Content-->
+        <div class="col-xs-8 tab-content">
+            <!--Styles Pane-->
+            <div class="tab-pane active" id="styles" ng-controller="StylesController">
+                <!-- Shared Modal Dialog-->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog"
+                     aria-labelledby="myModalTitle" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form name="myForm" role="form">
+                                <!--Header-->
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span aria-hidden="true">&times;</span>
+                                        <span class="sr-only">Close</span>
+                                    </button>
 
-                            <h4 class="modal-title" id="myModalTitle">
-                                {{modalTitle}}
-                            </h4>
-<!--
-                            <span class="help-block">
-                                A block of help text that breaks onto a new line and may extend beyond one line.
-                            </span>
--->
-                        </div>
+                                    <h4 class="modal-title" id="myModalTitle">
+                                        {{modalTitle}}
+                                    </h4>
+                                </div>
 
-                        <!--Body-->
-                        <div class="modal-body">
-                            <!--Title-->
-                            <div class="form-group"
-                                 ng-class="{'has-error': myForm.title.$invalid && !myForm.title.$pristine}">
+                                <!--Body-->
+                                <div class="modal-body">
+                                    <!--Title-->
+                                    <div class="form-group"
+                                         ng-class="{'has-error': myForm.title.$invalid && !myForm.title.$pristine}">
 
-                                <label class="control-label" for="myTitle">Title</label>
-                                <input class="form-control input-lg" name="title" id="myTitle"
-                                       type="text" placeholder="Title" ng-model="modalDefinition.title" required>
+                                        <label class="control-label" for="myTitle">Title</label>
+                                        <input class="form-control input-lg" name="title" id="myTitle"
+                                               type="text" placeholder="Title" ng-model="modalDefinition.title"
+                                               required>
 
                                 <span ng-show="myForm.title.$error.required && !myForm.title.$pristine"
                                       class="help-block">
                                     Required
                                 </span>
-                            </div>
+                                    </div>
 
-                            <!--Background Colour-->
-                            <div class="form-group">
-                                <label for="backgroundColour">Background Colour</label>
-                                <input type="color" class="form-control" id="backgroundColour"
-                                        ng-model="modalDefinition.style['background-color']">
-                            </div>
+                                    <!--Background Colour-->
+                                    <div class="form-group">
+                                        <label for="backgroundColour">Background Colour</label>
+                                        <input type="color" class="form-control" id="backgroundColour"
+                                               ng-model="modalDefinition.style['background-color']">
+                                    </div>
 
-                            <!--Text Colour-->
-                            <div class="form-group">
-                                <label for="textColour">Text Colour</label>
-                                <input type="color" class="form-control" id="textColour"
-                                       ng-model="modalDefinition.style['color']">
-                            </div>
+                                    <!--Text Colour-->
+                                    <div class="form-group">
+                                        <label for="textColour">Text Colour</label>
+                                        <input type="color" class="form-control" id="textColour"
+                                               ng-model="modalDefinition.style['color']">
+                                    </div>
+                                </div>
+
+                                <!--Footer-->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" ng-disabled="myForm.$invalid"
+                                            ng-click="onClickModalSave()">Save
+                                    </button>
+                                </div>
+                            </form>
                         </div>
+                    </div>
+                </div>
 
-                        <!--Footer-->
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" ng-disabled="myForm.$invalid"
-                                    ng-click="onClickModalSave()">Save</button>
-                        </div>
-                    </form>
+                <!--Defintions-->
+                <ul class="list-unstyled">
+                    <li ng-repeat="d in definitions"
+                        class="token {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
+                        <span>{{d.title}}</span>
+                        <!--Delete Button-->
+                        <button type="button" class="close"  title="Remove Style"
+                                ng-click="onClickDelete(d.className); $event.preventDefault(); $event.stopPropagation();">
+                            <span aria-hidden="true">&times;</span>
+                            <span class="sr-only">Close</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Buttons -->
+                <div class="row row-buttons">
+                    <button type="button" class="btn btn-default" ng-click="onClickAdd()">
+                        <span class="glyphicon glyphicon-plus"></span> Add Style
+                    </button>
+                    <button type="button" class="btn btn-danger pull-right" ng-click="onClickReset()">
+                        Reset to Defaults
+                    </button>
                 </div>
             </div>
+
+            <!--Sites Pane-->
+            <div class="tab-pane" id="sites" ng-controller="SitesController">
+                <ul>
+                    <li ng-repeat="row in rows" class="site">
+                        <a href="{{row.key}}" target="_blank">{{row.key}}</a>
+
+                        <button type="button" class="close" ng-click="onClickRemove($index)" title="Remove Site">
+                            <span aria-hidden="true">&times;</span>
+                            <span class="sr-only">Close</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="row row-buttons">
+                    <button type="button" class="btn btn-danger pull-right " ng-click="onClickRemoveAll()">
+                        Remove All Sites</button>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="about">About Pane</div>
         </div>
-
-        <!--Chips-->
-        <ul class="list-inline">
-            <li ng-repeat="hd in definitions" class="token {{highlightClassName}} {{hd.className}}">
-                <a href="" ng-click="onClickEdit($index)">{{hd.title}}</a>
-                <!--Delete Button-->
-                <button type="button" class="close" ng-click="onClickDelete(hd.className)">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-            </li>
-        </ul>
-
-        <!-- New Definition -->
-        <button type="button" class="btn btn-default" ng-click="onClickAdd()">Add New Style</button>
-        <button type="button" class="btn btn-default" ng-click="onClickReset()">Reset</button>
     </div>
 
-    <div ng-controller="DatabaseController">
-        <h1>Sites</h1>
-
-        <ul>
-            <li ng-repeat="row in rows">
-                <span class="badge">{{row.value}}</span>
-                <a href="{{row.key}}" target="_blank">{{row.key}}</a>
-
-                <button type="button" class="close pull-right" ng-click="onClickRemove($index)">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-            </li>
-        </ul>
-
-        <button type="button" class="btn btn-default" ng-click="onClickRemoveAll()">Remove All</button>
-    </div>
-
-    <script src="static/js/jquery-2.1.1.min.js"></script>
+</div>
+<script src="static/js/jquery-2.1.1.min.js"></script>
 <script src="static/js/jquery.stylesheet.min.js"></script>
 <script src="static/js/angular.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>

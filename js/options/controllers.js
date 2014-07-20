@@ -9,7 +9,7 @@ var optionsControllers = angular.module('optionsControllers', []);
 // TODO: rewrite, this is too linked with storage stuff
 
 // array this is something to do with minification
-optionsControllers.controller('DefinitionsController', ["$scope", function ($scope) {
+optionsControllers.controller('StylesController', ["$scope", function ($scope) {
     'use strict';
     var $modal;
 
@@ -159,7 +159,7 @@ optionsControllers.controller('DefinitionsController', ["$scope", function ($sco
 
 
 
-optionsControllers.controller('DatabaseController', ["$scope", function ($scope) {
+optionsControllers.controller('SitesController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage;
 

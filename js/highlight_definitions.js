@@ -23,8 +23,8 @@ var _highlightDefinitions = {
                         "#AAffff", "#000000"),
                     _highlightDefinitions.create("Purple", "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a",
                         "#FFAAFF", "#000000"),
-                    _highlightDefinitions.create("Black", "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a",
-                        "#000000", "#FFFFFF"),
+                    _highlightDefinitions.create("Gray", "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a",
+                        "#444444", "#FFFFFF"),
 
 
 //                    _highlightDefinitions.create("Red", "aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce-default-red",
