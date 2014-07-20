@@ -4,66 +4,9 @@
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/popup.css" rel="stylesheet">
 
-    <style>
-        body {
-            min-width: 500px;
-        }
-        .vcenter {
-            display: inline-block;
-            vertical-align: middle;
-            float: none;
-        }
-
-        #remove-all {
-            margin-top: 1em;
-            margin-bottom: 1em;
-        }
-
-        #title {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .highlight-text{
-            padding: 10px 15px !important;
-        }
-
-        .not-in-dom {
-
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
-
-        .actions {
-            margin-top: 2px;
-            font-size: smaller;
-        }
-
-        .actions a {
-            color: #A0A0A0;
-        }
-
-        .date {
-            color: #696;
-            margin-right: 10px;
-        }
-
-        .separator {
-            color: #CFCFCF;
-        }
-
-
-        .simple-highlight {
-            /*augmented in app.js*/
-            /*cursor: pointer;*/
-            /*text-decoration: none !important;*/
-        }
-
-
-    </style>
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" type="text/css">
 </head>
 
 <body >
@@ -74,11 +17,8 @@
     <!--Header-->
     <div class="row">
         <div class="col-xs-8 vcenter" style="margin: 10px 0">
-            <span id="title" title="{{match}}">
-                <!--<span class="badge">{{docs.length}}</span>-->
-                {{title}}
-            </span>
-
+            <h5 class="title" title="{{match}}">{{title}}</h5>
+<!-- <span class="badge">{{docs.length}}</span> -->
             <div class="dropdown" style="display: inline">
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
@@ -97,11 +37,10 @@
     <ul class="list-unstyled">
         <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
         <!--isInDOM defaults to undefined-->
-        <li ng-repeat="doc in docs | filter:search"
+        <li ng-repeat="doc in docs | filter:search"  ng-class="{'not-in-dom': doc.isInDOM === false}"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
             <!--Text-->
             <div class="highlight {{doc.className}} highlight-text"
-                 ng-class="{'not-in-dom': doc.isInDOM === false}"
                  ng-click="onClickHighlight(doc._id)">
                 <!--Delete Button-->
                 <button type="button" class="close"  title="Remove Highlight"
@@ -115,7 +54,7 @@
 
             <!--InfoBar-->
             <div class="actions">
-                <span class="date">{{ doc.date | date:'mediumTime' }}</span>
+                <span class="date">{{ doc.date | date:'medium' }}</span>
 
                 <!--Only show these if hovering-->
                 <span ng-show="doc.hover">

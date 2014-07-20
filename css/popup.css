@@ -1,0 +1,67 @@
+
+body {
+    font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
+    color: #777
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
+    font-weight: 600;
+    color: #000
+}
+
+body {
+    min-width: 500px;
+}
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+
+#remove-all {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.title {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.highlight-text {
+    padding: 10px 15px !important;
+}
+
+li {
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.actions {
+    margin-top: 2px;
+    font-size: smaller;
+}
+
+.actions a {
+    color: #A0A0A0;
+}
+
+.date {
+    color: #696;
+    margin-right: 10px;
+}
+
+.separator {
+    color: #CFCFCF;
+}
+
+
+
+.not-in-dom {
+    background: #f9f9f9;
+    border-left: 10px solid #c66;
+    padding: 0.5em 10px;
+}

@@ -5,34 +5,9 @@
     <title>My Options Page</title>
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/options.css" rel="stylesheet">
 
-    <style>
-        .token {
-            margin: 0.1em;
-            font-size: 36pt;
-            padding-left: 0.3em !important;
-            cursor: pointer;
-        }
-
-        .token > .close {
-            margin: 0.3em;
-        }
-
-        .token > a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .site > .close {
-            float: none;
-            margin-left: 0.5em;
-            vertical-align: middle;
-        }
-
-        .row-buttons {
-            margin-top: 2em;
-        }
-    </style>
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" type="text/css">
 </head>
 
 <body>
@@ -101,10 +76,10 @@
                                                type="text" placeholder="Title" ng-model="modalDefinition.title"
                                                required>
 
-                                <span ng-show="myForm.title.$error.required && !myForm.title.$pristine"
-                                      class="help-block">
-                                    Required
-                                </span>
+                                        <span ng-show="myForm.title.$error.required && !myForm.title.$pristine"
+                                              class="help-block">
+                                            Required
+                                        </span>
                                     </div>
 
                                     <!--Background Colour-->
@@ -119,6 +94,20 @@
                                         <label for="textColour">Text Colour</label>
                                         <input type="color" class="form-control" id="textColour"
                                                ng-model="modalDefinition.style['color']">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="hotkey">Keyboard Shortcut</label>
+                                        <input type="text" class="form-control" id="hotkey"
+                                               ng-model="modalDefinition.hotkey">
+                                        <span class="help-block">
+                                            <p>This should be in the format of a single letter, or optionally a key with
+                                            the <kbd>Shift</kbd> qualifier, separated with a <kbd>+</kbd> character. For
+                                            example, <kbd>Y</kbd>, <kbd>Shift+A</kbd>.
+                                            </p>
+                                            <p class="text-warning">Usage of <kbd>Ctrl</kbd> or
+                                            <kbd>Alt</kbd> modifiers is not recommended.</p>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -135,10 +124,16 @@
                 </div>
 
                 <!--Defintions-->
+                <h4>Predefined Highlight Styles</h4>
+
                 <ul class="list-unstyled">
                     <li ng-repeat="d in definitions"
                         class="token {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
+                        <!--title-->
                         <span>{{d.title}}</span>
+                        <!--hotkey-->
+                        <kbd class="hotkey" ng-show="{{d.hotkey != null && d.hotkey.length > 0}}">{{d.hotkey}}</kbd>
+
                         <!--Delete Button-->
                         <button type="button" class="close"  title="Remove Style"
                                 ng-click="onClickDelete(d.className); $event.preventDefault(); $event.stopPropagation();">
@@ -161,7 +156,8 @@
 
             <!--Sites Pane-->
             <div class="tab-pane" id="sites" ng-controller="SitesController">
-                <ul>
+                <h4>Sites containing one or more highlights</h4>
+                <ol>
                     <li ng-repeat="row in rows" class="site">
                         <a href="{{row.key}}" target="_blank">{{row.key}}</a>
 
@@ -170,7 +166,7 @@
                             <span class="sr-only">Close</span>
                         </button>
                     </li>
-                </ul>
+                </ol>
 
                 <div class="row row-buttons">
                     <button type="button" class="btn btn-danger pull-right " ng-click="onClickRemoveAll()">

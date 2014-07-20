@@ -24,28 +24,11 @@ var _highlightDefinitions = {
                     _highlightDefinitions.create("Purple", "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a",
                         "#FFAAFF", "#000000"),
                     _highlightDefinitions.create("Gray", "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a",
-                        "#444444", "#FFFFFF"),
-
-
-//                    _highlightDefinitions.create("Red", "aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce-default-red",
-//                        "#FF0000", "#000000"),
-//                    _highlightDefinitions.create("Orange", "da01945e-1964-4d27-8a6c-3331e1fe7f14-default-orange",
-//                        "#FFA500", "#000000"),
-//                    _highlightDefinitions.create("Yellow", "aaddcf5c-0e41-4f83-8a64-58c91f7c6250-default-yellow",
-//                        "#FFFF60", "#000000"),
-//                    _highlightDefinitions.create("Green", "c4d41e0a-e40f-4c3f-91ad-2d66481614c2-default-green",
-//                        "#60FF60", "#000000"),
-//                    _highlightDefinitions.create("Cyan", "f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b-default-cyan",
-//                        "#60FFFF", "#000000"),
-//                    _highlightDefinitions.create("Purple", "c472dcdb-f2b8-41ab-bb1e-2fb293df172a-default-purple",
-//                        "#FF60FF", "#000000"),
-//                    _highlightDefinitions.create("Black", "da7cb902-89c6-46fe-b0e7-d3b35aaf237a-default-black",
-//                        "#000000", "#FFFFFF"),
-
+                        "#444444", "#FFFFFF")
                 ],
                     'sharedHighlightStyle': {
                         "border-radius": "0.2em",
-                        "padding": "0.2em",
+                        //"padding": "0.2em",
                         "transition-property": "color, background-color",
                         "transition-duration": "0.1s, 0.1s",
                         "transition-timing-function": "linear, linear",
@@ -68,28 +51,52 @@ var _highlightDefinitions = {
      * @param {string} [className] optional class name
      * @param {string} [backgroundColor] optional background color in form #RRGGBB
      * @param {string} [textColor] optional background text colour in form #RRGGBB
+     * @param {string} [hotkey] jquery hotkey format string
      * @return {object}
      */
-    create: function (title, className, backgroundColor, textColor) {
+    create: function (title, className, backgroundColor, textColor, hotkey) {
         "use strict";
-        var definition = {};
 
-        definition.title = (title ? title : "Untitled");
+        // required
+        var d = {
+            title: (title ? title : "Untitled"),
+            className: (className ? className : _stringUtils.createUUID({
+                beginWithLetter: true
+            })),
+            hotkey: hotkey,
 
-        definition.className = (className ? className : _stringUtils.createUUID({
-            beginWithLetter: true
-        }));
+            style: {
+                "background-color": backgroundColor ? backgroundColor : "#ff8080",
+                "color": textColor ? textColor : "#00000",
 
-        definition.style = {
-            "background-color": backgroundColor ? backgroundColor : "#ff8080",
-            "color": textColor ? textColor : "#00000",
-
-            // must override the shared style
-            "font-style": "inherit"
+                // must override the shared style
+                "font-style": "inherit"
+            }
         };
 
-        return definition;
+
+        return d;
     },
+//
+//    /**
+//     * Copy (not reference) an existing definition
+//     * @param oldDefinition
+//     * @return {object}
+//     */
+//    copy: function (oldDefinition) {
+//        "use strict";
+//        return $.extend(true, {}, oldDefinition);
+////        return {
+////            className: oldDefinition.className,
+////            title: oldDefinition.title,
+////            hotkey: hotkey,
+////            style: {
+////                "color": oldDefinition.style.color,
+////                "background-color": oldDefinition.style["background-color"],
+////                "font-style": oldDefinition.style["font-style"]
+////            }
+////        };
+//    },
 
     /**
      * Get an array of objects describing highlight styles
@@ -183,9 +190,7 @@ var _highlightDefinitions = {
      */
     removeAll: function (callback) {
         "use strict";
-        chrome.storage.sync.remove([
-            "highlightDefinitions",
-        ], function () {
+        chrome.storage.sync.remove("highlightDefinitions", function () {
             if (callback) {
                 callback(chrome.runtime.lastError);
             }
@@ -207,22 +212,5 @@ var _highlightDefinitions = {
         }
 
         return -1;
-    },
-
-    /**
-     * Copy (not reference) an existing definition
-     * @param oldDefinition
-     * @return {object}
-     */
-    copy: function (oldDefinition) {
-        "use strict";
-        return {
-            className: oldDefinition.className,
-            title: oldDefinition.title,
-            style: {
-                "color": oldDefinition.style.color,
-                "background-color": oldDefinition.style["background-color"]
-            }
-        };
     }
 };

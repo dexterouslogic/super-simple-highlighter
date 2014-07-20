@@ -34,6 +34,7 @@ var _tabs = {
         this.executeScripts(tabId, [
             { file: "static/js/jquery-2.1.1.min.js" },
             { file: "static/js/jquery.stylesheet.min.js" },
+            { file: "static/js/jquery.hotkeys.min.js" },
             { file: "js/highlight_definitions.js" },
             { file: "js/string_utils.js" },
             { file: "js/stylesheet.js" },

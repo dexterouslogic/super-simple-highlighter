@@ -100,11 +100,17 @@ var _contextMenus = {
                 } else {
                     // standard items for creating new highlight using the selection
                     items.highlightDefinitions.forEach(function (h) {
+                        // form title, with optional hotkey suffix
+                        var title = h.title;
+                        if (h.hotkey && h.hotkey.length > 0) {
+                            title += " [" + h.hotkey + "]";
+                        }
+
                         chrome.contextMenus.create({
                             type: "normal",
                             id: "create_highlight." + h.className,
                             parentId: parentId,
-                            title: h.title,
+                            title: title,
                             contexts: ["selection"]
                         });
                     });
@@ -146,8 +152,6 @@ var _contextMenus = {
                         _contextMenus.hoveredHighlightId, className);
                 }
                 break;
-
-            case "say_highlight":
 
             default:
                 throw "Unhandled menu item id: " + info.menuItemId;

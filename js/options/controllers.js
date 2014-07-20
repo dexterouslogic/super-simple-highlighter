@@ -75,8 +75,8 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
      * @param {number} index index of definition in local array
      */
     $scope.onClickEdit = function (index) {
-        // copy (not reference) definition
-        $scope.modalDefinition = _highlightDefinitions.copy($scope.definitions[index]);
+        // deep copy
+        $scope.modalDefinition = angular.copy($scope.definitions[index]);//   _highlightDefinitions.copy($scope.definitions[index]);
         $scope.modalTitle = "Edit Style";
 
         // activate the 'edit' model

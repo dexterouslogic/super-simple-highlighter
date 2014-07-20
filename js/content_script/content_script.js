@@ -1,4 +1,4 @@
-/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _xpath*/
+/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _xpath, _highlightDefinitions*/
 
 var _contentScript  = {
     /**
@@ -19,6 +19,7 @@ var _contentScript  = {
 
         // listen for changes to styles
         chrome.storage.onChanged.addListener(_contentScript.onStorageChanged);
+
         // fake a change for initial update
         _highlightDefinitions.getAll(function (result) {
             _contentScript.onStorageChanged({
@@ -222,7 +223,6 @@ var _contentScript  = {
         }
     },
 
-
     /**
      * A value in the storage changed
      * @param changes
@@ -236,37 +236,86 @@ var _contentScript  = {
 
             // default FIRST
             if (changes.sharedHighlightStyle) {
-                var change = changes.sharedHighlightStyle;
+                var c1 = changes.sharedHighlightStyle;
 
-                if (change.oldValue) {
+                if (c1.oldValue) {
                     _stylesheet.clearHighlightStyle(_contentScript.highlightClassName);
                 }
 
-                if (change.newValue) {
+                if (c1.newValue) {
                     _stylesheet.setHighlightStyle({
                         className: _contentScript.highlightClassName,
-                        style: change.newValue
+                        style: c1.newValue
                     });
                 }
             }
 
             // specific last
             if (changes.highlightDefinitions) {
-                var change = changes.highlightDefinitions;
+                var c2 = changes.highlightDefinitions;
 
-                if (change.oldValue) {
-                    change.oldValue.forEach( function (h) {
+                // Remove all event handlers in the ".hotkeys" namespace
+                $(document).off('keypress.hotkeys');
+
+                if (c2.oldValue) {
+                    c2.oldValue.forEach( function (h) {
                         _stylesheet.clearHighlightStyle(h.className);
                     });
                 }
 
-                if (change.newValue) {
-                    change.newValue.forEach( function (h) {
+                if (c2.newValue) {
+                    c2.newValue.forEach( function (h) {
                         _stylesheet.setHighlightStyle(h);
+
+                        if (h.hotkey && h.hotkey.length > 0) {
+                            // sort modifiers alphabetically
+                            var tokens = h.hotkey.split("+");
+
+                            // remove last letter
+                            var key = tokens.pop();
+                            // sort alphabetically
+                            tokens = tokens.map( function (modifier) {
+                                return modifier.toLowerCase();
+                            }).sort();
+                            // add last letter again
+                            tokens.push(key);
+                            // reform
+                            var hotkey = tokens.join("+");
+
+                            $(document).on('keypress.hotkeys', null, hotkey,
+                                _contentScript.onKeyPressFactory(h.className));
+                        }
                     });
                 }
+
+                // if the highlight definitions define any shortcuts, add the handler, with specific data
+
+
             }
         }
+    },
+
+    /**
+     * Factory method for onKeyPress handler
+     * @param {string} className class name to associated with the highlight
+     */
+    onKeyPressFactory: function(className){
+        "use strict";
+        return function() {
+            // get the current selection, if any
+            var range = _contentScript.getSelectionRange();
+            if (range.collapsed) {
+                return;
+            }
+
+            // tell event page to highlight the selection
+            chrome.runtime.sendMessage({
+                id: "create_highlight",
+                className: className,
+                range: _xpath.createXPathRangeFromRange(range),
+                selectionText: range.toString()
+            });
+        };
     }
 };
 

@@ -1,0 +1,42 @@
+
+body {
+    font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
+    color: #777
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
+    font-weight: 600;
+    color: #000
+}
+
+
+.token {
+    margin: 8px;
+    font-size: 24pt;
+    padding: 10px 0 10px 0.3em !important;
+    cursor: pointer;
+}
+
+.token > .close {
+    margin-right: 12px;
+}
+
+.token .hotkey {
+    font-size: 14pt;
+}
+
+.token > a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.site > .close {
+    float: none;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.row-buttons {
+    margin-top: 2em;
+}

@@ -148,6 +148,13 @@ var _eventPage = {
             _contextMenus.setHoveredHighlightId(null);
             break;
 
+        case "create_highlight":
+            // create new document for highlight, then update DOM
+            _eventPage.createHighlight(sender.tab.id,
+                message.range, _database.buildMatchString(sender.tab.url),
+                message.selectionText, message.className);
+            break;
+
         default:
             throw "unhandled message: sender=" + sender + ", id=" + message.id;
         }
