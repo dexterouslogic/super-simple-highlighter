@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
 
-    "name": "Simple Highlighter NG",
-    "description": "My Description",
+    "name": "Super Simple Highlighter",
+    "description": "Highlights text on web pages",
     "version": "3.0",
 
     "background": {
