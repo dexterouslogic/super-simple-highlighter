@@ -241,7 +241,11 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
         },
         {
             href: "https://github.com/jeresig/jquery.hotkeys",
-            text: "jquery.hotkeys (jeresig fork)"
+            text: "jQuery.Hotkeys (jeresig fork)"
+        },
+        {
+            href: "https://github.com/f0r4y312/jquery-stylesheet",
+            text: "jQuery StyleSheet"
         },
         {
             href: "http://pouchdb.com/",

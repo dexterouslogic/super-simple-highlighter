@@ -48,3 +48,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #eee;
     width: 65%;
 }
+
+#about h4 {
+    margin-top: 2em;
+}

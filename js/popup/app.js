@@ -5,8 +5,8 @@
  * @type {ng.IModule}
  */
 var popupApp = angular.module('popupApp', [
-    'popupControllers',
-    'popupFilters'
+    'popupControllers'
+//    'popupFilters'
 ]);
 
 $().ready(function () {

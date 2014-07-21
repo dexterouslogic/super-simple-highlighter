@@ -6,6 +6,7 @@ var _eventPage = {
      */
     init: function () {
         "use strict";
+        /*jshint evil:true */
         console.log("init");
 
         chrome.runtime.onInstalled.addListener(_eventPage.onRuntimeInstalled);
