@@ -11,7 +11,7 @@
 </head>
 
 <body>
-<nav class="navbar navbar-inverse" role="navigation">
+<nav class="navbar navbar-inverse" role="navigation" ng-controller="AboutController">
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
@@ -22,7 +22,9 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Brand</a>
+            <a class="navbar-brand" href="#">
+                <img src="{{manifest.icons.19}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
+            </a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -101,12 +103,14 @@
                                         <input type="text" class="form-control" id="hotkey"
                                                ng-model="modalDefinition.hotkey">
                                         <span class="help-block">
-                                            <p>This should be in the format of a single letter, or optionally a key with
-                                            the <kbd>Shift</kbd> qualifier, separated with a <kbd>+</kbd> character. For
-                                            example, <kbd>Y</kbd>, <kbd>Shift+A</kbd>.
+                                            <p>This should be formatted as a single letter, optionally prefixed with
+                                            the <kbd>Shift</kbd> qualifier, and separated with a <kbd>+</kbd> character.
+                                                For example, <kbd>Y</kbd>, <kbd>Shift+A</kbd>.
                                             </p>
-                                            <p class="text-warning">Usage of <kbd>Ctrl</kbd> or
-                                            <kbd>Alt</kbd> modifiers is not recommended.</p>
+
+                                            <p class="text-warning">
+                                                Usage of <kbd>Ctrl</kbd> or <kbd>Alt</kbd> modifiers is not recommended.
+                                            </p>
                                         </span>
                                     </div>
                                 </div>
@@ -124,7 +128,7 @@
                 </div>
 
                 <!--Defintions-->
-                <h4>Predefined Highlight Styles</h4>
+                <!--<h4>Predefined Highlight Styles</h4>-->
 
                 <ul class="list-unstyled">
                     <li ng-repeat="d in definitions"
@@ -156,7 +160,6 @@
 
             <!--Sites Pane-->
             <div class="tab-pane" id="sites" ng-controller="SitesController">
-                <h4>Sites containing one or more highlights</h4>
                 <ol>
                     <li ng-repeat="row in rows" class="site">
                         <a href="{{row.key}}" target="_blank">{{row.key}}</a>
@@ -174,7 +177,29 @@
                 </div>
             </div>
 
-            <div class="tab-pane" id="about">About Pane</div>
+            <div class="tab-pane" id="about" ng-controller="AboutController">
+                <img src="{{manifest.icons.256}}"/>
+                <h1>{{manifest.name}}</h1>
+                <h4>{{manifest.version}}</h4>
+
+                <p>&copy;2014 <a href="http://einzelcode.com">einzelcode</a></p>
+                <p><a href="mailto:support@einzelcode.com">Email Support</a></p>
+
+                <h4>Developer Libraries</h4>
+                <ul>
+                    <li ng-repeat="library in libraries">
+                        <a href="{{library.href}}">{{library.text}}</a>
+                    </li>
+                </ul>
+
+                <h4>Licenses</h4>
+                <div ng-repeat="item in cc" class="cc">
+                    "<a href="{{item.work.href}}">{{item.work.text}}</a>"
+                    by <a href="{{item.author.href}}">{{item.author.text}}</a>
+                    is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
+                </div>
+
+            </div>
         </div>
     </div>
 

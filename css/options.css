@@ -40,3 +40,11 @@ h1, h2, h3, h4, h5, h6 {
 .row-buttons {
     margin-top: 2em;
 }
+
+.cc {
+    padding: 1em;
+    margin-bottom: 1em;
+    border: 1px;
+    background-color: #eee;
+    width: 65%;
+}

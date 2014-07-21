@@ -158,7 +158,9 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
 }]);
 
 
-
+/**
+ * Controller for Sites pane
+ */
 optionsControllers.controller('SitesController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage;
@@ -215,4 +217,74 @@ optionsControllers.controller('SitesController', ["$scope", function ($scope) {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
         onInit(backgroundPage);
     });
+}]);
+
+/**
+ * Controller for About pane
+ */
+optionsControllers.controller('AboutController', ["$scope", function ($scope) {
+    'use strict';
+    $scope.manifest = chrome.runtime.getManifest();
+
+    $scope.libraries = [
+        {
+            href: "https://angularjs.org/",
+            text: "AngularJS"
+        },
+        {
+            href: "http://getbootstrap.com/",
+            text: "Bootstrap"
+        },
+        {
+            href: "http://jquery.com/",
+            text: "jQuery"
+        },
+        {
+            href: "https://github.com/jeresig/jquery.hotkeys",
+            text: "jquery.hotkeys (jeresig fork)"
+        },
+        {
+            href: "http://pouchdb.com/",
+            text: "PouchDB"
+        },
+        {
+            href: "https://github.com/allmarkedup/purl",
+            text: "Purl"
+        }
+    ];
+
+    $scope.cc = [
+        {
+            work: {
+                href: "http://www.iconarchive.com/show/soft-scraps-icons-by-hopstarter/Highlighter-Blue-icon.html",
+                text: "Highlighter Blue Icon"
+            },
+            author: {
+                href: "http://hopstarter.deviantart.com",
+                text: "Hopstarter"
+
+            },
+            license: {
+                href: "http://creativecommons.org/licenses/by-nc-nd/3.0/",
+                text: "CC BY-NC-ND 3.0"
+            }
+        },
+
+        {
+            work: {
+                href: "https://www.iconfinder.com/icons/32453/alert_attention_danger_error_exclamation_hanger_message_problem_warning_icon",
+                text: "Exclamation"
+            },
+            author: {
+                href: "http://www.aha-soft.com/",
+                text: "Aha-soft"
+
+            },
+            license: {
+                href: "http://creativecommons.org/licenses/by/3.0/",
+                text: "CC BY 3.0"
+            }
+        }
+
+    ];
 }]);

@@ -12,6 +12,7 @@ var optionsApp = angular.module('optionsApp', [
 optionsApp.config( [ '$compileProvider', function( $compileProvider ) {
     "use strict";
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file):/);
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(file|chrome-extension):/);
 }]);
 //
 //$().ready(function () {

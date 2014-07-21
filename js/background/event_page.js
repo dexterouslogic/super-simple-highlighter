@@ -111,6 +111,11 @@ var _eventPage = {
                     console.log("Error creating highlight in DOM for " + JSON.stringify(doc.range) );
 
                     // any errors will changes the page action image
+                    chrome.pageAction.setTitle({
+                        tabId: details.tabId,
+                        title: "Some highlights weren't found on the page"
+                    });
+
                     chrome.pageAction.setIcon({
                         "tabId": details.tabId,
                         path: {

@@ -23,7 +23,7 @@ var _highlightDefinitions = {
                         "#AAffff", "#000000"),
                     _highlightDefinitions.create("Purple", "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a",
                         "#FFAAFF", "#000000"),
-                    _highlightDefinitions.create("Gray", "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a",
+                    _highlightDefinitions.create("Dark Grey", "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a",
                         "#444444", "#FFFFFF")
                 ],
                     'sharedHighlightStyle': {
