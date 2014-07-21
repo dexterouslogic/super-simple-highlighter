@@ -15,7 +15,7 @@ var _contentScript  = {
         // create a random class name
         _contentScript.highlightClassName = _stringUtils.createUUID({beginWithLetter: true});
 
-        document.body.style.backgroundColor = "#ffd";
+//        document.body.style.backgroundColor = "#ffd";
 
         // listen for changes to styles
         chrome.storage.onChanged.addListener(_contentScript.onStorageChanged);
@@ -41,6 +41,11 @@ var _contentScript  = {
             mouseenter: _contentScript.onMouseEnterHighlight,
             mouseleave: _contentScript.onMouseLeaveHighlight
         }, "." + _contentScript.highlightClassName);
+    },
+
+    isSelectionCollapsed: function () {
+        "use strict";
+        return window.getSelection().isCollapsed;
     },
 
     /**
@@ -196,14 +201,16 @@ var _contentScript  = {
      * Mouse entered one of the highlight's spans
      */
     onMouseEnterHighlight: function () {
-        // 'this' is one of the spans in the list, related to a single highlight.
         "use strict";
+        // 'this' is one of the spans in the list, related to a single highlight.
         var id = _contentScript._getHighlightId(this);
         if (id) {
-            // tell event page that this is the current highlight
+            // tell event page that this is the current highlight.
+            // if the range is not collapsed, it will probably be ignored
             chrome.runtime.sendMessage({
                 id: "on_mouse_enter_highlight",
-                highlightId: id
+                highlightId: id,
+                selectionCollapsed: _contentScript.isSelectionCollapsed()
             });
         }
     },
@@ -303,10 +310,11 @@ var _contentScript  = {
         "use strict";
         return function() {
             // get the current selection, if any
-            var range = _contentScript.getSelectionRange();
-            if (range.collapsed) {
+            if ( _contentScript.isSelectionCollapsed() ) {
                 return;
             }
+
+            var range = _contentScript.getSelectionRange();
 
             // tell event page to highlight the selection
             chrome.runtime.sendMessage({

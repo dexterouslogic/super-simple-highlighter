@@ -1,4 +1,3 @@
-"use strict";
 /*global PouchDB, emit, purl, _stringUtils */
 
 var _database = {
@@ -9,8 +8,9 @@ var _database = {
      * @return {object} database
      */
     getDatabase: function () {
+        "use strict";
         if (!_database.db) {
-            _database.db = new PouchDB('index1');
+            _database.db = new PouchDB('sos');
         }
 
         return _database.db;
@@ -21,6 +21,7 @@ var _database = {
      * @param [callback] function(err, result) result = [{ok:"true,id:"123",rev:"456"}, ...]
      */
     putDesignDocuments: function (callback) {
+        "use strict";
         _database.getDatabase().bulkDocs([
 //            {
 //                _id: '_design/matches_count_view',
@@ -100,6 +101,7 @@ var _database = {
      * @param {function} [callback] function(err, response) (see putDesignDocuments)
      */
     resetDatabase: function (callback) {
+        "use strict";
         _database.getDatabase().destroy(function (err) {
             if (err) {
                 if (callback) {
@@ -120,9 +122,10 @@ var _database = {
      * Basically, url minus fragment
      * @param {string} url full uri (http://www.techmeme.com/mini?q=abc#here)
      * @param {object} [options]
-     * @return {string} match (www.techmeme.com/mini?q=abc)
+     * @return {string} match (www.example.com/mini?q=abc)
      */
     buildMatchString: function (url, options) {
+        "use strict";
         if (!options) {
             options = {
                 include_query: true,
@@ -137,7 +140,7 @@ var _database = {
 
         var u = purl(url), port = u.attr('port'), query = u.attr('query'), fragment = u.attr('fragment');
 
-        // http://techmeme.com
+        // http://blah.com
         var match = u.attr('protocol') + "://" + u.attr('host');
 
         // [:80]
@@ -170,6 +173,7 @@ var _database = {
      * @param callback function(err, res)
      */
     postCreateDocument: function (match, range, className, text, callback) {
+        "use strict";
         _database.getDatabase().put({
             match: match,
             date: Date.now(),
@@ -190,6 +194,7 @@ var _database = {
      * corresponding highlight we wish to mark as deleted
      */
     postDeleteDocument: function (documentId, callback) {
+        "use strict";
         _database.getDocument(documentId, function (err, doc) {
             if (err) {
                 if (callback) {
@@ -243,6 +248,7 @@ var _database = {
      * @param callback function(err, doc)
      */
     updateCreateDocument: function (documentId, className, callback) {
+        "use strict";
         _database.getDocument(documentId, function (err, doc) {
             if (err) {
                 if (callback) {
@@ -284,6 +290,7 @@ var _database = {
      * @param {function} callback (err, doc)
      */
     getDocument: function (documentId, callback) {
+        "use strict";
         _database.getDatabase().get(documentId, callback);
     },
 
@@ -294,6 +301,7 @@ var _database = {
      */
     getDocuments: function (match, callback) {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
+        "use strict";
         _database.getDatabase().query('match_date_view', {
             startkey: [match],
             endkey: [match, {}],
@@ -319,22 +327,24 @@ var _database = {
     /**
      * Delete a specific document (any verb).
      * This is usually only called after a postDeleteDocument(), when the check for stale documents finds something,
-     * or from eventpage's createHighlight(), when something went wrong inserting it in the DOM
+     * or from event page's createHighlight(), when something went wrong inserting it in the DOM
      * @param id
      * @param rev
      * @param [callback]
      */
     removeDocument: function (id, rev, callback) {
+        "use strict";
         _database.getDatabase().remove(id, rev, callback);
     },
 
     /**
      * Delete all documents associated with 'match' key (any verb).
-     * Usually called via popup's 'remove all' button
+     * Usually called via a 'remove all' button
      * @param {string} match key (eg www.google.com/something?qq)
      * @param {function} [callback] function(err, result)
      */
     removeDocuments: function (match, callback) {
+        "use strict";
         _database.getDocuments(match, function (err, docs) {
             if (err) {
                 if (callback) {
@@ -362,6 +372,7 @@ var _database = {
      * @param {function} [callback] function(err, sum)
      */
     getMatchSum: function (match, callback) {
+        "use strict";
         _database.getDatabase().query('sum_view', {
             key: match
         }, function (err, result) {
@@ -386,6 +397,7 @@ var _database = {
      * @param {function} callback function(err, rows): rows = [{key: match, value: count}]
      */
     getMatchSums: function(callback) {
+        "use strict";
         _database.getDatabase().query('sum_view', {
             group: true,
             group_level: 1,
@@ -407,6 +419,7 @@ var _database = {
      */
     getCreateDocuments: function (match, callback) {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
+        "use strict";
         _database.getDocuments(match, function (err, docs) {
             if (!callback) {
                 return;
@@ -449,6 +462,7 @@ var _database = {
      * @param {function} [callback] function(result): { ok: "true" }
      */
     viewCleanup: function (callback) {
+        "use strict";
         _database.getDatabase().viewCleanup(callback);
     },
 
@@ -457,6 +471,7 @@ var _database = {
      * @param {function} [callback] ?
      */
     compact: function (callback) {
+        "use strict";
         _database.getDatabase().compact(callback);
     }
 

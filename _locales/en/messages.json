@@ -1,0 +1,155 @@
+{
+    "extension_name": {
+        "message": "Super Simple Highlighter"
+    },
+    "extension_description": {
+        "message": "Highlight and recall text on a page"
+    },
+    "extension_author": {
+        "message": "einzelcode"
+    },
+    "copy_highlight_text": {
+        "message": "Copy"
+    },
+    "speak_highlight_text": {
+        "message": "Speak"
+    },
+    "delete_highlight": {
+        "message": "Remove"
+    },
+    "page_action_default_title": {
+        "message": "Show highlights"
+    },
+    "page_action_title_not_in_dom": {
+        "message": "Couldn't find every highlight on the page"
+    },
+
+    "color_title_red": {
+        "message": "Red"
+    },
+    "color_title_orange": {
+        "message": "Orange"
+    },
+    "color_title_yellow": {
+        "message": "Yellow"
+    },
+    "color_title_green": {
+        "message": "Green"
+    },
+    "color_title_cyan": {
+        "message": "Cyan"
+    },
+    "color_title_purple": {
+        "message": "Purple"
+    },
+    "color_title_dark_grey": {
+        "message": "Dark Grey"
+    },
+
+    "highlight_title_undefined": {
+        "message": "Untitled"
+    },
+
+    "placeholder_search": {
+        "message": "Search"
+    },
+    "remove_all_highlights": {
+        "message": "Remove All Highlights"
+    },
+    "confirm_remove_all_highlights": {
+        "message": "This operation can't be undone. Are you sure you wish to remove all the highlights for this page?"
+    },
+
+    "tooltip_copy_highlight": {
+        "message": "Copy highlight's text to Clipboard"
+    },
+    "tooltip_speak_highlight": {
+        "message": "Speak contents of highlight"
+    },
+
+    "text_remove_all_pages": {
+        "message": "Remove All Pages"
+    },
+    "confirm_remove_all_pages": {
+        "message": "This operation can't be undone. Are you sure you wish to remove all highlights from all pages?"
+    },
+    "pages_empty": {
+        "message": "Nothing to see here, move along"
+    },
+
+    "styles": {
+        "message": "Styles"
+    },
+    "pages": {
+        "message": "Pages"
+    },
+    "about": {
+        "message": "About"
+    },
+
+    "reset_default_styles": {
+        "message": "Reset to Defaults"
+    },
+    "confirm_reset_default_styles": {
+        "message": "This operation can't be undone. Are you sure you wish to restore the default styles?"
+    },
+
+
+    "create_new_style": {
+        "message": "Create Style"
+    },
+
+    "edit_style": {
+        "message": "Edit Style"
+    },
+    "close": {
+        "message": "Close"
+    },
+    "cancel": {
+        "message": "Cancel"
+    },
+    "create": {
+        "message": "Create"
+    },
+    "update": {
+        "message": "Update"
+    },
+
+
+    "highlight_title": {
+        "message": "Title"
+    },
+    "placeholder_highlight_title": {
+        "message": "Highlight Title"
+    },
+    "required_highlight_title": {
+        "message": "Every highlight style requires a title"
+    },
+
+    "highlight_text_colour": {
+        "message": "Text Color"
+    },
+    "highlight_background_colour": {
+        "message": "Background Color"
+    },
+
+    "highlight_keyboard_shortcut": {
+        "message": "Keyboard Shortcut"
+    },
+    "highlight_keyboard_shortcut_not_defined": {
+        "message": "Not Specified"
+    },
+    "html_highlight_keyboard_shortcut_help": {
+        "message": "A shortcut must be a single letter, optionally prefixed with the <kbd>Shift</kbd> qualifier and the <kbd>+</kbd> symbol. EG: <kbd>Y</kbd>, <kbd>Shift+A</kbd>, or <kbd>Shift+U</kbd>. Usage of the <kbd>Ctrl</kbd> or <kbd>Alt</kbd> modifiers is not recommended."
+    },
+
+    "libraries": {
+        "message": "Developer Libraries"
+    },
+    "licenses": {
+        "message": "Licenses"
+    },
+    "support": {
+        "message": "Support"
+    }
+}

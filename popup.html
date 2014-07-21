@@ -23,13 +23,16 @@
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                     <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickRemoveAll(match)">Remove All</a>
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickRemoveAllHighlights(match)">
+                            {{'remove_all_highlights' | i18n}}
+                        </a>
                     </li>
                 </ul>
             </div>
         </div><!-- Search
         --><div class="col-xs-4 vcenter">
-            <input type="search" class="form-control input-sm" ng-model="search.text" placeholder="Search">
+            <input type="search" class="form-control input-sm" ng-model="search.text"
+                   placeholder="{{'placeholder_search' | i18n}}">
         </div>
     </div>
 
@@ -44,9 +47,9 @@
                  ng-click="onClickHighlight(doc._id)">
                 <!--Delete Button-->
                 <button type="button" class="close"  title="Remove Highlight"
-                        ng-click="onClickRemove(doc._id); $event.preventDefault(); $event.stopPropagation();">
+                        ng-click="onClickRemoveHighlight(doc._id); $event.preventDefault(); $event.stopPropagation();">
                     <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
+                    <span class="sr-only"> {{ 'close' | i18n }}</span>
                 </button>
                 <span>{{doc.text}}</span>
 
@@ -59,13 +62,16 @@
                 <!--Only show these if hovering-->
                 <span ng-show="doc.hover">
                     <!--Copy-->
-                    <a href="" ng-click="onClickCopy(doc._id)"
-                          title="Copy Highlight to Clipboard" >Copy</a>
+                    <a href="" ng-click="onClickCopy(doc._id)" title="{{ 'tooltip_copy_highlight' | i18n }}">
+                        {{'copy_highlight_text' | i18n}}
+                    </a>
 
                     <span class="separator">&nbsp;//&nbsp;</span>
 
                     <!--Speak-->
-                    <a href="" ng-click="onClickSpeak(doc._id)" title="Speak Highlight" >Speak</a>
+                    <a href="" ng-click="onClickSpeak(doc._id)" title="{{ 'tooltip_speak_highlight' | i18n }}">
+                        {{'speak_highlight_text' | i18n}}
+                    </a>
                 </span>
             </div>
         </li>
@@ -92,6 +98,7 @@
 
 <script src="js/popup/app.js"></script>
 <script src="js/popup/controllers.js"></script>
+<script src="js/filters.js"></script>
 
 </body>
 </html>

@@ -11,20 +11,20 @@ var _highlightDefinitions = {
         if (_highlightDefinitions._defaults === undefined) {
             _highlightDefinitions._defaults = {
                 "highlightDefinitions": [
-                    _highlightDefinitions.create("Red", "default-red-aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce",
-                        "#ff8080", "#000000"),
-                    _highlightDefinitions.create("Orange", "default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14",
-                        "#ffd2AA", "#000000"),
-                    _highlightDefinitions.create("Yellow", "default-yellow-aaddcf5c-0e41-4f83-8a64-58c91f7c6250",
-                        "#ffffAA", "#000000"),
-                    _highlightDefinitions.create("Green", "default-green-c4d41e0a-e40f-4c3f-91ad-2d66481614c2",
-                        "#AAffAA", "#000000"),
-                    _highlightDefinitions.create("Cyan", "default-cyan-f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b",
-                        "#AAffff", "#000000"),
-                    _highlightDefinitions.create("Purple", "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a",
-                        "#FFAAFF", "#000000"),
-                    _highlightDefinitions.create("Dark Grey", "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a",
-                        "#444444", "#FFFFFF")
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_red"),
+                        "default-red-aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce", "#ff8080", "#000000"),
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_orange"),
+                        "default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14", "#ffd2AA", "#000000"),
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_yellow"),
+                        "default-yellow-aaddcf5c-0e41-4f83-8a64-58c91f7c6250", "#ffffAA", "#000000"),
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_green"),
+                        "default-green-c4d41e0a-e40f-4c3f-91ad-2d66481614c2", "#AAffAA", "#000000"),
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_cyan"),
+                        "default-cyan-f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b", "#AAffff", "#000000"),
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_purple"),
+                        "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a", "#FFAAFF", "#000000"),
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_dark_grey"),
+                        "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#444444", "#FFFFFF")
                 ],
                     'sharedHighlightStyle': {
                         "border-radius": "0.2em",
@@ -59,7 +59,7 @@ var _highlightDefinitions = {
 
         // required
         var d = {
-            title: (title ? title : "Untitled"),
+            title: (title ? title : chrome.i18n.getMessage("highlight_title_undefined")),
             className: (className ? className : _stringUtils.createUUID({
                 beginWithLetter: true
             })),
@@ -77,26 +77,6 @@ var _highlightDefinitions = {
 
         return d;
     },
-//
-//    /**
-//     * Copy (not reference) an existing definition
-//     * @param oldDefinition
-//     * @return {object}
-//     */
-//    copy: function (oldDefinition) {
-//        "use strict";
-//        return $.extend(true, {}, oldDefinition);
-////        return {
-////            className: oldDefinition.className,
-////            title: oldDefinition.title,
-////            hotkey: hotkey,
-////            style: {
-////                "color": oldDefinition.style.color,
-////                "background-color": oldDefinition.style["background-color"],
-////                "font-style": oldDefinition.style["font-style"]
-////            }
-////        };
-//    },
 
     /**
      * Get an array of objects describing highlight styles

@@ -12,7 +12,7 @@ h1, h2, h3, h4, h5, h6 {
 
 
 .token {
-    margin: 8px;
+    margin: 0 0 8px 0;
     font-size: 24pt;
     padding: 10px 0 10px 0.3em !important;
     cursor: pointer;
@@ -31,7 +31,15 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
 }
 
-.site > .close {
+.pages {
+    margin-top: 10px;
+}
+
+.pages_empty {
+    color: #ddd
+}
+
+.page > .close {
     float: none;
     margin-left: 4px;
     vertical-align: middle;

@@ -1,4 +1,4 @@
-/*global angular, _highlightDefinitions, _stylesheet, _stringUtils*/
+/*global angular, _highlightDefinitions, _stylesheet, _stringUtils, _i18n*/
 
 /**
  * Controllers module
@@ -9,12 +9,14 @@ var optionsControllers = angular.module('optionsControllers', []);
 // TODO: rewrite, this is too linked with storage stuff
 
 // array this is something to do with minification
-optionsControllers.controller('StylesController', ["$scope", function ($scope) {
+optionsControllers.controller('StylesController', ["$scope", '$sce', function ($scope, $sce) {
     'use strict';
     var $modal;
 
     // model
     $scope.highlightClassName = "highlight";
+    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
+        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
 
     function onInit () {
         // cache
@@ -54,7 +56,9 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
      */
     $scope.onClickAdd = function () {
         // default new definition
-        $scope.modalTitle = "Add New Style";
+        $scope.modalTitle = chrome.i18n.getMessage("create_new_style");
+        $scope.modalSaveButtonTitle = chrome.i18n.getMessage("create");
+
         $scope.modalDefinition = _highlightDefinitions.create();
 
         // activate the 'edit' model
@@ -65,7 +69,7 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
      * Clicked the 'reset styles' button
      */
     $scope.onClickReset = function () {
-        if (window.confirm("All existing highlights will lose their style. Are you sure you wish to continue?")) {
+        if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
             _highlightDefinitions.removeAll();
         }
     };
@@ -75,9 +79,12 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
      * @param {number} index index of definition in local array
      */
     $scope.onClickEdit = function (index) {
+        $scope.modalTitle = chrome.i18n.getMessage("edit_style");
+        $scope.modalSaveButtonTitle = chrome.i18n.getMessage("update");
+
         // deep copy
         $scope.modalDefinition = angular.copy($scope.definitions[index]);//   _highlightDefinitions.copy($scope.definitions[index]);
-        $scope.modalTitle = "Edit Style";
+
 
         // activate the 'edit' model
         $modal.modal();
@@ -161,7 +168,7 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
 /**
  * Controller for Sites pane
  */
-optionsControllers.controller('SitesController', ["$scope", function ($scope) {
+optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage;
 
@@ -184,25 +191,27 @@ optionsControllers.controller('SitesController', ["$scope", function ($scope) {
     }
 
     /**
-     * Clicked 'remove site' button
+     * Clicked 'remove all highlights for this site' button (x)
      * @param {number} index
      */
-    $scope.onClickRemove = function (index){
-        var match = $scope.rows[index].key;
+    $scope.onClickRemoveAllHighlights = function (index){
+        if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
+            var match = $scope.rows[index].key;
 
-        backgroundPage._database.removeDocuments(match, function (err, result) {
-            if (!err) {
-                $scope.rows.splice(index, 1);
-                $scope.$apply();
-            }
-        });
+            backgroundPage._database.removeDocuments(match, function (err, result) {
+                if (!err) {
+                    $scope.rows.splice(index, 1);
+                    $scope.$apply();
+                }
+            });
+        }
     };
 
     /**
-     * Clicked 'remove all sites' button.
+     * Clicked 'remove all pages' button.
      */
-    $scope.onClickRemoveAll = function () {
-        if (window.confirm("This operation can't be undone. Are you sure you wish to continue?")) {
+    $scope.onClickRemoveAllPages = function () {
+        if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
             // destroy and re-create the database
             backgroundPage._database.resetDatabase(function (err, response) {
                 if (!err) {

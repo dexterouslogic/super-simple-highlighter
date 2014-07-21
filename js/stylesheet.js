@@ -1,37 +1,25 @@
-"use strict";
-
 var _stylesheet = {
     /**
      * Apply rules of a single highlight style
      */
     setHighlightStyle: function (definition) {
+        "use strict";
         var $ss = $.stylesheet('.' + definition.className);
-//        if (reset) {
-//            $ss.css(null);
-//
-//            // remove version in the DOM also
-////            $("#" + h.className).remove();
-//        }
-//
 
         $ss.css(null).css(definition.style);
 
-//        // also modify DOM to include a style element which can be saved
-//        var rules = $ss.rules();
-//
-//        // does our new element have any rules?
-//        if (rules && rules.length > 0) {
-//            // find existing element if possible
-//            var $elm = $("#" + h.className);
-//            if ($elm.length === 0) {
-//                // create new
-//                $('head').append('<style id="' + h.className + '"></style>');
-//                $elm = $("#" + h.className);
-//            }
-//
-//            // copy rules into element
-//            $elm.text(rules[0].cssText);
-//        }
+        // The stored colours never specify alpha, to be able to be used in the HTML input element.
+        // So we parse the rgba? colour, and add a constant alpha
+        var re = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/;
+
+        var match = re.exec($ss.css('background-color'));
+        if (match && match.length >= 4) {
+            $ss.css('background-color', "rgba(" +
+                match[1] + ", " +
+                match[2] + ", " +
+                match[3] + ", " +
+                "0.7");
+        }
     },
 
     /**
@@ -39,38 +27,7 @@ var _stylesheet = {
      * @param className
      */
     clearHighlightStyle: function (className) {
+        "use strict";
         $.stylesheet('.' + className).css(null);
     }
-
-//    clearHighlightStyles: function (highlightDefinitions) {
-//        "use strict";
-//        highlightDefinitions.forEach(function (h) {
-//            $.stylesheet('.' + h.className).css(null);
-//        });
-//    },
-
-
-//    /**
-//     * Apply style rules defined in a highlightstyles object
-//     * @param highlightDefinitions see highlight_definitions.js
-//     * @param reset if true, clear existing style before applying
-//     */
-//    setHighlightStyles: function (highlightDefinitions, reset) {
-//        "use strict";
-//        highlightDefinitions.forEach(function (h) {
-//            _stylesheet.setHighlightStyle(h, reset);
-//        });
-//    },
-//
-//    /**
-//     * Remove all the styles defined by a highlightDefinitions object.
-//     * Usually the result on onStorageChanged() event for storage
-//     * @param highlightDefinitions
-//     */
-//    removeHighlightStyles: function (highlightDefinitions) {
-//        "use strict";
-//        highlightDefinitions.forEach(function (h) {
-//            $.stylesheet('.' + h.className).css(null);
-//        });
-//    }
 };

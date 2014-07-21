@@ -1,10 +1,11 @@
-/*global angular, _eventPage*/
+/*global angular, _eventPage, _i18n*/
 
 /**
  * Controllers module
  * @type {ng.IModule}
  */
 var popupControllers = angular.module('popupControllers', []);
+
 
 // array this is something to do with minification
 popupControllers.controller('DocumentsController', ["$scope", function ($scope) {
@@ -60,7 +61,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clicked 'remove' button for a highlight
      * @param {string} documentId highlight id
      */
-    $scope.onClickRemove = function (documentId) {
+    $scope.onClickRemoveHighlight = function (documentId) {
         backgroundPage._eventPage.deleteHighlight(activeTabId,  documentId, function (err, result) {
             if (result && result.ok ) {
                 updateDocs();
@@ -71,8 +72,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     /**
      * Clicked 'remove all' button
      */
-    $scope.onClickRemoveAll = function () {
-        if(window.confirm("This operation can't be undone. Are you sure you wish to continue?")) {
+    $scope.onClickRemoveAllHighlights = function () {
+        if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
             backgroundPage._eventPage.deleteHighlights(activeTabId, $scope.match);
             window.close();
         }

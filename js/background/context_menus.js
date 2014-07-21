@@ -69,7 +69,7 @@ var _contextMenus = {
                         chrome.contextMenus.create({
                             id: "copy_highlight_text",
                             parentId: parentId,
-                            title: "Copy",
+                            title: chrome.i18n.getMessage("copy_highlight_text"),
                             contexts: ["all"]
                         });
 
@@ -77,7 +77,7 @@ var _contextMenus = {
                         chrome.contextMenus.create({
                             id: "speak_highlight_text",
                             parentId: parentId,
-                            title: "Speak",
+                            title: chrome.i18n.getMessage("speak_highlight_text"),
                             contexts: ["all"]
                         });
 
@@ -93,7 +93,7 @@ var _contextMenus = {
                         chrome.contextMenus.create({
                             id: "delete_highlight",
                             parentId: parentId,
-                            title: "Remove",
+                            title: chrome.i18n.getMessage("delete_highlight"),
                             contexts: ["all"]
                         });
                     });

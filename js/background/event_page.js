@@ -114,7 +114,7 @@ var _eventPage = {
                     // any errors will changes the page action image
                     chrome.pageAction.setTitle({
                         tabId: details.tabId,
-                        title: "Some highlights weren't found on the page"
+                        title: chrome.i18n.getMessage("page_action_title_not_in_dom")
                     });
 
                     chrome.pageAction.setIcon({
@@ -147,7 +147,9 @@ var _eventPage = {
 
         switch (message.id) {
         case "on_mouse_enter_highlight":
-            _contextMenus.setHoveredHighlightId(message.highlightId);
+            // non-collapsed ranges would be confusing
+            if(message.selectionCollapsed)
+                _contextMenus.setHoveredHighlightId(message.highlightId);
             break;
 
         case "on_mouse_leave_highlight":
