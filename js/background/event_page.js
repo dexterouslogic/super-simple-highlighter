@@ -39,7 +39,7 @@ var _eventPage = {
             _database.viewCleanup();
         });
 
-        _contextMenus.updateMenus();
+        _contextMenus.recreateMenu();
 
 //        _eventPage.onRuntimeStartup();
     },
@@ -189,7 +189,7 @@ var _eventPage = {
         if (namespace === "sync") {
             if (changes.highlightDefinitions) {
                 // content of context menu depends on the highlight styles
-                _contextMenus.updateMenus();
+                _contextMenus.recreateMenu();
             }
         }
     },
