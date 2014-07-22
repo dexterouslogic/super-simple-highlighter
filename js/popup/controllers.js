@@ -14,6 +14,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     var activeTabId;
 
     // models
+    $scope.webkitLineClamp = "2";
+
 //    $scope.docs = [];
 //    $scope.match = "hello";
 
@@ -25,6 +27,14 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     function onInit(activeTab, _backgroundPage){
         activeTabId = activeTab.id;
         backgroundPage = _backgroundPage;
+
+        chrome.storage.sync.get({
+            "highlightTextLineClamp": 10
+        }, function (result) {
+            if (result) {
+                $scope.webkitLineClamp = result.highlightTextLineClamp.toString();
+            }
+        });
 
         $scope.title = activeTab.title;
         $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
@@ -89,17 +99,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 return;
             }
 
+            $scope.docs = docs;
+            $scope.$apply();
+
             // if the highlight cant be found in DOM, flag that
             docs.forEach(function(doc){
                 // default to undefined, implying it IS in the DOM
                 backgroundPage._eventPage.isHighlightInDOM(activeTabId, doc._id, function (isInDOM) {
+//                    if (!isInDOM) {
+//                        console.log("Not in DOM");
+//                    }
+
                     doc.isInDOM =  isInDOM;
                     $scope.$apply();
                 });
             });
 
-            $scope.docs = docs;
-            $scope.$apply();
         });
     };
 

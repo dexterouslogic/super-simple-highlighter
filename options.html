@@ -73,15 +73,13 @@
                                 <div class="modal-body">
                                     <!--Title-->
                                     <div class="form-group"
-                                         ng-class="{'has-error': myForm.title.$invalid && !myForm.title.$pristine}">
+                                         ng-class="{'has-error': myForm.title.$invalid}">
 
                                         <label class="control-label" for="myTitle">{{ 'highlight_title' | i18n }}</label>
                                         <input class="form-control" name="title" id="myTitle"
-                                               type="text" placeholder="{{ 'placeholder_highlight_title' | i18n }}"
-                                               ng-model="modalDefinition.title"
-                                               required>
+                                               type="text" ng-model="modalDefinition.title" required autofocus>
 
-                                        <span ng-show="myForm.title.$error.required && !myForm.title.$pristine" class="help-block">
+                                        <span ng-show="myForm.title.$error.required" class="help-block">
                                             {{ 'required_highlight_title' | i18n }}
                                         </span>
                                     </div>

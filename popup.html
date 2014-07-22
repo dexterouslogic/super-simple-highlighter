@@ -6,7 +6,7 @@
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/popup.css" rel="stylesheet">
 
-    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,300,600' rel='stylesheet' type='text/css'>
 </head>
 
 <body >
@@ -31,7 +31,7 @@
             </div>
         </div><!-- Search
         --><div class="col-xs-4 vcenter">
-            <input type="search" class="form-control input-sm" ng-model="search.text"
+            <input type="search" class="form-control input-sm search" ng-model="search.text"
                    placeholder="{{'placeholder_search' | i18n}}">
         </div>
     </div>
@@ -40,10 +40,10 @@
     <ul class="list-unstyled">
         <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
         <!--isInDOM defaults to undefined-->
-        <li ng-repeat="doc in docs | filter:search"  ng-class="{'not-in-dom': doc.isInDOM === false}"
+        <li ng-repeat="doc in docs | filter:search" class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
-            <!--Text-->
-            <div class="highlight {{doc.className}} highlight-text"
+            <!--Text and floating button-->
+            <div class="highlight {{doc.className}} highlight-text-container"
                  ng-click="onClickHighlight(doc._id)">
                 <!--Delete Button-->
                 <button type="button" class="close"  title="Remove Highlight"
@@ -51,8 +51,8 @@
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only"> {{ 'close' | i18n }}</span>
                 </button>
-                <span>{{doc.text}}</span>
-
+                <!--text-->
+                <span class="highlight-text" ng-style="{'-webkit-line-clamp': webkitLineClamp}">{{doc.text}}</span>
             </div>
 
             <!--InfoBar-->

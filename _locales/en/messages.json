@@ -119,11 +119,8 @@
     "highlight_title": {
         "message": "Title"
     },
-    "placeholder_highlight_title": {
-        "message": "Highlight Title"
-    },
     "required_highlight_title": {
-        "message": "Every highlight style requires a title"
+        "message": "Every style requires a title"
     },
 
     "highlight_text_colour": {

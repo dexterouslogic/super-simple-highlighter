@@ -1,13 +1,13 @@
 
 body {
     font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
-    color: #777
+    color: #777;
+    font-weight: 400;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
     font-weight: 600;
-    color: #000
+    color: #000;
 }
 
 body {
@@ -31,12 +31,25 @@ body {
     text-overflow: ellipsis;
 }
 
-.highlight-text {
-    padding: 10px 15px !important;
-    cursor: pointer;
+.search {
+    border-radius: 14px;
 }
 
-li {
+.highlight-text-container {
+    padding: 10px 15px !important;
+    cursor: pointer;
+    font-size: small;
+}
+
+.highlight-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+
+.doc {
     margin-bottom: 10px;
     box-shadow: 0 4px 6px 1px rgba(50,50,50,0.14);
     padding: 10px;
@@ -45,9 +58,11 @@ li {
 .actions {
     margin-top: 8px;
     font-size: smaller;
+    font-weight: 300;
 }
 
 .actions a {
+    font-weight: 400;
     color: #A0A0A0;
 }
 
@@ -60,10 +75,14 @@ li {
     color: #CFCFCF;
 }
 
-.not-in-dom {
-    background: #e9e9e9;
-    border-left: 4px solid #c66;
+.has-note {
+    /*background: #e9e9e9;*/
+    border-left: 4px solid #ee7;
     padding: 0.8em 10px;
+}
+
+.not-in-dom {
+    border: 1px dashed #c66;
 }
 
 .not-in-dom > .highlight-text {

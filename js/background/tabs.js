@@ -165,7 +165,8 @@ var _tabs = {
      * 'Play' an array of document's 'create' and 'delete' messages into the DOM
      * @param {number} tabId
      * @param {Array} docs
-     * @param {function} [errorCallback] function(doc): called when the DOM reports it can't create highlight for this doc
+     * @param {function} [errorCallback] function(doc): only called (multiple times) when the DOM reports
+     *  it can't create highlight for this doc
      * @return {number} sum of create/delete documents, where create is +1, delete is -1. If zero, no highlights!
      */
     replayDocuments: function (tabId, docs, errorCallback) {
@@ -178,6 +179,7 @@ var _tabs = {
             switch (doc.verb) {
             case "create":
                 sum++;
+
                 // re-use document id as span element's id
                 _tabs.sendCreateHighlightMessage(tabId,
                     doc.range, doc.className, doc._id, function (response) {
@@ -189,6 +191,7 @@ var _tabs = {
 
             case "delete":
                 sum--;
+
                 _tabs.sendDeleteHighlightMessage(tabId,
                     doc.correspondingDocumentId, function (response) {
                         // doesn't warrant a callback

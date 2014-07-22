@@ -59,7 +59,7 @@ var _highlightDefinitions = {
 
         // required
         var d = {
-            title: (title ? title : chrome.i18n.getMessage("highlight_title_undefined")),
+            title: title,// (title ? title : chrome.i18n.getMessage("highlight_title_undefined")),
             className: (className ? className : _stringUtils.createUUID({
                 beginWithLetter: true
             })),

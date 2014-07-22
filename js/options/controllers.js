@@ -60,6 +60,7 @@ optionsControllers.controller('StylesController', ["$scope", '$sce', function ($
         $scope.modalSaveButtonTitle = chrome.i18n.getMessage("create");
 
         $scope.modalDefinition = _highlightDefinitions.create();
+//        $scope.$apply();
 
         // activate the 'edit' model
         $modal.modal();

@@ -83,6 +83,10 @@ var _eventPage = {
             return;
         }
 
+        // default (ok)
+        // NW don't know why tab id sometimes is invalid
+//        _eventPage.setPageActionStatus(details.tabId, false);
+
         // update the page action with the app title, even if it doesn't get shown
 //        chrome.pageAction.setTitle({
 //            "tabId": details.tabId,
@@ -109,21 +113,11 @@ var _eventPage = {
                 console.log("Replaying documents into DOM");
 
                 var sum = _tabs.replayDocuments(details.tabId, docs, function (doc) {
+                    // method only called if there's an error. called multiple times
                     console.log("Error creating highlight in DOM for " + JSON.stringify(doc.range) );
 
-                    // any errors will changes the page action image
-                    chrome.pageAction.setTitle({
-                        tabId: details.tabId,
-                        title: chrome.i18n.getMessage("page_action_title_not_in_dom")
-                    });
-
-                    chrome.pageAction.setIcon({
-                        "tabId": details.tabId,
-                        path: {
-                            19: "static/images/popup/19_warning.png",
-                            38: "static/images/popup/38_warning.png"
-                        }
-                    });
+                    // update page action
+                    _eventPage.setPageActionStatus(details.tabId, true);
                 });
 
                 console.log("Create/Delete document sum is " + sum);
@@ -133,6 +127,31 @@ var _eventPage = {
                     chrome.pageAction.show(details.tabId);
                 }
             });
+        });
+    },
+
+    /**
+     * Set the title/icon for page icon, based on whether 1 or more highlights weren't found in DOM.
+     * Note that it doesn't show/hide icon
+     * @param {number} tabId
+     * @param not_in_dom
+     * @private
+     */
+    setPageActionStatus: function (tabId, not_in_dom) {
+        "use strict";
+
+        // any errors will changes the page action image
+        chrome.pageAction.setTitle({
+            tabId: tabId,
+            title: chrome.i18n.getMessage(not_in_dom ? "page_action_title_not_in_dom" : "page_action_default_title")
+        });
+
+        chrome.pageAction.setIcon({
+            "tabId": tabId,
+            path: {
+                19: not_in_dom ? "static/images/popup/19_warning.png" : "static/images/19.png",
+                38: not_in_dom ? "static/images/popup/38_warning.png" : "static/images/38.png"
+            }
         });
     },
 
@@ -209,8 +228,10 @@ var _eventPage = {
             return;
         }
 
+        // not being collapsed is implicit
+        delete xpathRange.collapsed;
+
         _database.postCreateDocument(match, xpathRange, className, selectionText, function (err, response) {
-            //
             if (err) {
                 return;
             }
@@ -255,7 +276,7 @@ var _eventPage = {
      * Delete a highlight in the database, and in the page DOM
      * @param {number} tabId tab id of associated tab, whose DOM should contain the highlight.
      * @param {string} documentId id of the document representing the highlight to remove
-     * @param {object} [callback] function(err, result)
+     * @param {function} [callback] function(err, result)
      */
     deleteHighlight: function (tabId, documentId, callback) {
         "use strict";
