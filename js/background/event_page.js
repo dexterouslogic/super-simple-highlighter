@@ -147,9 +147,7 @@ var _eventPage = {
 
         switch (message.id) {
         case "on_mouse_enter_highlight":
-            // non-collapsed ranges would be confusing
-            if(message.selectionCollapsed)
-                _contextMenus.setHoveredHighlightId(message.highlightId);
+            _contextMenus.setHoveredHighlightId(message.highlightId);
             break;
 
         case "on_mouse_leave_highlight":
@@ -206,6 +204,11 @@ var _eventPage = {
      */
     createHighlight: function (tabId, xpathRange, match, selectionText, className) {
         "use strict";
+        if (xpathRange.collapsed) {
+            console.log("Ignoring collapsed range");
+            return;
+        }
+
         _database.postCreateDocument(match, xpathRange, className, selectionText, function (err, response) {
             //
             if (err) {
@@ -346,13 +349,26 @@ var _eventPage = {
     /**
      * Speak text
      * @param {string} documentId
-     * @param {*} [options]
+     * @param {object} [options] if not supplied, use the storage value
      */
     speakHighlightText: function (documentId, options) {
         "use strict";
         _database.getDocument(documentId, function (err, doc) {
             if (doc && doc.text) {
-                chrome.tts.speak(doc.text, options);
+
+                if (options) {
+                    chrome.tts.speak(doc.text, options);
+                } else {
+                    chrome.storage.sync.get({
+                        ttsSpeakOptions: null
+                    }, function (items) {
+                        if (chrome.runtime.lastError) {
+                            return;
+                        }
+
+                        chrome.tts.speak(doc.text, items.ttsSpeakOptions);
+                    });
+                }
             }
         });
     },

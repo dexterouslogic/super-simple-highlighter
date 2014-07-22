@@ -330,10 +330,16 @@ var _database = {
      * or from event page's createHighlight(), when something went wrong inserting it in the DOM
      * @param id
      * @param rev
-     * @param [callback]
+     * @param {object} [callback] *seems to be required*
      */
     removeDocument: function (id, rev, callback) {
         "use strict";
+        if (!callback) {
+            callback = function () {
+                // null
+            };
+        }
+
         _database.getDatabase().remove(id, rev, callback);
     },
 

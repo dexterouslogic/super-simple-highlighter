@@ -1,4 +1,3 @@
-"use strict";
 /*global Node, XPathEvaluator, document, documentelement, XPathResult*/
 
 var _xpath = {
@@ -7,6 +6,7 @@ var _xpath = {
      * http://stackoverflow.com/questions/3454526/how-to-calculate-the-_xpath-position-of-an-element-using-javascript
      */
     _getXPathFromNode: function (node) {
+        "use strict";
         if (node && node.id) {
             return '//*[@id="' + node.id + '"]';
         }
@@ -14,7 +14,7 @@ var _xpath = {
         var paths = [];
 
         // Use nodeName (instead of localName) so namespace prefix is included (if any).
-        for (; node && (node.nodeType == 1 || node.nodeType == 3) ; node = node.parentNode)  {
+        for (; node && (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE); node = node.parentNode)  {
             var index = 0;
             // EXTRA TEST FOR ELEMENT.ID
             if (node && node.id) {
@@ -24,14 +24,16 @@ var _xpath = {
 
             for (var sibling = node.previousSibling; sibling; sibling = sibling.previousSibling) {
                 // Ignore document type declaration.
-                if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE)
+                if (sibling.nodeType === Node.DOCUMENT_TYPE_NODE) {
                     continue;
+                }
 
-                if (sibling.nodeName == node.nodeName)
-                    ++index;
+                if (sibling.nodeName === node.nodeName) {
+                    index++;
+                }
             }
 
-            var tagName = (node.nodeType == 1 ? node.nodeName.toLowerCase() : "text()");
+            var tagName = (node.nodeType === Node.ELEMENT_NODE ? node.nodeName.toLowerCase() : "text()");
             var pathIndex = (index ? "[" + (index+1) + "]" : "");
             paths.splice(0, 0, tagName + pathIndex);
         }
@@ -41,24 +43,18 @@ var _xpath = {
 
     /**
      * Convert a standard Range object to an XPathRange
-     * @param range Range objct
-     * @return XPathRange (identifies containers by their _xpath)
+     * @param {object} range Range object
+     * @return {object} (identifies containers by their _xpath)
      */
     createXPathRangeFromRange: function (range) {
-        var xpathRange = {
+        "use strict";
+        return {
             startContainerPath: this._getXPathFromNode(range.startContainer),
-            startOffset: range.startOffset
+            startOffset: range.startOffset,
+            endContainerPath: this._getXPathFromNode(range.endContainer),
+            endOffset: range.endOffset,
+            collapsed: range.collapsed
         };
-
-        if (range.collapsed) {
-            xpathRange.endContainerPath = xpathRange.startContainerPath;
-            xpathRange.endOffset = xpathRange.startOffset;
-        } else {
-            xpathRange.endContainerPath = this._getXPathFromNode(range.endContainer);
-            xpathRange.endOffset = range.endOffset;
-        }
-
-        return xpathRange;
     },
 
     /**
@@ -67,7 +63,8 @@ var _xpath = {
      * @return {Range} range object, or null if start or end containers couldn't be evaluated
      */
     createRangeFromXPathRange: function (xpathRange) {
-        var startContainer, endContainer, range, evaluator = new XPathEvaluator();
+        "use strict";
+        var startContainer, endContainer, endOffset, evaluator = new XPathEvaluator();
 
         // must have legal start and end container nodes
         startContainer = evaluator.evaluate(xpathRange.startContainerPath,
@@ -76,22 +73,23 @@ var _xpath = {
             return null;
         }
 
-        // share the container if path is equal
-        if (xpathRange.startContainerPath === xpathRange.endContainerPath) {
+        if (xpathRange.collapsed || !xpathRange.endContainerPath) {
             endContainer = startContainer;
+            endOffset = xpathRange.startOffset;
         } else {
-            // else evaluate as normal
-            endContainer =  evaluator.evaluate(xpathRange.endContainerPath,
+            endContainer = evaluator.evaluate(xpathRange.endContainerPath,
                 document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             if (!endContainer.singleNodeValue) {
                 return null;
             }
+
+            endOffset = xpathRange.endOffset;
         }
 
         // map to range object
-        range = document.createRange();
+        var range = document.createRange();
         range.setStart(startContainer.singleNodeValue, xpathRange.startOffset);
-        range.setEnd(endContainer.singleNodeValue, xpathRange.endOffset);
+        range.setEnd(endContainer.singleNodeValue, endOffset);
 
         return range;
     }

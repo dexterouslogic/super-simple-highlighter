@@ -14,11 +14,20 @@ var _stylesheet = {
 
         var match = re.exec($ss.css('background-color'));
         if (match && match.length >= 4) {
-            $ss.css('background-color', "rgba(" +
-                match[1] + ", " +
-                match[2] + ", " +
-                match[3] + ", " +
-                "0.7");
+            chrome.storage.sync.get({
+                highlightBackgroundAlpha: 0.75
+            }, function (items) {
+                if (chrome.runtime.lastError) {
+                    return;
+                }
+
+                $ss.css('background-color', "rgba(" +
+                    match[1] + ", " +
+                    match[2] + ", " +
+                    match[3] + ", " +
+                    items.highlightBackgroundAlpha +
+                ")");
+            });
         }
     },
 

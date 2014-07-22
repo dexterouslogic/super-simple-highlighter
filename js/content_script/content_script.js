@@ -50,11 +50,22 @@ var _contentScript  = {
 
     /**
      * Get text selection range
-     * @return {Range}
+     * @return {Range}. If the selection is collapsed, a fake collapsed range is created
      */
     getSelectionRange: function () {
         "use strict";
-        return window.getSelection().getRangeAt(0);
+        var selection = window.getSelection();
+        var range;
+
+        if (selection.isCollapsed) {
+            // a fake range
+            range = new Range();
+            range.collapse();
+        } else {
+            range = selection.getRangeAt(0);
+        }
+
+        return range;
     },
 
     /**
@@ -202,6 +213,12 @@ var _contentScript  = {
      */
     onMouseEnterHighlight: function () {
         "use strict";
+        // if text is selected, don't use the 'update' method
+        // if (!_contentScript.isSelectionCollapsed()) {
+        //     // dont wake event page if possible
+        //     return;
+        // }
+
         // 'this' is one of the spans in the list, related to a single highlight.
         var id = _contentScript._getHighlightId(this);
         if (id) {
@@ -210,7 +227,6 @@ var _contentScript  = {
             chrome.runtime.sendMessage({
                 id: "on_mouse_enter_highlight",
                 highlightId: id,
-                selectionCollapsed: _contentScript.isSelectionCollapsed()
             });
         }
     },
