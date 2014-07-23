@@ -298,7 +298,22 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
                 href: "http://creativecommons.org/licenses/by/3.0/",
                 text: "CC BY 3.0"
             }
-        }
+        },
 
+        {
+            work: {
+                href: "https://www.flickr.com/photos/colemama/5264395373/",
+                text: "Highlighter On Page (Promotional Image)"
+            },
+            author: {
+                href: "https://www.flickr.com/photos/colemama/",
+                text: "Marie Coleman"
+
+            },
+            license: {
+                href: "https://creativecommons.org/licenses/by-nc-sa/2.0/",
+                text: "CC BY-NC-SA 2.0"
+            }
+        }
     ];
 }]);

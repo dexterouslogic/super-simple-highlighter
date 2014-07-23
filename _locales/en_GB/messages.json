@@ -4,5 +4,8 @@
     },
     "highlight_background_colour": {
         "message": "Background Colour"
+    },
+    "color_title_grey": {
+        "message": "Grey"
     }
 }

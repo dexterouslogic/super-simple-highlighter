@@ -51,7 +51,6 @@
         "unlimitedStorage",
         "webNavigation",
         "tabs",
-        "*://*/*",
-        "file:///*"
+        "*://*/*"
     ]
 }

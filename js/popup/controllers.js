@@ -14,8 +14,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     var activeTabId;
 
     // models
-    $scope.webkitLineClamp = "2";
-
 //    $scope.docs = [];
 //    $scope.match = "hello";
 
@@ -28,11 +26,13 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
         activeTabId = activeTab.id;
         backgroundPage = _backgroundPage;
 
+        // default to no clamp
         chrome.storage.sync.get({
-            "highlightTextLineClamp": 10
+            "highlightTextLineClamp": null
         }, function (result) {
             if (result) {
-                $scope.webkitLineClamp = result.highlightTextLineClamp.toString();
+                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
+                    result.highlightTextLineClamp.toString() : null);
             }
         });
 

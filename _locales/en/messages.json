@@ -42,8 +42,8 @@
     "color_title_purple": {
         "message": "Purple"
     },
-    "color_title_dark_grey": {
-        "message": "Dark Grey"
+    "color_title_grey": {
+        "message": "Gray"
     },
 
     "highlight_title_undefined": {
@@ -147,6 +147,6 @@
         "message": "Licenses"
     },
     "support": {
-        "message": "Contact (email)"
+        "message": "Support"
     }
 }

@@ -23,8 +23,8 @@ var _highlightDefinitions = {
                         "default-cyan-f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b", "#AAffff", "#000000"),
                     _highlightDefinitions.create(chrome.i18n.getMessage("color_title_purple"),
                         "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a", "#FFAAFF", "#000000"),
-                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_dark_grey"),
-                        "default-black-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#444444", "#FFFFFF")
+                    _highlightDefinitions.create(chrome.i18n.getMessage("color_title_grey"),
+                        "default-grey-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#777777", "#FFFFFF")
                 ],
                     'sharedHighlightStyle': {
                         "border-radius": "0.2em",
@@ -35,7 +35,7 @@ var _highlightDefinitions = {
 
                         // color & font-style when highlight is defined by a class which no longer exists
                         // each specific style must override these, or inherit default
-                        "color": "black",
+                        "color": "gray",
                         "background-color": "lightgray",
                         "font-style": "italic"
                 }
@@ -67,7 +67,7 @@ var _highlightDefinitions = {
 
             style: {
                 "background-color": backgroundColor ? backgroundColor : "#ff8080",
-                "color": textColor ? textColor : "#00000",
+                "color": textColor ? textColor : "#000000",
 
                 // must override the shared style
                 "font-style": "inherit"

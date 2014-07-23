@@ -15,7 +15,7 @@ var _stylesheet = {
         var match = re.exec($ss.css('background-color'));
         if (match && match.length >= 4) {
             chrome.storage.sync.get({
-                highlightBackgroundAlpha: 0.75
+                highlightBackgroundAlpha: 0.8
             }, function (items) {
                 if (chrome.runtime.lastError) {
                     return;
