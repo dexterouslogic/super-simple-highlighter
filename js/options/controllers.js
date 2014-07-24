@@ -9,18 +9,22 @@ var optionsControllers = angular.module('optionsControllers', []);
 // TODO: rewrite, this is too linked with storage stuff
 
 // array this is something to do with minification
-optionsControllers.controller('StylesController', ["$scope", '$sce', function ($scope, $sce) {
+optionsControllers.controller('StylesController', ["$scope", function ($scope) {
     'use strict';
     var $modal;
 
     // model
     $scope.highlightClassName = "highlight";
-    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
-        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
+//    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
+//        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
 
     function onInit () {
         // cache
         $modal = $('#myModal');
+
+        chrome.commands.getAll(function (commands) {
+            $scope.commands = commands;
+        });
 
         // listen for edit modal close
 //        $modal.on('hidden.bs.modal', onModalHidden);
@@ -85,7 +89,6 @@ optionsControllers.controller('StylesController', ["$scope", '$sce', function ($
 
         // deep copy
         $scope.modalDefinition = angular.copy($scope.definitions[index]);//   _highlightDefinitions.copy($scope.definitions[index]);
-
 
         // activate the 'edit' model
         $modal.modal();
@@ -248,10 +251,6 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
         {
             href: "http://jquery.com/",
             text: "jQuery"
-        },
-        {
-            href: "https://github.com/jeresig/jquery.hotkeys",
-            text: "jQuery.Hotkeys (jeresig fork)"
         },
         {
             href: "https://github.com/f0r4y312/jquery-stylesheet",

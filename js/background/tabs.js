@@ -34,7 +34,7 @@ var _tabs = {
         this.executeScripts(tabId, [
             { file: "static/js/jquery-2.1.1.min.js" },
             { file: "static/js/jquery.stylesheet.min.js" },
-            { file: "static/js/jquery.hotkeys.min.js" },
+//            { file: "static/js/jquery.hotkeys.min.js" },
             { file: "js/highlight_definitions.js" },
             { file: "js/string_utils.js" },
             { file: "js/stylesheet.js" },
@@ -124,12 +124,27 @@ var _tabs = {
 
     /**
      * Get the selected text range, as an xpath range object
-     * @param tabId
+     * @param {number} tabId
      * @param [responseCallback]
      */
     sendGetSelectionRangeMessage: function (tabId, responseCallback) {
+        "use strict";
         _tabs.sendMessage(tabId, {
             id: "get_selection_range"
+        }, responseCallback);
+    },
+
+    /**
+     * Get the text defined by a specific range
+     * @param {number} tabId
+     * @param {object} xpathRange
+     * @param {function} [responseCallback] function(text)
+     */
+    sendGetRangeTextMessage: function (tabId, xpathRange, responseCallback) {
+        "use strict";
+        _tabs.sendMessage(tabId, {
+            id: "get_range_text",
+            range: xpathRange
         }, responseCallback);
     },
 

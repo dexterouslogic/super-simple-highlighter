@@ -175,8 +175,13 @@ var _contentScript  = {
             break;
 
         case "get_selection_range":
-            var range = _contentScript.getSelectionRange();
-            sendResponse(_xpath.createXPathRangeFromRange(range));
+            var r1 = _contentScript.getSelectionRange();
+            sendResponse(_xpath.createXPathRangeFromRange(r1));
+            break;
+
+        case "get_range_text":
+            var r2 = _xpath.createRangeFromXPathRange(message.range);
+            sendResponse(r2 ? r2.toString() : null);
             break;
 
         case "scroll_to":
@@ -226,7 +231,7 @@ var _contentScript  = {
             // if the range is not collapsed, it will probably be ignored
             chrome.runtime.sendMessage({
                 id: "on_mouse_enter_highlight",
-                highlightId: id,
+                highlightId: id
             });
         }
     },
@@ -277,8 +282,8 @@ var _contentScript  = {
             if (changes.highlightDefinitions) {
                 var c2 = changes.highlightDefinitions;
 
-                // Remove all event handlers in the ".hotkeys" namespace
-                $(document).off('keypress.hotkeys');
+//                // Remove all event handlers in the ".hotkeys" namespace
+//                $(document).off('keypress.hotkeys');
 
                 if (c2.oldValue) {
                     c2.oldValue.forEach( function (h) {
@@ -290,24 +295,24 @@ var _contentScript  = {
                     c2.newValue.forEach( function (h) {
                         _stylesheet.setHighlightStyle(h);
 
-                        if (h.hotkey && h.hotkey.length > 0) {
-                            // sort modifiers alphabetically
-                            var tokens = h.hotkey.split("+");
-
-                            // remove last letter
-                            var key = tokens.pop();
-                            // sort alphabetically
-                            tokens = tokens.map( function (modifier) {
-                                return modifier.toLowerCase();
-                            }).sort();
-                            // add last letter again
-                            tokens.push(key);
-                            // reform
-                            var hotkey = tokens.join("+");
-
-                            $(document).on('keypress.hotkeys', null, hotkey,
-                                _contentScript.onKeyPressFactory(h.className));
-                        }
+//                        if (h.hotkey && h.hotkey.length > 0) {
+//                            // sort modifiers alphabetically
+//                            var tokens = h.hotkey.split("+");
+//
+//                            // remove last letter
+//                            var key = tokens.pop();
+//                            // sort alphabetically
+//                            tokens = tokens.map( function (modifier) {
+//                                return modifier.toLowerCase();
+//                            }).sort();
+//                            // add last letter again
+//                            tokens.push(key);
+//                            // reform
+//                            var hotkey = tokens.join("+");
+//
+//                            $(document).on('keypress.hotkeys', null, hotkey,
+//                                _contentScript.onKeyPressFactory(h.className));
+//                        }
                     });
                 }
 
@@ -316,31 +321,31 @@ var _contentScript  = {
 
             }
         }
-    },
-
-    /**
-     * Factory method for onKeyPress handler
-     * @param {string} className class name to associated with the highlight
-     */
-    onKeyPressFactory: function(className){
-        "use strict";
-        return function() {
-            // get the current selection, if any
-            if ( _contentScript.isSelectionCollapsed() ) {
-                return;
-            }
-
-            var range = _contentScript.getSelectionRange();
-
-            // tell event page to highlight the selection
-            chrome.runtime.sendMessage({
-                id: "create_highlight",
-                className: className,
-                range: _xpath.createXPathRangeFromRange(range),
-                selectionText: range.toString()
-            });
-        };
     }
+
+//    /**
+//     * Factory method for onKeyPress handler
+//     * @param {string} className class name to associated with the highlight
+//     */
+//    onKeyPressFactory: function(className){
+//        "use strict";
+//        return function() {
+//            // get the current selection, if any
+//            if ( _contentScript.isSelectionCollapsed() ) {
+//                return;
+//            }
+//
+//            var range = _contentScript.getSelectionRange();
+//
+//            // tell event page to highlight the selection
+//            chrome.runtime.sendMessage({
+//                id: "create_highlight",
+//                className: className,
+//                range: _xpath.createXPathRangeFromRange(range),
+//                selectionText: range.toString()
+//            });
+//        };
+//    }
 };
 
 /**

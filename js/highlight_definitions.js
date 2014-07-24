@@ -51,10 +51,9 @@ var _highlightDefinitions = {
      * @param {string} [className] optional class name
      * @param {string} [backgroundColor] optional background color in form #RRGGBB
      * @param {string} [textColor] optional background text colour in form #RRGGBB
-     * @param {string} [hotkey] jquery hotkey format string
      * @return {object}
      */
-    create: function (title, className, backgroundColor, textColor, hotkey) {
+    create: function (title, className, backgroundColor, textColor) {
         "use strict";
 
         // required
@@ -63,7 +62,6 @@ var _highlightDefinitions = {
             className: (className ? className : _stringUtils.createUUID({
                 beginWithLetter: true
             })),
-            hotkey: hotkey,
 
             style: {
                 "background-color": backgroundColor ? backgroundColor : "#ff8080",

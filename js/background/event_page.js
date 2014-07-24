@@ -1,4 +1,4 @@
-/*global _database, _contextMenus, _tabs*/
+/*global _database, _contextMenus, _tabs, _highlightDefinitions*/
 
 var _eventPage = {
     /**
@@ -20,6 +20,8 @@ var _eventPage = {
         chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
 
         chrome.contextMenus.onClicked.addListener(_contextMenus.onClicked);
+
+        chrome.commands.onCommand.addListener(_eventPage.onCommandsCommand);
     },
 
     /**
@@ -35,7 +37,7 @@ var _eventPage = {
             // error param might indicate a conflict, which is ok
 
             // delete stale views associated with design docs
-            console.log("Cleaning database");
+            console.log("Cleaning stale views associated with design docs");
             _database.viewCleanup();
         });
 
@@ -211,6 +213,68 @@ var _eventPage = {
                 _contextMenus.recreateMenu();
             }
         }
+    },
+
+    /**
+     * Fired when a registered command is activated using a keyboard shortcut.
+     */
+    onCommandsCommand: function (command) {
+        "use strict";
+        // parse the command string to find the style's index
+        // 'apply_highlight_index.0'
+        var re = new RegExp("^apply_highlight\\.(\\d+)$");
+        var match = re.exec(command);
+
+        if (!match || match.length !== 2) {
+            throw "unknown command " + command;
+        }
+
+        var index = parseInt(match[1]);
+
+        // convert to object
+        _highlightDefinitions.getAll(function (items) {
+            if (!items || !items.highlightDefinitions || items.highlightDefinitions.length <= index) {
+                console.log("Unable to match command index to definition");
+                return;
+            }
+
+            var hd = items.highlightDefinitions[index];
+
+            // find the range of selected text for the active tab
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                if (!tabs) { return; }
+
+                var activeTab = tabs[0];
+
+                var match = _database.buildMatchString(activeTab.url);
+                if (!match) { return; }
+
+                // if there is text selected, we create a new highlight
+                _tabs.sendGetSelectionRangeMessage(activeTab.id, function (xpathRange) {
+                    if (!xpathRange) { return; }
+
+                    // non collapsed selection means create new highlight
+                    if (!xpathRange.collapsed) {
+                        // requires selection text
+                        _tabs.sendGetRangeTextMessage(activeTab.id, xpathRange, function (selectionText) {
+                            if (!selectionText) { return; }
+
+                            // create new document for highlight, then update DOM
+                            _eventPage.createHighlight(activeTab.id,
+                                xpathRange, _database.buildMatchString(activeTab.url),
+                                selectionText, hd.className);
+                        });
+                    } else {
+                        // collapsed selection range means update the hovered highlight (if possible)
+                        var documentId = _contextMenus.getHoveredHighlightId();
+                        if (documentId) {
+                            _eventPage.updateHighlight(activeTab.id,
+                                documentId, hd.className);
+                        }
+                    }
+                });
+            });
+        });
     },
 
     /**

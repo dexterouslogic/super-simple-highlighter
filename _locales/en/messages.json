@@ -3,7 +3,7 @@
         "message": "Super Simple Highlighter"
     },
     "extension_description": {
-        "message": "Highlight and recall text on a page"
+        "message": "Highlights and remembers text on web pages"
     },
     "extension_author": {
         "message": "einzelcode"
@@ -130,14 +130,8 @@
         "message": "Background Color"
     },
 
-    "highlight_keyboard_shortcut": {
-        "message": "Keyboard Shortcut"
-    },
-    "highlight_keyboard_shortcut_not_defined": {
-        "message": "Not Specified"
-    },
-    "html_highlight_keyboard_shortcut_help": {
-        "message": "A shortcut must be a single letter, optionally prefixed with the <kbd>Shift</kbd> qualifier and the <kbd>+</kbd> symbol. EG: <kbd>Y</kbd>, <kbd>Shift+A</kbd>, or <kbd>Shift+U</kbd>. Usage of the <kbd>Ctrl</kbd> or <kbd>Alt</kbd> modifiers is not recommended."
+    "highlight_help_keyboard_shortcut": {
+        "message": "A keyboard shortcut can be assigned to any of the first 10 styles using the link at the bottom of Chrome's Extension page"
     },
 
     "libraries": {

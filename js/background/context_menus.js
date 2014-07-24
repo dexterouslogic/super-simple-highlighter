@@ -3,6 +3,7 @@
 var _contextMenus = {
     /**
      * id of highlight (aka documentId) for the currently mouse-over highlight
+     * @private
      */
     hoveredHighlightId: null,
 
@@ -14,6 +15,15 @@ var _contextMenus = {
         "use strict";
         _contextMenus.hoveredHighlightId = id;
         _contextMenus.recreateMenu();
+    },
+
+    /**
+     * Get the currently hovered highlight id
+     * @return {string|null|undefined}
+     */
+    getHoveredHighlightId: function () {
+        "use strict";
+        return _contextMenus.hoveredHighlightId;
     },
 
     /**
@@ -46,6 +56,13 @@ var _contextMenus = {
         "use strict";
         chrome.contextMenus.removeAll();
 
+        if (doc) {
+            // should be a 'create' verb in the document
+            if (doc.verb !== "create") {
+                throw "Unknown verb: " + doc.verb;
+            }
+        }
+
         // required parent
         var parentId = chrome.contextMenus.create({
             "id": "sos",
@@ -53,82 +70,76 @@ var _contextMenus = {
             "contexts": _contextMenus.hoveredHighlightId ? ["all"] : ["selection"]
         });
 
-        // update or create?
-        if (doc) {
-            // should be a 'create' verb in the document
-            if (doc.verb !== "create") {
-                throw "Unknown verb: " + doc.verb;
-            }
+        // required to find shortcut keys
+        chrome.commands.getAll(function (commands) {
+            for (var i=0; i < highlightDefinitions.length; i++) {
+                var hd = highlightDefinitions[i];
 
-            // add a radio item for each highlight style
-            highlightDefinitions.forEach(function (h) {
-                chrome.contextMenus.create({
-                    type: "radio",
-                    id: "update_highlight." + h.className,
-                    parentId: parentId,
-                    title: h.title,
-                    contexts: ["all"],
-                    checked: doc.className === h.className
-                });
-            });
-
-            // --
-            chrome.contextMenus.create({
-                id: "sep1",
-                parentId: parentId,
-                type: "separator",
-                contexts: ["all"]
-            });
-
-            // copy
-            chrome.contextMenus.create({
-                id: "copy_highlight_text",
-                parentId: parentId,
-                title: chrome.i18n.getMessage("copy_highlight_text"),
-                contexts: ["all"]
-            });
-
-            // say
-            chrome.contextMenus.create({
-                id: "speak_highlight_text",
-                parentId: parentId,
-                title: chrome.i18n.getMessage("speak_highlight_text"),
-                contexts: ["all"]
-            });
-
-            // --
-            chrome.contextMenus.create({
-                id: "sep2",
-                parentId: parentId,
-                type: "separator",
-                contexts: ["all"]
-            });
-
-            // Remove
-            chrome.contextMenus.create({
-                id: "delete_highlight",
-                parentId: parentId,
-                title: chrome.i18n.getMessage("delete_highlight"),
-                contexts: ["all"]
-            });
-        } else {
-            // standard items for creating new highlight using the selection
-            highlightDefinitions.forEach(function (h) {
-                // form title, with optional hotkey suffix
-                var title = h.title;
-                if (h.hotkey && h.hotkey.length > 0) {
-                    title += " [" + h.hotkey + "]";
+                var title = hd.title;
+                // find the matching shortcut, if possible
+                var shortcut = (i < commands.length ? commands[i].shortcut : null);
+                if (shortcut && shortcut.length > 0) {
+                    title += " [" + shortcut + "]";
                 }
 
-                chrome.contextMenus.create({
-                    type: "normal",
-                    id: "create_highlight." + h.className,
+                // existence of doc means use update-type commands
+                var options = {
+                    type: doc ? "radio" : "normal",
+                    id: (doc ? "update_highlight." : "create_highlight.") + hd.className,
                     parentId: parentId,
                     title: title,
-                    contexts: ["selection"]
+                    contexts: doc ? ["all"] : ["selection"]
+                };
+
+                if (doc) {
+                    options.checked = doc.className === hd.className;
+                }
+
+                chrome.contextMenus.create(options);
+            }
+
+            if (doc) {
+                // --
+                chrome.contextMenus.create({
+                    id: "sep1",
+                    parentId: parentId,
+                    type: "separator",
+                    contexts: ["all"]
                 });
-            });
-        }
+
+                // copy
+                chrome.contextMenus.create({
+                    id: "copy_highlight_text",
+                    parentId: parentId,
+                    title: chrome.i18n.getMessage("copy_highlight_text"),
+                    contexts: ["all"]
+                });
+
+                // say
+                chrome.contextMenus.create({
+                    id: "speak_highlight_text",
+                    parentId: parentId,
+                    title: chrome.i18n.getMessage("speak_highlight_text"),
+                    contexts: ["all"]
+                });
+
+                // --
+                chrome.contextMenus.create({
+                    id: "sep2",
+                    parentId: parentId,
+                    type: "separator",
+                    contexts: ["all"]
+                });
+
+                // Remove
+                chrome.contextMenus.create({
+                    id: "delete_highlight",
+                    parentId: parentId,
+                    title: chrome.i18n.getMessage("delete_highlight"),
+                    contexts: ["all"]
+                });
+            }
+        });
     },
 
 

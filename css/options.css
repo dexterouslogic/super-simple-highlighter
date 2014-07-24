@@ -22,8 +22,15 @@ h1, h2, h3, h4, h5, h6 {
     margin-right: 12px;
 }
 
-.token .hotkey {
+.token .shortcut {
     font-size: 14pt;
+}
+
+.token > .number {
+    background: white;
+    padding: 0 0.4em;
+    color: grey;
+    border-radius: 6px;
 }
 
 .token > a {

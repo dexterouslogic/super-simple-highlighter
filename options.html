@@ -11,7 +11,7 @@
 </head>
 
 <body>
-<nav class="navbar navbar-inverse" role="navigation" ng-controller="AboutController">
+<nav class="navbar navbar-inverse" role="navigation" data-ng-controller="AboutController">
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
@@ -24,7 +24,7 @@
             </button>
 
             <a class="navbar-brand" href="#">
-                <img src="{{manifest.icons.19}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
+                <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
             </a>
         </div>
 
@@ -98,15 +98,8 @@
                                                ng-model="modalDefinition.style['color']">
                                     </div>
 
-                                    <div class="form-group">
-                                        <label for="hotkey">{{ 'highlight_keyboard_shortcut' | i18n }}</label>
-                                        <input type="text" class="form-control" id="hotkey"
-                                               placeholder="{{ 'highlight_keyboard_shortcut_not_defined' | i18n }}"
-                                               ng-model="modalDefinition.hotkey">
-
-                                        <div class="help-block"
-                                             ng-bind-html="html_highlight_keyboard_shortcut_help"></div>
-                                    </div>
+                                    <!--Shortcut help-->
+                                    <div class="help-block">{{ 'highlight_help_keyboard_shortcut' | i18n }}</div>
                                 </div>
 
                                 <!--Footer-->
@@ -114,8 +107,8 @@
                                     <button type="button" class="btn btn-default" data-dismiss="modal">
                                         {{ 'cancel' | i18n }}
                                     </button>
-                                    <button type="button" class="btn btn-primary" ng-disabled="myForm.$invalid"
-                                            ng-click="onClickModalSave()">{{modalSaveButtonTitle}}
+                                    <button type="button" class="btn btn-primary" data-ng-disabled="myForm.$invalid"
+                                            data-ng-click="onClickModalSave()">{{modalSaveButtonTitle}}
                                     </button>
                                 </div>
                             </form>
@@ -128,10 +121,14 @@
                 <ul class="list-unstyled">
                     <li ng-repeat="d in definitions"
                         class="token {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
+                        <!--Number (index+1)-->
+                        <span class="number">{{$index + 1}}</span>
                         <!--title-->
                         <span>{{d.title}}</span>
                         <!--hotkey-->
-                        <kbd class="hotkey" ng-show="{{d.hotkey != null && d.hotkey.length > 0}}">{{d.hotkey}}</kbd>
+                        <kbd class="shortcut" ng-show="{{$index < commands.length && commands[$index].shortcut}}">
+                            {{commands[$index].shortcut}}
+                        </kbd>
 
                         <!--Delete Button-->
                         <button type="button" class="close"  title="Remove Style"
@@ -172,15 +169,15 @@
                 <div class="row row-buttons">
                     <button type="button" class="btn btn-danger"
                             ng-class="{'disabled': rows.length === 0}"
-                            ng-click="onClickRemoveAllPages()">
+                            data-ng-click="onClickRemoveAllPages()">
                         {{ 'text_remove_all_pages' | i18n }}
                     </button>
                 </div>
             </div>
 
             <!--About Pane-->
-            <div class="tab-pane fade" id="about" ng-controller="AboutController">
-                <img src="{{manifest.icons.256}}"/>
+            <div class="tab-pane fade" id="about" data-ng-controller="AboutController">
+                <img data-ng-src="{{manifest.icons['256']}}"/>
                 <h1>{{manifest.name}}</h1>
                 <h5>Version {{manifest.version}}</h5>
 

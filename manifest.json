@@ -41,6 +41,39 @@
         ],
         "persistent": false
     },
+    "commands": {
+        "apply_highlight.0": {
+            "description": "Highlight #1"
+        },
+        "apply_highlight.1": {
+            "description": "Highlight #2"
+        },
+        "apply_highlight.2": {
+            "description": "Highlight #3"
+        },
+        "apply_highlight.3": {
+            "description": "Highlight #4"
+        },
+        "apply_highlight.4": {
+            "description": "Highlight #5"
+        },
+        "apply_highlight.5": {
+            "description": "Highlight #6"
+        },
+        "apply_highlight.6": {
+            "description": "Highlight #7"
+        },
+        "apply_highlight.7": {
+            "description": "Highlight #8"
+        },
+        "apply_highlight.8": {
+            "description": "Highlight #9"
+        },
+        "apply_highlight.9": {
+            "description": "Highlight #10"
+        }
+    },
+
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
     "options_page": "options.html",
     "permissions": [
@@ -51,6 +84,6 @@
         "unlimitedStorage",
         "webNavigation",
         "tabs",
-        "*://*/*"
+        "<all_urls>"
     ]
 }
