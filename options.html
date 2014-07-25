@@ -5,6 +5,7 @@
     <title>My Options Page</title>
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/angular.rangeSlider.css" rel="stylesheet">
     <link href="css/options.css" rel="stylesheet">
 
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" type="text/css">
@@ -120,7 +121,7 @@
                 <!--<h4>Predefined Highlight Styles</h4>-->
                 <ul class="list-unstyled">
                     <li ng-repeat="d in definitions"
-                        class="token {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
+                        class="token well-sm {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
                         <!--Number (index+1)-->
                         <span class="number">{{$index + 1}}</span>
                         <!--title-->
@@ -138,6 +139,35 @@
                         </button>
                     </li>
                 </ul>
+
+                <!--Opacity-->
+                <div class="row">
+                    <h5>{{ 'highlight_opacity' | i18n }}</h5>
+                    <div range-slider min="0.3" max="1.0"
+                         model-max="opacity" attach-handle-values="true"
+                         step="0.1" decimal-places="2" pin-handle="min" filter="alphaPercent"></div>
+                </div>
+
+<!--
+
+                <slider id="opacity" type="text"
+                        model="opacity" data-slider-min="0.3" data-slider-max="1.0"
+                        data-slider-step="0.05" data-slider-tooltip="hide"></slider>
+-->
+
+
+<!--
+                <div class="input-group">
+                    <label class="control-label" for="ex1">{{ 'highlight_opacity' | i18n }}</label>
+
+                    <div class="well">
+                        <input id="ex1" type="text"
+                               ng-model="opacity"
+                               data-slider-id='ex1Slider' data-slider-min="0.3" data-slider-max="1.0"
+                               data-slider-step="0.05" data-slider-tooltip="always"/>
+                    </div>
+                </div>
+-->
 
                 <!-- Buttons -->
                 <div class="row row-buttons">
@@ -209,6 +239,7 @@
 <script src="static/js/jquery.stylesheet.min.js"></script>
 <script src="static/js/angular.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/angular.rangeSlider.min.js"></script>
 
 <script src="js/highlight_definitions.js"></script>
 <script src="js/stylesheet.js"></script>
@@ -216,7 +247,8 @@
 
 <script src="js/options/app.js"></script>
 <script src="js/options/controllers.js"></script>
-<script src="js/filters.js"></script>
+<script src="js/options/filters.js"></script>
+<script src="js/i18n_filters.js"></script>
 
 </body>
 </html>

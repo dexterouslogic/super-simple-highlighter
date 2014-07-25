@@ -126,22 +126,33 @@ var _database = {
      */
     buildMatchString: function (url, options) {
         "use strict";
+        var u = purl(url), host = u.attr('host');
+
         if (!options) {
-            options = {
-                include_query: true,
-                include_fragment: false
-            };
+            // TODO: build an options object based on whether the host is in the exceptions list
+
+
+
+            if (!options) {
+                // defaults
+                options = {
+                    scheme: true,
+                    query: true,
+                    fragment: false
+                };
+            }
         }
 
         // shortcut - basically the match is the entire url
-        if( options.include_query && options.include_fragment ) {
+        if( options.scheme && options.query && options.fragment ) {
             return url;
         }
 
-        var u = purl(url), port = u.attr('port'), query = u.attr('query'), fragment = u.attr('fragment');
+        var port = u.attr('port'), query = u.attr('query'), fragment = u.attr('fragment');
 
         // http://blah.com
-        var match = u.attr('protocol') + "://" + u.attr('host');
+        var match = options.scheme ? (u.attr('protocol') + "://") : "";
+        match += host;
 
         // [:80]
         if (port && port.length !== 0) {
@@ -152,12 +163,12 @@ var _database = {
         match += u.attr('path');
 
         // [?q=123]
-        if (options.include_query && query && query.length !== 0) {
+        if (options.query && query && query.length !== 0) {
             match += ("?" + query);
         }
 
         // [#something]
-        if (options.include_fragment && fragment && fragment.length !== 0) {
+        if (options.fragment && fragment && fragment.length !== 0) {
             match += ("#" + fragment);
         }
 

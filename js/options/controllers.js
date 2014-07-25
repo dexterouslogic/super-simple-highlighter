@@ -9,9 +9,12 @@ var optionsControllers = angular.module('optionsControllers', []);
 // TODO: rewrite, this is too linked with storage stuff
 
 // array this is something to do with minification
-optionsControllers.controller('StylesController', ["$scope", function ($scope) {
+optionsControllers.controller('StylesController', ["$scope", "$timeout", function ($scope, $timeout) {
     'use strict';
+
+    // cache modal dialog
     var $modal;
+
 
     // model
     $scope.highlightClassName = "highlight";
@@ -22,6 +25,37 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
         // cache
         $modal = $('#myModal');
 
+        // setup and event handlers
+        chrome.storage.sync.get({
+            highlightBackgroundAlpha: 0.8
+        }, function (items) {
+            if (chrome.runtime.lastError) {
+                return;
+            }
+
+            $scope.opacity = items.highlightBackgroundAlpha;
+
+            // watch our model, sync on change
+            var timeout = null;     // debounce
+            $scope.$watch('opacity', function (newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    // save the new value. debounce for 1 second
+                    if (timeout) {
+                        $timeout.cancel(timeout);
+                    }
+
+                    timeout = $timeout(function () {
+                        console.log(newVal);
+
+                        chrome.storage.sync.set({
+                            highlightBackgroundAlpha: newVal
+                        });
+                    }, 1000);
+                }
+            });
+        });
+
+        // shortcut commands array
         chrome.commands.getAll(function (commands) {
             $scope.commands = commands;
         });
@@ -76,6 +110,10 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
     $scope.onClickReset = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
             _highlightDefinitions.removeAll();
+
+            chrome.storage.sync.set({
+                highlightBackgroundAlpha: 0.8
+            });
         }
     };
 
@@ -113,6 +151,12 @@ optionsControllers.controller('StylesController', ["$scope", function ($scope) {
             // changes is an Object mapping each key that changed to its
             // corresponding storage.StorageChange for that item.
             var change;
+
+            if (changes.highlightBackgroundAlpha ) {
+                change = changes.highlightBackgroundAlpha;
+
+                if (change.newValue) { $scope.opacity = change.newValue; }
+            }
 
             // default FIRST
             if (changes.sharedHighlightStyle) {
@@ -243,6 +287,10 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
         {
             href: "https://angularjs.org/",
             text: "AngularJS"
+        },
+        {
+            href: "http://danielcrisp.github.io/angular-rangeslider/",
+            text: "angular-rangeslider"
         },
         {
             href: "http://getbootstrap.com/",

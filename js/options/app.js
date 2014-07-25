@@ -6,7 +6,9 @@
  */
 var optionsApp = angular.module('optionsApp', [
     'optionsControllers',
-    'i18nFilters'
+    'ui-rangeSlider',
+    'i18nFilters',
+    'optionsFilters'
 ]);
 
 // http://stackoverflow.com/questions/15606751/angular-changes-urls-to-unsafe-in-extension-page

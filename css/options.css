@@ -14,13 +14,15 @@ h1, h2, h3, h4, h5, h6 {
 .token {
     margin: 0 0 8px 0;
     font-size: 24pt;
-    padding: 10px 0 10px 0.3em !important;
+ /*   padding: 10px 0 10px 0.3em !important;*/
     cursor: pointer;
 }
 
+/*
 .token > .close {
     margin-right: 12px;
 }
+*/
 
 .token .shortcut {
     font-size: 14pt;
@@ -37,6 +39,12 @@ h1, h2, h3, h4, h5, h6 {
     color: inherit;
     text-decoration: none;
 }
+
+#ex1Slider .slider-selection {
+    background: #BABABA;
+}
+
+
 
 .pages {
     margin-top: 10px;

@@ -142,5 +142,9 @@
     },
     "support": {
         "message": "Support"
+    },
+
+    "highlight_opacity": {
+        "message": "Opacity"
     }
 }
