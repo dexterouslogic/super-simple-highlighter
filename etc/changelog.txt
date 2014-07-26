@@ -6,3 +6,4 @@ Alert when creating highlight in an editable, or in a subframe
 Options page tab headers
 Smooth alhpa stylesheet changes
 Prepare to supply pageUrl and frameUrl to build match string
+Check when a document reuses id attributes, and don't use them for xpath if true

@@ -122,7 +122,7 @@
     },
 
     "options_tab_page_header_sites": {
-        "message": "These are the styles of highlight available for applying to text. Click on one to change its name and color."
+        "message": "These are the highlight styles available for application to text. Click on it to change its properties."
     },
     "options_tab_page_header_pages": {
         "message": "These pages are marked as containing highlights. When you revisit them, hopefully they should reappear where you left them."

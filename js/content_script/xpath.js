@@ -17,9 +17,20 @@ var _xpath = {
         for (; node && (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE); node = node.parentNode)  {
             var index = 0;
             // EXTRA TEST FOR ELEMENT.ID
-            if (node && node.id) {
-                paths.splice(0, 0, '/*[@id="' + node.id + '"]');
-                break;
+            if (node.id) {
+                // if the document illegally re-uses an id, then we can't use it as a unique identifier
+
+//                // no jquery
+//                var length = document.querySelectorAll("[id=" + node.id + "]").length;
+                // jquery
+                var length = $("[id=" + node.id + "]").length;
+
+                if (length === 1) {
+                    paths.splice(0, 0, '/*[@id="' + node.id + '"]');
+                    break;
+                }
+
+                console.log("document contains " + length + " elements with id=" + node.id + ". Ignoring");
             }
 
             for (var sibling = node.previousSibling; sibling; sibling = sibling.previousSibling) {
