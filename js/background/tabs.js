@@ -149,6 +149,20 @@ var _tabs = {
     },
 
     /**
+     * Ask the content script to select text span(s) associated with a highlight
+     * @param {number} tabId
+     * @param {string} documentId
+     * @param {function} [responseCallback] function(xpathRange)
+     */
+    sendSelectHighlightTextMessage: function (tabId, documentId, responseCallback) {
+        "use strict";
+        _tabs.sendMessage(tabId, {
+            id: "select_highlight",
+            highlightId: documentId
+        }, responseCallback);
+    },
+
+    /**
      * Ask the DOM whether a highlight exists with this ID
      * @param {number} tabId
      * @param {string} documentId 'create' document id

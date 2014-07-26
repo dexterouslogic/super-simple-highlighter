@@ -8,6 +8,9 @@
     "extension_author": {
         "message": "einzelcode"
     },
+    "select_highlight_text": {
+        "message": "Select"
+    },
     "copy_highlight_text": {
         "message": "Copy"
     },
@@ -60,11 +63,14 @@
         "message": "This operation can't be undone. Are you sure you wish to remove all the highlights for this page?"
     },
 
+    "tooltip_select_highlight": {
+        "message": "Selects the highlighted text"
+    },
     "tooltip_copy_highlight": {
-        "message": "Copy highlight's text to Clipboard"
+        "message": "Copy the highlighted text to the Clipboard"
     },
     "tooltip_speak_highlight": {
-        "message": "Speak contents of highlight"
+        "message": "Speak the highlighted text"
     },
 
     "text_remove_all_pages": {

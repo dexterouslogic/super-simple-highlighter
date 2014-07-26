@@ -60,7 +60,7 @@ var _contentScript  = {
         if (selection.isCollapsed) {
             // a fake range
             range = new Range();
-            range.collapse();
+            range.collapse(false);
         } else {
             range = selection.getRangeAt(0);
         }
@@ -106,6 +106,22 @@ var _contentScript  = {
     deleteHighlight: function (id) {
         "use strict";
         return _highlighter.del(id);
+    },
+
+    /**
+     * Select the text associated with the span(s) of a highlight
+     * @param {string} id highlight id
+     * @return {Range} range which was selected
+     */
+    selectHighlight: function (id) {
+        "use strict";
+        var range = _highlighter.getRange(id);
+        var selection = window.getSelection();
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        return range;
     },
 
     /**
@@ -168,6 +184,11 @@ var _contentScript  = {
         case "delete_highlight":
             // returns boolean true on success, false on error
             sendResponse(_contentScript.deleteHighlight(message.highlightId));
+            break;
+
+        case "select_highlight":
+            sendResponse(_xpath.createXPathRangeFromRange(
+                _contentScript.selectHighlight(message.highlightId)));
             break;
 
         case "is_highlight_in_dom":

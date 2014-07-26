@@ -79,6 +79,7 @@ var _eventPage = {
     onWebNavigationCompleted: function (details) {
         "use strict";
         console.log("onWebNavigationCompleted");
+//        console.log(details);
 
         // 0 indicates the navigation happens in the tab content window
         if (details.frameId !== 0) {
@@ -403,6 +404,17 @@ var _eventPage = {
                 }
             });
         });
+    },
+
+    /**
+     * Select the text associated with a highlight
+     * @param {number} tabId
+     * @param {string} documentId
+     * @param {function} [responseCallback] function(xpathRange)
+     */
+    selectHighlightText: function (tabId, documentId,responseCallback) {
+        "use strict";
+        _tabs.sendSelectHighlightTextMessage(tabId, documentId, responseCallback);
     },
 
     /**

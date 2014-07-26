@@ -67,6 +67,7 @@ var _highlighter = {
      * @private
      */
     _doCreate: function (range, record, createWrapper) {
+        "use strict";
         //(startContainer == endContainer && startOffset == endOffset)
         if (range.collapsed) {
             return;
@@ -166,6 +167,7 @@ var _highlighter = {
      * @param className string or array of new class name(s)
      */
     update: function (id, className) {
+        "use strict";
         // id is for first span in list
         var span = document.getElementById(id);
 
@@ -190,6 +192,7 @@ var _highlighter = {
      * @param id id of first span in the list of spans that consist a highlight
      */
     del: function (id) {
+        "use strict";
         // id is for first span in list
         var span = document.getElementById(id);
 
@@ -246,12 +249,36 @@ var _highlighter = {
     },
 
     /**
+     * Return a range spanning the span(s) associated with a highlight
+     * @param {string} id id of first span in highlight's list
+     * @return {Range}
+     */
+    getRange: function (id) {
+        "use strict";
+        // id is for first span in list
+        var span = document.getElementById(id);
+        var range = document.createRange();
+
+        while (this._isHighlightSpan(span)) {
+            if (range.collapsed) {
+                range.setStartBefore(span);
+            }
+
+            range.setEndAfter(span);
+            span = span.nextSpan;
+        }
+
+        return range;
+    },
+
+    /**
      * Check if teh node meets the requirements of being one of the span components of a highlight
      * @param node
      * @return boolean if requirements met
      * @private
      */
     _isHighlightSpan: function (node) {
+        "use strict";
         return node &&
             node.nodeType === Node.ELEMENT_NODE && node.nodeName === "SPAN" &&
             node.firstSpan !== undefined;

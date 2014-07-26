@@ -51,6 +51,15 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 
     /**
+     * Clicked 'select' button
+     * @param {string} documentId
+     */
+    $scope.onClickSelect = function (documentId) {
+        backgroundPage._eventPage.selectHighlightText(activeTabId, documentId);
+        window.close();
+    };
+
+    /**
      * Clicked 'copy' button for a highlight
      * @param documentId
      */

@@ -107,6 +107,14 @@ var _contextMenus = {
                     contexts: ["all"]
                 });
 
+                // select
+                chrome.contextMenus.create({
+                    id: "select_highlight_text",
+                    parentId: parentId,
+                    title: chrome.i18n.getMessage("select_highlight_text"),
+                    contexts: ["all"]
+                });
+
                 // copy
                 chrome.contextMenus.create({
                     id: "copy_highlight_text",
@@ -186,6 +194,12 @@ var _contextMenus = {
 
         // default (constant ids)
         switch (info.menuItemId) {
+        case "select_highlight_text":
+            if (_contextMenus.hoveredHighlightId) {
+                _eventPage.selectHighlightText(tab.id, _contextMenus.hoveredHighlightId);
+            }
+            break;
+
         case "copy_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
                 _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
