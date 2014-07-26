@@ -167,12 +167,23 @@ var _contextMenus = {
 
             switch (match[1]) {
             case "create_highlight":
+                if (info.editable) {
+                    window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"));
+                    return;
+                }
+
+                // can't create highlight in frames that aren't top level frames, or in editable textareas
+                if (info.frameUrl && info.frameUrl !== tab.url){
+                    window.alert(chrome.i18n.getMessage("alert_create_highlight_in_subframe"));
+                    return;
+                }
+
                 // get the selection range (_xpath) from content script
                 _tabs.sendGetSelectionRangeMessage(tab.id, function (xpathRange) {
-                    if (xpathRange) {
+                    if (xpathRange && !xpathRange.collapsed) {
                         // create new document for highlight, then update DOM
                         _eventPage.createHighlight(tab.id,
-                            xpathRange, _database.buildMatchString(tab.url),
+                            xpathRange, _database.buildMatchString(tab.url, info.frameUrl),
                             info.selectionText, className);
                     }
                 });

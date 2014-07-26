@@ -1,9 +1,10 @@
 var _tabs = {
     /**
      * call {@link chrome.tabs.executeScript()} serially
-     * @param tabId
-     * @param injectDetailsArray
-     * @param finalCallback last callback to be called
+     * @param {number} tabId
+     * @param {Array} injectDetailsArray
+     * @param {function} [finalCallback] last callback to be called
+     * @private
      */
     executeScripts: function (tabId, injectDetailsArray, finalCallback) {
         "use strict";
@@ -25,23 +26,38 @@ var _tabs = {
 
     /**
      * Inject all standard js and css
-     * @param tabId
-     * @param callback
+     * @param {number} tabId
+     * @param {bool} [allFrames] if true inject into all frames. if false, just the top frame (default false)
+     * @param {function} [callback]
+     * @private
      */
-    executeAllScripts: function (tabId, callback) {
+    executeAllScripts: function (tabId, allFrames, callback) {
         "use strict";
+        if (allFrames ===  undefined || allFrames === null) {
+            allFrames = false;
+        }
+
+        var injectDetailsArray = [];
+
+        // build the array supplied to executeScripts()
+        [
+            "static/js/jquery-2.1.1.min.js",
+            "static/js/jquery.stylesheet.min.js",
+            "js/highlight_definitions.js",
+            "js/string_utils.js",
+            "js/stylesheet.js",
+            "js/content_script/xpath.js",
+            "js/content_script/highlighter.js",
+            "js/content_script/content_script.js"
+        ].forEach(function (file) {
+                injectDetailsArray.push({
+                file: file,
+                allFrames: allFrames
+            });
+        });
+
         // inject scripts serially
-        this.executeScripts(tabId, [
-            { file: "static/js/jquery-2.1.1.min.js" },
-            { file: "static/js/jquery.stylesheet.min.js" },
-//            { file: "static/js/jquery.hotkeys.min.js" },
-            { file: "js/highlight_definitions.js" },
-            { file: "js/string_utils.js" },
-            { file: "js/stylesheet.js" },
-            { file: "js/content_script/xpath.js" },
-            { file: "js/content_script/highlighter.js" },
-            { file: "js/content_script/content_script.js" }
-        ], callback);
+        _tabs.executeScripts(tabId, injectDetailsArray, callback);
     },
 
     /**
@@ -58,8 +74,8 @@ var _tabs = {
             if (response === undefined) {
                 console.log("sendMessage() response undefined. Executing scripts, then retrying...");
 
-                // inject scripts, then send message again
-                _tabs.executeAllScripts(tabId, function () {
+                // inject scripts into top level frames, then send message again
+                _tabs.executeAllScripts(tabId, false, function () {
                     // send again
                     chrome.tabs.sendMessage(tabId, message, responseCallback);
                 });

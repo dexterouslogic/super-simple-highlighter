@@ -120,13 +120,14 @@ var _database = {
     /**
      * Get the parts of the url used as a key for transactions based on the url
      * Basically, url minus fragment
-     * @param {string} url full uri (http://www.techmeme.com/mini?q=abc#here)
+     * @param {string} pageUrl full uri (http://www.techmeme.com/mini?q=abc#here)
+     * @param {string} [frameUrl] url of the frame specific to the match. May be null if same as pageUrl
      * @param {object} [options]
      * @return {string} match (www.example.com/mini?q=abc)
      */
-    buildMatchString: function (url, options) {
+    buildMatchString: function (pageUrl, frameUrl, options) {
         "use strict";
-        var u = purl(url), host = u.attr('host');
+        var u = purl(pageUrl), host = u.attr('host');
 
         if (!options) {
             // TODO: build an options object based on whether the host is in the exceptions list
@@ -145,7 +146,7 @@ var _database = {
 
         // shortcut - basically the match is the entire url
         if( options.scheme && options.query && options.fragment ) {
-            return url;
+            return pageUrl;
         }
 
         var port = u.attr('port'), query = u.attr('query'), fragment = u.attr('fragment');

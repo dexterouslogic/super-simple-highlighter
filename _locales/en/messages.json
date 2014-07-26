@@ -121,6 +121,13 @@
         "message": "Update"
     },
 
+    "options_tab_page_header_sites": {
+        "message": "These are the styles of highlight available for applying to text. Click on one to change its name and color."
+    },
+    "options_tab_page_header_pages": {
+        "message": "These pages are marked as containing highlights. When you revisit them, hopefully they should reappear where you left them."
+    },
+
 
     "highlight_title": {
         "message": "Title"
@@ -152,5 +159,13 @@
 
     "highlight_opacity": {
         "message": "Opacity"
+    },
+
+    "alert_create_highlight_in_subframe": {
+        "message": "Creating a highlight within a subframe of a page is currently unsupported."
+    },
+
+    "alert_create_highlight_in_editable": {
+        "message": "Unable to create a highlight within an editable text box."
     }
 }

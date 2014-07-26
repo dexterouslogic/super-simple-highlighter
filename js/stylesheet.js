@@ -6,13 +6,16 @@ var _stylesheet = {
         "use strict";
         var $ss = $.stylesheet('.' + definition.className);
 
-        $ss.css(null).css(definition.style);
-
         // The stored colours never specify alpha, to be able to be used in the HTML input element.
         // So we parse the rgba? colour, and add a constant alpha
-        var re = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/;
 
-        var match = re.exec($ss.css('background-color'));
+        // definition.style["background-color"] must be a string in format "#RRGGBB"
+        // copy because we modify the object
+        var style = jQuery.extend(true, {}, definition.style);
+
+        var re = new RegExp("^#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})", "ig");
+        var match = re.exec(style['background-color']);
+
         if (match && match.length >= 4) {
             chrome.storage.sync.get({
                 highlightBackgroundAlpha: 0.8
@@ -21,14 +24,46 @@ var _stylesheet = {
                     return;
                 }
 
-                $ss.css('background-color', "rgba(" +
-                    match[1] + ", " +
-                    match[2] + ", " +
-                    match[3] + ", " +
+                style["background-color"] = "rgba(" +
+                    parseInt(match[1], 16) + ", " +
+                    parseInt(match[2], 16) + ", " +
+                    parseInt(match[3], 16) + ", " +
                     items.highlightBackgroundAlpha +
-                ")");
+                    ")";
+
+                $ss.css(null).css(style);
             });
         }
+
+//
+//
+//
+//
+//        $ss.css(null).css(definition.style);
+//
+//        // The stored colours never specify alpha, to be able to be used in the HTML input element.
+//        // So we parse the rgba? colour, and add a constant alpha
+//        var re = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/;
+//
+//        var match = re.exec($ss.css('background-color'));
+//        if (match && match.length >= 4) {
+//            chrome.storage.sync.get({
+//                highlightBackgroundAlpha: 0.8
+//            }, function (items) {
+//                if (chrome.runtime.lastError) {
+//                    return;
+//                }
+//
+//                var rgba = "rgba(" +
+//                    match[1] + ", " +
+//                    match[2] + ", " +
+//                    match[3] + ", " +
+//                    items.highlightBackgroundAlpha +
+//                    ")";
+//
+//                $ss.css('background-color', rgba);
+//            });
+//        }
     },
 
     /**

@@ -67,6 +67,14 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         chrome.storage.onChanged.addListener(onStorageChanged);
 
         // fake a change for initial update
+        resetStylesheetHighlightStyle();
+    }
+
+    /**
+     * Get the current highlight definitions, and (re)create the stylesheet for us using them
+     * @private
+     */
+    function resetStylesheetHighlightStyle() {
         _highlightDefinitions.getAll(function (result) {
             onStorageChanged({
                 sharedHighlightStyle: {
@@ -152,10 +160,15 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
             // corresponding storage.StorageChange for that item.
             var change;
 
-            if (changes.highlightBackgroundAlpha ) {
+            if (changes.highlightBackgroundAlpha) {
                 change = changes.highlightBackgroundAlpha;
 
-                if (change.newValue) { $scope.opacity = change.newValue; }
+                if (change.newValue) {
+                    $scope.opacity = change.newValue;
+
+                    // get all the highlights using the new opacity, and set them
+                    resetStylesheetHighlightStyle();
+                }
             }
 
             // default FIRST

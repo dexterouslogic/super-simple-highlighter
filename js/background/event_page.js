@@ -111,8 +111,8 @@ var _eventPage = {
                 return;
             }
 
-            console.log("Injecting scripts...");
-            _tabs.executeAllScripts(details.tabId, function () {
+            console.log("Injecting scripts into top level frames...");
+            _tabs.executeAllScripts(details.tabId, false, function () {
                 console.log("Replaying documents into DOM");
 
                 var sum = _tabs.replayDocuments(details.tabId, docs, function (doc) {

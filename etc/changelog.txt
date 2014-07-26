@@ -1,0 +1,8 @@
+3.0.1
+-----
+Opacity options, and live update stylesheet
+Select text command
+Alert when creating highlight in an editable, or in a subframe
+Options page tab headers
+Smooth alhpa stylesheet changes
+Prepare to supply pageUrl and frameUrl to build match string

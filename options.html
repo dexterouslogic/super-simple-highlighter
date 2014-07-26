@@ -119,6 +119,7 @@
 
                 <!--Defintions-->
                 <!--<h4>Predefined Highlight Styles</h4>-->
+                <h4>{{ 'options_tab_page_header_sites' | i18n }}</h4>
                 <ul class="list-unstyled">
                     <li ng-repeat="d in definitions"
                         class="token well-sm {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
@@ -182,6 +183,7 @@
 
             <!--Pages Pane-->
             <div class="tab-pane fade" id="pages" ng-controller="PagesController">
+                <h4>{{ 'options_tab_page_header_pages' | i18n }}</h4>
                 <ol class="pages">
                     <li ng-repeat="row in rows" class="page">
                         <a href="{{row.key}}" target="_blank">{{row.key}}</a>

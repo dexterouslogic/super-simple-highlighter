@@ -21,16 +21,7 @@ var _contentScript  = {
         chrome.storage.onChanged.addListener(_contentScript.onStorageChanged);
 
         // fake a change for initial update
-        _highlightDefinitions.getAll(function (result) {
-            _contentScript.onStorageChanged({
-                sharedHighlightStyle: {
-                    newValue: result.sharedHighlightStyle
-                },
-                highlightDefinitions: {
-                    newValue: result.highlightDefinitions
-                }
-            }, "sync");
-        });
+        _contentScript.resetStylesheetHighlightStyle();
 
         // listen for messages from event page
         chrome.runtime.onMessage.addListener(_contentScript.onRuntimeMessage);
@@ -315,58 +306,40 @@ var _contentScript  = {
                 if (c2.newValue) {
                     c2.newValue.forEach( function (h) {
                         _stylesheet.setHighlightStyle(h);
-
-//                        if (h.hotkey && h.hotkey.length > 0) {
-//                            // sort modifiers alphabetically
-//                            var tokens = h.hotkey.split("+");
-//
-//                            // remove last letter
-//                            var key = tokens.pop();
-//                            // sort alphabetically
-//                            tokens = tokens.map( function (modifier) {
-//                                return modifier.toLowerCase();
-//                            }).sort();
-//                            // add last letter again
-//                            tokens.push(key);
-//                            // reform
-//                            var hotkey = tokens.join("+");
-//
-//                            $(document).on('keypress.hotkeys', null, hotkey,
-//                                _contentScript.onKeyPressFactory(h.className));
-//                        }
                     });
                 }
+            }
 
-                // if the highlight definitions define any shortcuts, add the handler, with specific data
-
-
+            // alpha
+            if (changes.highlightBackgroundAlpha) {
+                _contentScript.resetStylesheetHighlightStyle();
             }
         }
+    },
+
+    /**
+     * Read all the current highlight styles, and apply to stylesheet.
+     * If they already exist in stylesheet, clear them first
+     * @private
+     */
+    resetStylesheetHighlightStyle: function () {
+        // fake a change for initial update
+        _highlightDefinitions.getAll(function (result) {
+            if (!result) {
+                return;
+            }
+
+            _contentScript.onStorageChanged({
+                sharedHighlightStyle: {
+                    newValue: result.sharedHighlightStyle
+                },
+                highlightDefinitions: {
+                    newValue: result.highlightDefinitions
+                }
+            }, "sync");
+        });
     }
 
-//    /**
-//     * Factory method for onKeyPress handler
-//     * @param {string} className class name to associated with the highlight
-//     */
-//    onKeyPressFactory: function(className){
-//        "use strict";
-//        return function() {
-//            // get the current selection, if any
-//            if ( _contentScript.isSelectionCollapsed() ) {
-//                return;
-//            }
-//
-//            var range = _contentScript.getSelectionRange();
-//
-//            // tell event page to highlight the selection
-//            chrome.runtime.sendMessage({
-//                id: "create_highlight",
-//                className: className,
-//                range: _xpath.createXPathRangeFromRange(range),
-//                selectionText: range.toString()
-//            });
-//        };
-//    }
 };
 
 /**

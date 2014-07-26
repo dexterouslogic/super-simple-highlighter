@@ -3,8 +3,8 @@
 var _highlightDefinitions = {
     /**
      * Lazy getter for default storage values
-     * @private
      * @returns {object}
+     * @private
      */
     _getDefaults: function () {
         "use strict";
@@ -26,18 +26,18 @@ var _highlightDefinitions = {
                     _highlightDefinitions.create(chrome.i18n.getMessage("color_title_grey"),
                         "default-grey-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#777777", "#FFFFFF")
                 ],
-                    'sharedHighlightStyle': {
-                        "border-radius": "0.2em",
-                        //"padding": "0.2em",
-                        "transition-property": "color, background-color",
-                        "transition-duration": "0.1s, 0.1s",
-                        "transition-timing-function": "linear, linear",
+                'sharedHighlightStyle': {
+                    "border-radius": "0.2em",
+                    //"padding": "0.2em",
+                    "transition-property": "color, background-color",
+                    "transition-duration": "0.1s, 0.1s",
+                    "transition-timing-function": "linear, linear",
 
-                        // color & font-style when highlight is defined by a class which no longer exists
-                        // each specific style must override these, or inherit default
-                        "color": "gray",
-                        "background-color": "lightgray",
-                        "font-style": "italic"
+                    // color & font-style when highlight is defined by a class which no longer exists
+                    // each specific style must override these, or inherit default
+                    "color": "gray",
+                    "background-color": "lightgray",
+                    "font-style": "italic"
                 }
             };
         }
