@@ -3,7 +3,7 @@
         "message": "Text Colour"
     },
     "highlight_text_colour_inherit": {
-        "message": "Use existing text colour"
+        "message": "Keep original text colour"
     },
     "highlight_background_colour": {
         "message": "Background Colour"

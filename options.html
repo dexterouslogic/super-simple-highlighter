@@ -2,7 +2,6 @@
 <html ng-app="optionsApp" ng-csp>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>My Options Page</title>
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/css/angular.rangeSlider.css" rel="stylesheet">
@@ -24,8 +23,9 @@
                 <span class="icon-bar"></span>
             </button>
 
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="https://chrome.google.com/webstore/detail/super-simple-highlighter/hhlhjgianpocpoppaiihmlpgcoehlhio">
                 <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
+                <span style="font-size: small;">{{manifest.version}}</span>
             </a>
         </div>
 
@@ -220,6 +220,18 @@
                     by <a href="{{item.author.href}}">{{item.author.text}}</a>
                     is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
                 </div>
+
+                <h4>{{'changelog' | i18n}}</h4>
+                <ul>
+                    <li class="version" ng-repeat="unit in changelog">
+                        <h5>{{unit.version}}</h5>
+                        <ul class="list-unstyled">
+                            <li ng-repeat="item in unit.items">
+                                {{item}}
+                            </li>
+                        </ul>
+                    </li>
+                <ul>
             </div>
         </div>
     </div>
@@ -234,6 +246,9 @@
 <script src="js/storage.js"></script>
 <script src="js/stylesheet.js"></script>
 <script src="js/string_utils.js"></script>
+<script src="js/changelog.js"></script>
+<script src="js/libraries.js"></script>
+<script src="js/licenses.js"></script>
 
 <script src="js/options/app.js"></script>
 <script src="js/options/controllers.js"></script>

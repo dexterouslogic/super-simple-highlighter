@@ -99,10 +99,13 @@
     "confirm_reset_default_styles": {
         "message": "This operation can't be undone. Are you sure you wish to restore the default styles?"
     },
+    "confirm_remove_style": {
+        "message": "This operation can't be undone. Are you sure you wish to remove this style?"
+    },
 
 
     "create_new_style": {
-        "message": "Create Style"
+        "message": "New Style"
     },
 
     "edit_style": {
@@ -122,10 +125,10 @@
     },
 
     "options_tab_page_header_sites": {
-        "message": "These are the highlight styles available for application to text. Click on it to change its properties."
+        "message": "These are the highlight styles available to be applied to text. Click on them to edit their properties."
     },
     "options_tab_page_header_pages": {
-        "message": "These pages are marked as containing highlights. When you revisit them, hopefully they should reappear where you left them."
+        "message": "These pages are marked as containing highlights. When you revisit them, with any luck they should reappear where you left them."
     },
 
 
@@ -140,7 +143,7 @@
         "message": "Text Color"
     },
     "highlight_text_colour_inherit": {
-        "message": "Use existing text color"
+        "message": "Keep original text color"
     },
     "highlight_background_colour": {
         "message": "Background Color"
@@ -155,6 +158,9 @@
     },
     "licenses": {
         "message": "Licenses"
+    },
+    "changelog": {
+        "message": "Changelog"
     },
     "support": {
         "message": "Support"

@@ -67,7 +67,7 @@ var _storage = {
 
                         // color & font-style when highlight is defined by a class which no longer exists
                         // each specific style must override these, or inherit default
-                        "color": "gray",
+                        "color": "#806060",
                         "background-color": "#D3D3D3",
                         "font-style": "italic"
                     }
