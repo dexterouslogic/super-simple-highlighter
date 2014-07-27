@@ -139,6 +139,9 @@
     "highlight_text_colour": {
         "message": "Text Color"
     },
+    "highlight_text_colour_inherit": {
+        "message": "Use existing text color"
+    },
     "highlight_background_colour": {
         "message": "Background Color"
     },

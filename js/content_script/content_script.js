@@ -1,4 +1,4 @@
-/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _xpath, _highlightDefinitions*/
+/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _xpath, _storage*/
 
 var _contentScript  = {
     /**
@@ -160,53 +160,52 @@ var _contentScript  = {
      */
     onRuntimeMessage: function (message, sender, sendResponse) {
         "use strict";
+        var response;
+
         switch (message.id) {
         case "create_highlight":
             // the caller specifies the id to use for the first span of the highlight,
             // so it can identify it to remove it later
-            sendResponse(_contentScript.createHighlight(message.range,
-                message.highlightId, message.className) !== null);
+            response = _contentScript.createHighlight(message.range,
+                message.highlightId, message.className) !== null;
             break;
 
         case "update_highlight":
-            sendResponse(_contentScript.updateHighlight(message.highlightId, message.className));
+            response = _contentScript.updateHighlight(message.highlightId, message.className);
             break;
 
         case "delete_highlight":
             // returns boolean true on success, false on error
-            sendResponse(_contentScript.deleteHighlight(message.highlightId));
+            response = _contentScript.deleteHighlight(message.highlightId);
             break;
 
         case "select_highlight":
-            sendResponse(_xpath.createXPathRangeFromRange(
-                _contentScript.selectHighlight(message.highlightId)));
+            response = _xpath.createXPathRangeFromRange(
+                _contentScript.selectHighlight(message.highlightId));
             break;
 
         case "is_highlight_in_dom":
-            sendResponse(_contentScript.isHighlightInDOM(message.highlightId));
+            response = _contentScript.isHighlightInDOM(message.highlightId);
             break;
 
         case "get_selection_range":
-            var r1 = _contentScript.getSelectionRange();
-            sendResponse(_xpath.createXPathRangeFromRange(r1));
+            response = _xpath.createXPathRangeFromRange(_contentScript.getSelectionRange());
             break;
 
         case "get_range_text":
-            var r2 = _xpath.createRangeFromXPathRange(message.range);
-            sendResponse(r2 ? r2.toString() : null);
+            var range = _xpath.createRangeFromXPathRange(message.range);
+            response = range ? range.toString() : null;
             break;
 
         case "scroll_to":
-            sendResponse(_contentScript.scrollTo("#" + message.fragment));
-            break;
-
-        case "console_log":
-            console.log(message.text);
+            response = _contentScript.scrollTo("#" + message.fragment);
             break;
 
         default:
             throw "unhandled message: sender=" + sender + ", id=" + message.id;
         }
+
+        sendResponse(response);
     },
 
     /**
@@ -323,8 +322,9 @@ var _contentScript  = {
      * @private
      */
     resetStylesheetHighlightStyle: function () {
+        "use strict";
         // fake a change for initial update
-        _highlightDefinitions.getAll(function (result) {
+        _storage.highlightDefinitions.getAll(function (result) {
             if (!result) {
                 return;
             }

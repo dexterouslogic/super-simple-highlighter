@@ -1,4 +1,4 @@
-/*global angular, _highlightDefinitions, _stylesheet, _stringUtils, _i18n*/
+/*global angular, _storage, _stylesheet, _stringUtils, _i18n*/
 
 /**
  * Controllers module
@@ -26,14 +26,10 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         $modal = $('#myModal');
 
         // setup and event handlers
-        chrome.storage.sync.get({
-            highlightBackgroundAlpha: 0.8
-        }, function (items) {
-            if (chrome.runtime.lastError) {
-                return;
-            }
+        _storage.getHighlightBackgroundAlpha(function (opacity) {
+            if (opacity === undefined) { return; }
 
-            $scope.opacity = items.highlightBackgroundAlpha;
+            $scope.opacity = opacity;
 
             // watch our model, sync on change
             var timeout = null;     // debounce
@@ -47,9 +43,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                     timeout = $timeout(function () {
                         console.log(newVal);
 
-                        chrome.storage.sync.set({
-                            highlightBackgroundAlpha: newVal
-                        });
+                        _storage.setHighlightBackgroundAlpha(newVal);
                     }, 1000);
                 }
             });
@@ -75,7 +69,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
      * @private
      */
     function resetStylesheetHighlightStyle() {
-        _highlightDefinitions.getAll(function (result) {
+        _storage.highlightDefinitions.getAll(function (result) {
             onStorageChanged({
                 sharedHighlightStyle: {
                     newValue: result.sharedHighlightStyle
@@ -91,7 +85,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     $scope.onClickModalSave = function () {
         // set contents of selectedDefintion into storage
         if ($scope.modalDefinition) {
-            _highlightDefinitions.set($scope.modalDefinition);
+            _storage.highlightDefinitions.set($scope.modalDefinition);
         }
 
         $modal.modal('hide');
@@ -105,7 +99,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         $scope.modalTitle = chrome.i18n.getMessage("create_new_style");
         $scope.modalSaveButtonTitle = chrome.i18n.getMessage("create");
 
-        $scope.modalDefinition = _highlightDefinitions.create();
+        $scope.modalDefinition = _storage.highlightDefinitions.create();
 //        $scope.$apply();
 
         // activate the 'edit' model
@@ -117,11 +111,11 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
      */
     $scope.onClickReset = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
-            _highlightDefinitions.removeAll();
+            _storage.highlightDefinitions.removeAll();
 
-            chrome.storage.sync.set({
-                highlightBackgroundAlpha: 0.8
-            });
+//            chrome.storage.sync.set({
+//                highlightBackgroundAlpha: 0.8
+//            });
         }
     };
 
@@ -146,7 +140,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
      */
     $scope.onClickDelete = function (className) {
         // delete from storage. model should update automatically
-        _highlightDefinitions.remove(className);
+        _storage.highlightDefinitions.remove(className);
     };
 
     /**
@@ -212,7 +206,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 
                 if (!change.newValue) {
                     // get defaults
-                    _highlightDefinitions.getAll(function (items) {
+                    _storage.highlightDefinitions.getAll(function (items) {
                         setDefinitions(items.highlightDefinitions);
                     });
                 } else {

@@ -219,37 +219,14 @@ var _database = {
             var match = doc.match;
 
             // create a new document, detailing the 'delete' verb transaction
-            _database.getDatabase().put({
+            // no need for createUUID, as it won't be used as an id/class attribute
+            _database.getDatabase().post({
                 match: match,
                 date: Date.now(),
                 verb: "delete",
                 //
                 correspondingDocumentId: documentId
-            }, _stringUtils.createUUID({
-                beginWithLetter: true
-            }), callback);
-
-//            }), function (err, result) {
-//                if (result) {
-//                    // does the creation of the delete document cause there to be no highlights in total?
-//                    _database.getMatchSum(match, function (err, sum) {
-//                        if (err) {
-//                            return;
-//                        }
-//
-//                        console.log("Document sum for match '" + match + "' is " + sum);
-//
-//                        if (sum <= 0) {
-//                            // remove stale documents
-//                            _database.removeDocuments(match);
-//                        }
-//                    });
-//                }
-//
-//                if (callback) {
-//                    callback(err, result);
-//                }
-//            });
+            }, callback);
         });
     },
 

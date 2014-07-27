@@ -1,4 +1,4 @@
-/*global _database, _contextMenus, _tabs, _highlightDefinitions*/
+/*global _database, _contextMenus, _tabs, _storage*/
 
 var _eventPage = {
     /**
@@ -233,7 +233,7 @@ var _eventPage = {
         var index = parseInt(match[1]);
 
         // convert to object
-        _highlightDefinitions.getAll(function (items) {
+        _storage.highlightDefinitions.getAll(function (items) {
             if (!items || !items.highlightDefinitions || items.highlightDefinitions.length <= index) {
                 console.log("Unable to match command index to definition");
                 return;

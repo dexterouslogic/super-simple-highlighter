@@ -1,4 +1,4 @@
-/*global angular, _highlightDefinitions, _stylesheet*/
+/*global angular, _storage, _stylesheet*/
 
 /**
  * App Module
@@ -13,7 +13,7 @@ $().ready(function () {
     "use strict";
     // 1 - get current highlight styles, and apply to DOM
     // Note that we share this script with the content page (directly)
-    _highlightDefinitions.getAll(function (items) {
+    _storage.highlightDefinitions.getAll(function (items) {
         if (!items) {
             return;
         }

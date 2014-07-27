@@ -43,7 +43,7 @@ var _tabs = {
         [
             "static/js/jquery-2.1.1.min.js",
             "static/js/jquery.stylesheet.min.js",
-            "js/highlight_definitions.js",
+            "js/storage.js",
             "js/string_utils.js",
             "js/stylesheet.js",
             "js/content_script/xpath.js",

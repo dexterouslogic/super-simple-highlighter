@@ -1,3 +1,5 @@
+/*global _storage*/
+
 var _stylesheet = {
     /**
      * Apply rules of a single highlight style
@@ -13,26 +15,28 @@ var _stylesheet = {
         // copy because we modify the object
         var style = jQuery.extend(true, {}, definition.style);
 
+        if (definition.inherit_style_color) {
+            style.color = "inherit";
+        }
+
         var re = new RegExp("^#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})", "ig");
         var match = re.exec(style['background-color']);
 
         if (match && match.length >= 4) {
-            chrome.storage.sync.get({
-                highlightBackgroundAlpha: 0.8
-            }, function (items) {
-                if (chrome.runtime.lastError) {
-                    return;
-                }
+            _storage.getHighlightBackgroundAlpha(function(alpha){
+                if (alpha === undefined) { return; }
 
                 style["background-color"] = "rgba(" +
                     parseInt(match[1], 16) + ", " +
                     parseInt(match[2], 16) + ", " +
                     parseInt(match[3], 16) + ", " +
-                    items.highlightBackgroundAlpha +
+                    alpha +
                     ")";
 
                 $ss.css(null).css(style);
             });
+        } else {
+            console.log("highlight style background colour not in #RRGGBB format");
         }
 
 //

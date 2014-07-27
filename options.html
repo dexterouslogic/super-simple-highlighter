@@ -96,7 +96,16 @@
                                     <div class="form-group">
                                         <label for="textColour">{{ 'highlight_text_colour' | i18n }}</label>
                                         <input type="color" class="form-control" id="textColour"
-                                               ng-model="modalDefinition.style['color']">
+                                               ng-model="modalDefinition.style['color']"
+                                                data-ng-disabled="modalDefinition.inherit_style_color">
+                                    </div>
+
+                                    <!--Inherit Text Color-->
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="modalDefinition.inherit_style_color">
+                                            {{ 'highlight_text_colour_inherit' | i18n }}
+                                        </label>
                                     </div>
 
                                     <!--Shortcut help-->
@@ -148,27 +157,6 @@
                          model-max="opacity" attach-handle-values="true"
                          step="0.1" decimal-places="2" pin-handle="min" filter="alphaPercent"></div>
                 </div>
-
-<!--
-
-                <slider id="opacity" type="text"
-                        model="opacity" data-slider-min="0.3" data-slider-max="1.0"
-                        data-slider-step="0.05" data-slider-tooltip="hide"></slider>
--->
-
-
-<!--
-                <div class="input-group">
-                    <label class="control-label" for="ex1">{{ 'highlight_opacity' | i18n }}</label>
-
-                    <div class="well">
-                        <input id="ex1" type="text"
-                               ng-model="opacity"
-                               data-slider-id='ex1Slider' data-slider-min="0.3" data-slider-max="1.0"
-                               data-slider-step="0.05" data-slider-tooltip="always"/>
-                    </div>
-                </div>
--->
 
                 <!-- Buttons -->
                 <div class="row row-buttons">
@@ -243,7 +231,7 @@
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/angular.rangeSlider.min.js"></script>
 
-<script src="js/highlight_definitions.js"></script>
+<script src="js/storage.js"></script>
 <script src="js/stylesheet.js"></script>
 <script src="js/string_utils.js"></script>
 
