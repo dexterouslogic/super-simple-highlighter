@@ -27,10 +27,11 @@ var _eventPage = {
     /**
      * Fired when the extension is first installed, when the extension is updated to a new version,
      * and when Chrome is updated to a new version.
+     * @param {function} details function(object details) {...}
      */
-    onRuntimeInstalled: function () {
+    onRuntimeInstalled: function (details) {
         "use strict";
-        console.log("onRuntimeInstalled");
+        console.log("onRuntimeInstalled: " + JSON.stringify(details));
 
         // one time initialization
         _database.putDesignDocuments(function () {
@@ -112,15 +113,18 @@ var _eventPage = {
             }
 
             console.log("Injecting scripts into top level frames...");
+
             _tabs.executeAllScripts(details.tabId, false, function () {
                 console.log("Replaying documents into DOM");
 
                 var sum = _tabs.replayDocuments(details.tabId, docs, function (doc) {
                     // method only called if there's an error. called multiple times
-                    console.log("Error creating highlight in DOM for " + JSON.stringify(doc.range) );
+                    console.log("Error in '" + doc.verb + "' highlight in DOM for " + JSON.stringify(doc.range) );
 
                     // update page action
-                    _eventPage.setPageActionStatus(details.tabId, true);
+                    if (doc.verb === "create") {
+                        _eventPage.setPageActionStatus(details.tabId, true);
+                    }
                 });
 
                 console.log("Create/Delete document sum is " + sum);
@@ -162,7 +166,7 @@ var _eventPage = {
      * Message sent to us from script
      * @param message
      * @param sender
-     * @param sendResponse
+     * @param [sendResponse]
      */
     onRuntimeMessage: function (message, sender, sendResponse) {
         "use strict";
@@ -176,12 +180,12 @@ var _eventPage = {
             _contextMenus.setHoveredHighlightId(null);
             break;
 
-        case "create_highlight":
-            // create new document for highlight, then update DOM
-            _eventPage.createHighlight(sender.tab.id,
-                message.range, _database.buildMatchString(sender.tab.url),
-                message.selectionText, message.className);
-            break;
+//        case "create_highlight":
+//            // create new document for highlight, then update DOM
+//            _eventPage.createHighlight(sender.tab.id,
+//                message.range, _database.buildMatchString(sender.tab.url),
+//                message.selectionText, message.className);
+//            break;
 
         default:
             throw "unhandled message: sender=" + sender + ", id=" + message.id;
@@ -264,6 +268,15 @@ var _eventPage = {
                             _eventPage.createHighlight(activeTab.id,
                                 xpathRange, _database.buildMatchString(activeTab.url),
                                 selectionText, hd.className);
+
+                            // remove selection?
+                            _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+                                if (unselectAfterHighlight) {
+                                    // unselect all
+                                    _eventPage.selectHighlightText(activeTab.id);
+                                }
+                            });
+
                         });
                     } else {
                         // collapsed selection range means update the hovered highlight (if possible)
@@ -341,44 +354,110 @@ var _eventPage = {
      * Delete a highlight in the database, and in the page DOM
      * @param {number} tabId tab id of associated tab, whose DOM should contain the highlight.
      * @param {string} documentId id of the document representing the highlight to remove
-     * @param {function} [callback] function(err, result)
+     * @param {function} [callback] function(err, result), result = standard {ok/id/rev} reply
      */
     deleteHighlight: function (tabId, documentId, callback) {
         "use strict";
-        _database.postDeleteDocument(documentId, function (err, response) {
-            if (err) {
-                if (callback) {
-                    callback(err);
+
+        // if the highlight isn't in the DOM, then deleting the 'create' document can be done directly,
+        // as create never had any effect
+        _eventPage.isHighlightInDOM(tabId, documentId, function (inDOM) {
+            /**
+             * Callback handler for posting 'delete' doc or removing 'create' doc
+             * @param [err]
+             * @param {object} response (ok/id/rev)
+             * @private
+             */
+            function _resultCallback(err, response) {
+                if (response && response.ok) {
+                    if (inDOM) {
+                        console.log("Successfully posted ;delete' document. Removing in DOM");
+                        _tabs.sendDeleteHighlightMessage(tabId, documentId);
+                    } else {
+                        console.log("Removed 'create' document");
+                    }
+
+                    console.log("reevaluating page action visibility");
+
+                    // check the number of 'create' and 'delete' documents. if equal, there
+                    // are no highlights for the page, so the page action can be removed
+                    chrome.tabs.get(tabId, function (tab) {
+                        var match = _database.buildMatchString(tab.url);
+
+                        // sum of +create-delete verbs for a specific match
+                        _database.getMatchSum(match, function (err, sum) {
+                            if (!err && sum <= 0) {
+                                chrome.pageAction.hide(tabId);
+                            }
+                        });
+                    });
                 }
 
-                return;
+                if (callback) {
+                    callback(err, response);
+                }
+
             }
+
 
             // check the number of 'create' and 'delete' documents. if equal, there
             // are no highlights for the page, so the page action can be removed
-            chrome.tabs.get(tabId, function (tab) {
-                var match = _database.buildMatchString(tab.url);
+            if (inDOM) {
+                console.log("Highlight IS in DOM. Posting 'delete' doc");
 
-                // sum of +create-delete verbs for a specific match
-                _database.getMatchSum(match, function (err, sum) {
+                // highlight was in DOM, so we post an additional 'delete' document
+                _database.postDeleteDocument(documentId, _resultCallback);
+            } else {
+                // remove directly
+                console.log("Highlight IS NOT in DOM. Directly removing 'create' doc");
+
+                _database.getDocument(documentId, function (err, doc) {
                     if (err) {
+                        if (callback) {
+                            callback(err, null);
+                        }
                         return;
                     }
 
-                    if (sum <= 0) {
-                        chrome.pageAction.hide(tabId);
-                    }
+                    _database.removeDocument(doc._id, doc._rev, _resultCallback);
                 });
-            });
-
-
-            // remove in DOM
-            _tabs.sendDeleteHighlightMessage(tabId, documentId);
-
-            if (callback) {
-                callback(null, response);
             }
         });
+
+//        _database.postDeleteDocument(documentId, function (err, response) {
+//            if (err) {
+//                if (callback) {
+//                    callback(err);
+//                }
+//
+//                return;
+//            }
+//
+//            // check the number of 'create' and 'delete' documents. if equal, there
+//            // are no highlights for the page, so the page action can be removed
+//            chrome.tabs.get(tabId, function (tab) {
+//                var match = _database.buildMatchString(tab.url);
+//
+//                // sum of +create-delete verbs for a specific match
+//                _database.getMatchSum(match, function (err, sum) {
+//                    if (err) {
+//                        return;
+//                    }
+//
+//                    if (sum <= 0) {
+//                        chrome.pageAction.hide(tabId);
+//                    }
+//                });
+//            });
+//
+//
+//            // remove in DOM
+//            _tabs.sendDeleteHighlightMessage(tabId, documentId);
+//
+//            if (callback) {
+//                callback(null, response);
+//            }
+//        });
     },
 
     /**
@@ -409,7 +488,7 @@ var _eventPage = {
     /**
      * Select the text associated with a highlight
      * @param {number} tabId
-     * @param {string} documentId
+     * @param {string} [documentId] if undefined, remove selection
      * @param {function} [responseCallback] function(xpathRange)
      */
     selectHighlightText: function (tabId, documentId,responseCallback) {

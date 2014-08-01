@@ -1,3 +1,12 @@
+3.0.3
+-----
+Close popup on last item remove
+enclose id in quotes in xpath.getXPathFromNode
+add boxshadow to highlight style
+Unselect text after create (option)
+Limit number of characters in popup highlight text
+store defaults as a separate item in storag
+
 3.0.2
 -----
 Fix background color string format (#rrggbb)

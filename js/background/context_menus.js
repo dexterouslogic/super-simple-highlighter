@@ -185,6 +185,14 @@ var _contextMenus = {
                         _eventPage.createHighlight(tab.id,
                             xpathRange, _database.buildMatchString(tab.url, info.frameUrl),
                             info.selectionText, className);
+
+                        // remove selection?
+                        _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+                           if (unselectAfterHighlight) {
+                               // unselect all
+                              _eventPage.selectHighlightText(tab.id);
+                           }
+                        });
                     }
                 });
                 break;

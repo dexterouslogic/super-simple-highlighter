@@ -40,6 +40,7 @@ body {
     padding: 10px 15px !important;
     cursor: pointer;
     font-size: small;
+    box-shadow: initial !important;
 }
 
 .highlight > .close {
@@ -49,11 +50,17 @@ body {
 
 
 .highlight-text {
+/*
     overflow: hidden;
     text-overflow: ellipsis;
 
     display: -webkit-box;
     -webkit-box-orient: vertical;
+*/
+}
+
+.more {
+    font-weight: 600;
 }
 
 .doc {
@@ -92,7 +99,10 @@ body {
     border: 1px dashed #c66;
 }
 
-.not-in-dom > .highlight {
+.not-in-dom .highlight {
     cursor: not-allowed;
 }
 
+.not-in-dom .select {
+    cursor: not-allowed;
+}

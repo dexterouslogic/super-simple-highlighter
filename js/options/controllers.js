@@ -15,8 +15,8 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     // cache modal dialog
     var $modal;
 
-
     // model
+    $scope.unselectAfterHighlight = true;
     $scope.highlightClassName = "highlight";
 //    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
 //        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
@@ -25,7 +25,20 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         // cache
         $modal = $('#myModal');
 
-        // setup and event handlers
+        // 1
+        _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+            if (unselectAfterHighlight === undefined) { return; }
+
+            $scope.unselectAfterHighlight = unselectAfterHighlight;
+            $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    console.log(newVal);
+                    _storage.setUnselectAfterHighlight(newVal);
+                }
+            });
+        });
+
+        // 2
         _storage.getHighlightBackgroundAlpha(function (opacity) {
             if (opacity === undefined) { return; }
 

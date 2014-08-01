@@ -20,17 +20,19 @@ var _xpath = {
             if (node.id) {
                 // if the document illegally re-uses an id, then we can't use it as a unique identifier
 
-//                // no jquery
-//                var length = document.querySelectorAll("[id=" + node.id + "]").length;
+                var selector = '[id="' + node.id + '"]';
+
+                // no jquery
+                var length = document.querySelectorAll(selector).length;
                 // jquery
-                var length = $("[id=" + node.id + "]").length;
+//                var length = $(selector).length;
 
                 if (length === 1) {
                     paths.splice(0, 0, '/*[@id="' + node.id + '"]');
                     break;
                 }
 
-                console.log("document contains " + length + " elements with id=" + node.id + ". Ignoring");
+                console.log("document contains " + length + " elements with selector " + selector + ". Ignoring");
             }
 
             for (var sibling = node.previousSibling; sibling; sibling = sibling.previousSibling) {

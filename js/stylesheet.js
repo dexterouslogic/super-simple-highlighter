@@ -19,8 +19,12 @@ var _stylesheet = {
             style.color = "inherit";
         }
 
+        // account for styles defined before box-shadow was defined
+        var backgroundColor = style['background-color'];
+        style["box-shadow"] = "0 0 8px " + backgroundColor;
+
         var re = new RegExp("^#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})", "ig");
-        var match = re.exec(style['background-color']);
+        var match = re.exec(backgroundColor);
 
         if (match && match.length >= 4) {
             _storage.getHighlightBackgroundAlpha(function(alpha){

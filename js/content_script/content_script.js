@@ -101,18 +101,21 @@ var _contentScript  = {
 
     /**
      * Select the text associated with the span(s) of a highlight
-     * @param {string} id highlight id
-     * @return {Range} range which was selected
+     * @param {string} [id] highlight id
+     * @return {Range} range which was selected, or undefined if id param was !
      */
     selectHighlight: function (id) {
         "use strict";
-        var range = _highlighter.getRange(id);
         var selection = window.getSelection();
 
         selection.removeAllRanges();
-        selection.addRange(range);
 
-        return range;
+        if (id) {
+            var range = _highlighter.getRange(id);
+            selection.addRange(range);
+
+            return range;
+        }
     },
 
     /**
@@ -180,8 +183,15 @@ var _contentScript  = {
             break;
 
         case "select_highlight":
-            response = _xpath.createXPathRangeFromRange(
-                _contentScript.selectHighlight(message.highlightId));
+            // if highlightId is null, selection is cleared (no result)
+            range = _contentScript.selectHighlight(message.highlightId);
+
+            // else response undefined
+            if (message.highlightId) {
+                response = _xpath.createXPathRangeFromRange(range);
+            }
+//            response = _xpath.createXPathRangeFromRange(
+//                _contentScript.selectHighlight(message.highlightId));
             break;
 
         case "is_highlight_in_dom":

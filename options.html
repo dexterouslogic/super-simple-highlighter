@@ -150,12 +150,24 @@
                     </li>
                 </ul>
 
-                <!--Opacity-->
-                <div class="row">
-                    <h5>{{ 'highlight_opacity' | i18n }}</h5>
-                    <div range-slider min="0.3" max="1.0"
-                         model-max="opacity" attach-handle-values="true"
-                         step="0.1" decimal-places="2" pin-handle="min" filter="alphaPercent"></div>
+                <!--TODO: move to new page-->
+                <div style="margin-top: 20px">
+                    <!--Opacity-->
+                    <div class="row">
+                        <h5>{{ 'highlight_opacity' | i18n }}</h5>
+                        <div range-slider min="0.3" max="1.0"
+                             model-max="opacity" attach-handle-values="true"
+                             step="0.1" decimal-places="2" pin-handle="min" filter="alphaPercent"></div>
+                    </div>
+
+                    <!--Unselect after highlight-->
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="unselectAfterHighlight">
+                            {{ 'highlight_unselect' | i18n }}
+                        </label>
+                    </div>
+
                 </div>
 
                 <!-- Buttons -->

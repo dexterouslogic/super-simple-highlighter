@@ -40,11 +40,13 @@
     <ul class="list-unstyled">
         <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
         <!--isInDOM defaults to undefined-->
-        <li ng-repeat="doc in docs | filter:search" class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
+        <li ng-repeat="doc in docs | filter:search"
+            id="{{doc._id}}"
+            class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
             <!--Text and floating button-->
             <div class="highlight {{doc.className}} highlight-text-container"
-                 ng-click="onClickHighlight(doc._id)">
+                 ng-click="onClickHighlight(doc)">
                 <!--Delete Button-->
                 <button type="button" class="close"  title="Remove Highlight"
                         ng-click="onClickRemoveHighlight(doc._id); $event.preventDefault(); $event.stopPropagation();">
@@ -52,7 +54,15 @@
                     <span class="sr-only"> {{ 'close' | i18n }}</span>
                 </button>
                 <!--text-->
-                <span class="highlight-text" ng-style="{'-webkit-line-clamp': webkitLineClamp}">{{doc.text}}</span>
+                <span class="highlight-text">{{doc.text.substring(0, popupHighlightTextMaxLength)}}<span
+                        ng-show="doc.text.length > popupHighlightTextMaxLength">&#8230;
+                        <a href="" class="more"
+                           data-ng-click="onClickMore(doc); $event.preventDefault(); $event.stopPropagation()">
+                            {{ 'more' | i18n }}
+                        </a>
+                    </span>
+                </span>
+
             </div>
 
             <!--InfoBar-->
@@ -68,7 +78,8 @@
                     <span class="separator">&nbsp;//&nbsp;</span>
 
                     <!--Select-->
-                    <a href="" ng-click="onClickSelect(doc._id)" title="{{ 'tooltip_select_highlight' | i18n }}">
+                    <a href="" ng-click="onClickSelect(doc)" title="{{ 'tooltip_select_highlight' | i18n }}"
+                            class="select">
                         {{'select_highlight_text' | i18n}}
                     </a>
                     <span class="separator">&nbsp;//&nbsp;</span>

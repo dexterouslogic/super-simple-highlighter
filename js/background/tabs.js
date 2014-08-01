@@ -29,7 +29,6 @@ var _tabs = {
      * @param {number} tabId
      * @param {bool} [allFrames] if true inject into all frames. if false, just the top frame (default false)
      * @param {function} [callback]
-     * @private
      */
     executeAllScripts: function (tabId, allFrames, callback) {
         "use strict";
@@ -167,15 +166,21 @@ var _tabs = {
     /**
      * Ask the content script to select text span(s) associated with a highlight
      * @param {number} tabId
-     * @param {string} documentId
+     * @param {string} [documentId] if undefined, remove selection
      * @param {function} [responseCallback] function(xpathRange)
      */
     sendSelectHighlightTextMessage: function (tabId, documentId, responseCallback) {
         "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "select_highlight",
-            highlightId: documentId
-        }, responseCallback);
+        var message = {
+            id: "select_highlight"
+        };
+
+        // optional id of highlight. if null/undefined, removes selection
+        if (documentId) {
+            message.highlightId = documentId;
+        }
+
+        _tabs.sendMessage(tabId, message, responseCallback);
     },
 
     /**
@@ -226,24 +231,21 @@ var _tabs = {
                 sum++;
 
                 // re-use document id as span element's id
-                _tabs.sendCreateHighlightMessage(tabId,
-                    doc.range, doc.className, doc._id, function (response) {
-                        if (errorCallback && response !== true) {
-                            errorCallback(doc);
-                        }
-                    });
+                _tabs.sendCreateHighlightMessage(tabId, doc.range, doc.className, doc._id, function (response) {
+                    if (errorCallback && response !== true) {
+                        errorCallback(doc);
+                    }
+                });
                 break;
 
             case "delete":
                 sum--;
 
-                _tabs.sendDeleteHighlightMessage(tabId,
-                    doc.correspondingDocumentId, function (response) {
-                        // doesn't warrant a callback
-                        if (response !== true) {
-                            console.log("Error deleting highlight in DOM");
-                        }
-                    });
+                _tabs.sendDeleteHighlightMessage(tabId, doc.correspondingDocumentId, function (response) {
+                    if (errorCallback && response !== true) {
+                        errorCallback(doc);
+                    }
+                });
                 break;
 
             default:

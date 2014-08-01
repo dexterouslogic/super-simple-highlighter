@@ -1,4 +1,4 @@
-/*global angular, _eventPage, _i18n*/
+/*global angular, _eventPage, _i18n, _storage*/
 
 /**
  * Controllers module
@@ -14,6 +14,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     var activeTabId;
 
     // models
+
 //    $scope.docs = [];
 //    $scope.match = "hello";
 
@@ -26,15 +27,21 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
         activeTabId = activeTab.id;
         backgroundPage = _backgroundPage;
 
-        // default to no clamp
-        chrome.storage.sync.get({
-            "highlightTextLineClamp": null
-        }, function (result) {
-            if (result) {
-                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
-                    result.highlightTextLineClamp.toString() : null);
+        _storage.getPopupHighlightTextMaxLength(function (max) {
+            if (max) {
+                $scope.popupHighlightTextMaxLength = max;
             }
         });
+
+        // default to no clamp
+//        chrome.storage.sync.get({
+//            "highlightTextLineClamp": null
+//        }, function (result) {
+//            if (result) {
+//                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
+//                    result.highlightTextLineClamp.toString() : null);
+//            }
+//        });
 
         $scope.title = activeTab.title;
         $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
@@ -42,21 +49,30 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
         updateDocs();
     }
 
+    $scope.onClickMore = function (doc) {
+        // TODO: shouldn't really be in the controller...
+        $("#" + doc._id + " .highlight-text").text(doc.text);
+    };
+
     /**
      * Click a highlight. Scroll to it in DOM
-     * @param {string} documentId
+     * @param {object} doc
      */
-    $scope.onClickHighlight = function (documentId) {
-        backgroundPage._eventPage.scrollTo(activeTabId, documentId);
+    $scope.onClickHighlight = function (doc) {
+        if (doc.isInDOM) {
+            backgroundPage._eventPage.scrollTo(activeTabId, doc._id);
+        }
     };
 
     /**
      * Clicked 'select' button
-     * @param {string} documentId
+     * @param {object} doc
      */
-    $scope.onClickSelect = function (documentId) {
-        backgroundPage._eventPage.selectHighlightText(activeTabId, documentId);
-        window.close();
+    $scope.onClickSelect = function (doc) {
+        if (doc.isInDOM) {
+            backgroundPage._eventPage.selectHighlightText(activeTabId, doc._id);
+            window.close();
+        }
     };
 
     /**
@@ -83,7 +99,12 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     $scope.onClickRemoveHighlight = function (documentId) {
         backgroundPage._eventPage.deleteHighlight(activeTabId,  documentId, function (err, result) {
             if (result && result.ok ) {
-                updateDocs();
+                updateDocs(function (err, docs) {
+                    // close popup on last doc removed
+                    if (docs && docs.length === 0) {
+                        window.close();
+                    }
+                });
             }
         });
     };
@@ -100,30 +121,33 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
     /**
      * Clear and fill the 'docs' model
+     * @param {function} [callback] function(err, docs)
+     * @private
      */
-    var updateDocs = function () {
+    var updateDocs = function (callback) {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         backgroundPage._database.getCreateDocuments($scope.match, function (err, docs) {
-            if (err) {
-                return;
+            if (!err) {
+                $scope.docs = docs;
+                $scope.$apply();
+
+                // if the highlight cant be found in DOM, flag that
+                docs.forEach(function (doc) {
+                    // default to undefined, implying it IS in the DOM
+                    backgroundPage._eventPage.isHighlightInDOM(activeTabId, doc._id, function (isInDOM) {
+                        //                    if (!isInDOM) {
+                        //                        console.log("Not in DOM");
+                        //                    }
+
+                        doc.isInDOM = isInDOM;
+                        $scope.$apply();
+                    });
+                });
             }
 
-            $scope.docs = docs;
-            $scope.$apply();
-
-            // if the highlight cant be found in DOM, flag that
-            docs.forEach(function(doc){
-                // default to undefined, implying it IS in the DOM
-                backgroundPage._eventPage.isHighlightInDOM(activeTabId, doc._id, function (isInDOM) {
-//                    if (!isInDOM) {
-//                        console.log("Not in DOM");
-//                    }
-
-                    doc.isInDOM =  isInDOM;
-                    $scope.$apply();
-                });
-            });
-
+            if (callback) {
+                callback(err, docs);
+            }
         });
     };
 
