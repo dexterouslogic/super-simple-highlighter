@@ -1,5 +1,11 @@
 var _changelog = [
     {
+        version: "3.0.4",
+        items: [
+            "Increase document parsing accuracy"
+        ]
+    },
+    {
         version: "3.0.3",
         items: [
             "Add shadow to highlight",

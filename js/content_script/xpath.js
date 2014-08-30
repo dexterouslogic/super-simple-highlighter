@@ -7,28 +7,27 @@ var _xpath = {
      */
     _getXPathFromNode: function (node) {
         "use strict";
-        if (node && node.id) {
-            return '//*[@id="' + node.id + '"]';
-        }
+        // if (node && node.id) {
+        //     return '//*[@id="' + node.id + '"]';
+        // }
 
         var paths = [];
 
         // Use nodeName (instead of localName) so namespace prefix is included (if any).
         for (; node && (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE); node = node.parentNode)  {
             var index = 0;
-            // EXTRA TEST FOR ELEMENT.ID
+
             if (node.id) {
                 // if the document illegally re-uses an id, then we can't use it as a unique identifier
-
                 var selector = '[id="' + node.id + '"]';
 
                 // no jquery
                 var length = document.querySelectorAll(selector).length;
-                // jquery
-//                var length = $(selector).length;
-
                 if (length === 1) {
-                    paths.splice(0, 0, '/*[@id="' + node.id + '"]');
+                    // because the first item of the path array is prefixed with '/', this will become 
+                    // a double slash (select all elements). But as there's only one result, we can use [1]
+                    // eg: //*[@id='something'][1]/div/text()
+                    paths.splice(0, 0, '/*[@id="' + node.id + '"][1]');
                     break;
                 }
 
