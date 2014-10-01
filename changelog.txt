@@ -1,0 +1,26 @@
+3.0.5
+-----
+
+
+3.0.4
+-----
+Increase document parsing accuracy
+ 
+3.0.3
+-----
+Add shadow to highlight
+Unselect text after highlight creation
+Limit number of characters per highlight in popup
+Increase compatibility with page structure
+
+3.0.2
+-----
+Add option to keep existing colour for highlight styles
+Create changelog
+
+3.0.1
+-----
+Style background opacity
+Select highlight text
+Alert when highlight isn't possible
+Compensatation for illegally formatted documents

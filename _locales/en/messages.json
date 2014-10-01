@@ -183,5 +183,10 @@
 
     "more": {
         "message": "more"
+    },
+
+    "summary": {
+        "message": "Summary"
     }
+
 }

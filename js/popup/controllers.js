@@ -11,7 +11,7 @@ var popupControllers = angular.module('popupControllers', []);
 popupControllers.controller('DocumentsController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage;
-    var activeTabId;
+    var activeTab;
 
     // models
 
@@ -20,11 +20,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
     /**
      * Ini
-     * @param {object} activeTab
+     * @param {object} _activeTab
      * @param {object} _backgroundPage
      */
-    function onInit(activeTab, _backgroundPage){
-        activeTabId = activeTab.id;
+    function onInit(_activeTab, _backgroundPage){
+        activeTab = _activeTab;
         backgroundPage = _backgroundPage;
 
         _storage.getPopupHighlightTextMaxLength(function (max) {
@@ -60,7 +60,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      */
     $scope.onClickHighlight = function (doc) {
         if (doc.isInDOM) {
-            backgroundPage._eventPage.scrollTo(activeTabId, doc._id);
+            backgroundPage._eventPage.scrollTo(activeTab.id, doc._id);
         }
     };
 
@@ -70,7 +70,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      */
     $scope.onClickSelect = function (doc) {
         if (doc.isInDOM) {
-            backgroundPage._eventPage.selectHighlightText(activeTabId, doc._id);
+            backgroundPage._eventPage.selectHighlightText(activeTab.id, doc._id);
             window.close();
         }
     };
@@ -93,11 +93,24 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 
     /**
+     * Clicked menu 'summary' button
+     */
+    $scope.onClickSummary = function () {
+        // get the full uri for the tab. the summary page will get the match for it
+        chrome.tabs.create({
+            url: "summary.html?" +
+                "id=" + activeTab.id + "&" +
+                "url=" + encodeURIComponent(activeTab.url) + "&" +
+                "title=" + encodeURIComponent($scope.title)
+        });
+    };
+
+    /**
      * Clicked 'remove' button for a highlight
      * @param {string} documentId highlight id
      */
     $scope.onClickRemoveHighlight = function (documentId) {
-        backgroundPage._eventPage.deleteHighlight(activeTabId,  documentId, function (err, result) {
+        backgroundPage._eventPage.deleteHighlight(activeTab.id,  documentId, function (err, result) {
             if (result && result.ok ) {
                 updateDocs(function (err, docs) {
                     // close popup on last doc removed
@@ -114,7 +127,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      */
     $scope.onClickRemoveAllHighlights = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
-            backgroundPage._eventPage.deleteHighlights(activeTabId, $scope.match);
+            backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match);
             window.close();
         }
     };
@@ -134,7 +147,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 // if the highlight cant be found in DOM, flag that
                 docs.forEach(function (doc) {
                     // default to undefined, implying it IS in the DOM
-                    backgroundPage._eventPage.isHighlightInDOM(activeTabId, doc._id, function (isInDOM) {
+                    backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id, function (isInDOM) {
                         //                    if (!isInDOM) {
                         //                        console.log("Not in DOM");
                         //                    }

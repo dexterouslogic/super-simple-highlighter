@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="popupApp" ng-csp>
+<html ng-app="summaryApp" ng-csp>
 <head lang="en" >
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
@@ -11,41 +11,8 @@
 
 <body >
 <div class="container" ng-controller="DocumentsController">
-    <!--Top (not nav)
-    http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3
-    -->
-    <!--Header-->
-    <div class="row">
-        <div class="col-xs-8 vcenter" style="margin: 10px 0">
-            <h5 class="title" title="{{match}}">{{title}}</h5>
-<!-- <span class="badge">{{docs.length}}</span> -->
-            <div class="dropdown" style="display: inline">
-                <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                    <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickSummary()">
-                            {{'summary' | i18n}}
-                        </a>
-                    </li>
+    Summary PAGE!!!!!!!
 
-                    <li role="presentation" class="divider"></li>
-
-                    <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickRemoveAllHighlights()">
-                            {{'remove_all_highlights' | i18n}}
-                        </a>
-                    </li>
-
-
-
-                </ul>
-            </div>
-        </div><!-- Search
-        --><div class="col-xs-4 vcenter">
-            <input type="search" class="form-control input-sm search" ng-model="search.text"
-                   placeholder="{{'placeholder_search' | i18n}}">
-        </div>
-    </div>
 
     <!--List-->
     <ul class="list-unstyled">
@@ -65,15 +32,7 @@
                     <span class="sr-only"> {{ 'close' | i18n }}</span>
                 </button>
                 <!--text-->
-                <span class="highlight-text">{{doc.text.substring(0, popupHighlightTextMaxLength)}}<span
-                        ng-show="doc.text.length > popupHighlightTextMaxLength">&#8230;
-                        <a href="" class="more"
-                           data-ng-click="onClickMore(doc); $event.preventDefault(); $event.stopPropagation()">
-                            {{ 'more' | i18n }}
-                        </a>
-                    </span>
-                </span>
-
+                <span class="highlight-text">{{doc.text.substring(0, popupHighlightTextMaxLength)}}</span>
             </div>
 
             <!--InfoBar-->
@@ -90,7 +49,7 @@
 
                     <!--Select-->
                     <a href="" ng-click="onClickSelect(doc)" title="{{ 'tooltip_select_highlight' | i18n }}"
-                            class="select">
+                       class="select">
                         {{'select_highlight_text' | i18n}}
                     </a>
                     <span class="separator">&nbsp;//&nbsp;</span>
@@ -104,27 +63,19 @@
         </li>
     </ul>
 
-
-    <!--Remove All-->
-<!--
-    <button id="remove-all" class="btn btn-danger pull-right" ng-click="onClickRemoveAll(doc.match)"
-            title="Remove every highlight from the page">
-        <span class="glyphicon glyphicon-remove" style="vertical-align: text-top"></span> Remove All
-    </button>
--->
 </div>
-
 
 <script src="static/js/jquery-2.1.1.min.js"></script>
 <script src="static/js/jquery.stylesheet.min.js"></script>
 <script src="static/js/angular.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/purl.min.js"></script>
 
 <script src="js/storage.js"></script>
 <script src="js/stylesheet.js"></script>
 
-<script src="js/popup/app.js"></script>
-<script src="js/popup/controllers.js"></script>
+<script src="js/summary/app.js"></script>
+<script src="js/summary/controllers.js"></script>
 <script src="js/i18n_filters.js"></script>
 
 </body>

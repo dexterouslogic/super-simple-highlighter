@@ -304,7 +304,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 optionsControllers.controller('AboutController', ["$scope", function ($scope) {
     'use strict';
     $scope.manifest = chrome.runtime.getManifest();
-    $scope.changelog = _changelog;
+//    $scope.changelog = _changelog;
 
     $scope.libraries = _libraries;
 
