@@ -315,18 +315,23 @@ var _eventPage = {
             }
 
             // use the new document's id for the element id of the (first) highlight element
-            _tabs.sendCreateHighlightMessage(tabId,
-                xpathRange, className, response.id, function (is_created) {
-                    // a false response means something went wrong - delete document from db
-                    if (is_created) {
-                        // (re) show page action on success
-                        chrome.pageAction.show(tabId);
-                    } else {
-                        console.log("Error creating highlight in DOM - Removing associated document");
+            try {
+                _tabs.sendCreateHighlightMessage(tabId,
+                    xpathRange, className, response.id, function (is_created) {
+                        // a false response means something went wrong - delete document from db
+                        if (is_created) {
+                            // (re) show page action on success
+                            chrome.pageAction.show(tabId);
+                        } else {
+                            console.log("Error creating highlight in DOM - Removing associated document");
 
-                        _database.removeDocument(response.id, response.rev);
-                    }
-                });
+                            _database.removeDocument(response.id, response.rev);
+                        }
+                    });
+            }catch (e){
+                console.log("Exception creating highlight in DOM - Removing associated document");
+                _database.removeDocument(response.id, response.rev);
+            }
         });
     },
 

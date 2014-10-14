@@ -78,9 +78,7 @@ var _tabs = {
                     // send again
                     chrome.tabs.sendMessage(tabId, message, responseCallback);
                 });
-            }
-
-            if (responseCallback) {
+            } else if (responseCallback) {
                 // pass to original handler
                 responseCallback(response);
             }
