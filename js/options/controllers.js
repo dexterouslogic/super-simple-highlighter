@@ -16,7 +16,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     var $modal;
 
     // model
-    $scope.unselectAfterHighlight = true;
+    // $scope.unselectAfterHighlight = true;
     $scope.highlightClassName = "highlight";
 //    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
 //        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
@@ -26,10 +26,10 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         $modal = $('#myModal');
 
         // 1
-        _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+        _storage.getUnselectAfterHighlight(function (unselect) {
             if (unselectAfterHighlight === undefined) { return; }
 
-            $scope.unselectAfterHighlight = unselectAfterHighlight;
+            $scope.unselectAfterHighlight = unselect;
             $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
@@ -157,7 +157,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
             _storage.highlightDefinitions.remove(className);
         }
     };
-
+	
     /**
      * A value in the storage changed
      * @param changes
@@ -305,8 +305,16 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
     'use strict';
     $scope.manifest = chrome.runtime.getManifest();
 //    $scope.changelog = _changelog;
-
     $scope.libraries = _libraries;
-
     $scope.cc = _licenses;
+	
+	/**
+	 * Clicked 'restore all warnings' button. Clears the 'dismissed' property for all warning dialogs
+	 * @type function
+	 */
+	$scope.onClickRestoreAllWarnings = function () {
+		// TODO: remember to keep all property setters in sync with this method
+		_storage.setFileAccessRequiredWarningDismissed(false);
+	};
+	
 }]);

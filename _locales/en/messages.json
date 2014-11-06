@@ -185,8 +185,19 @@
         "message": "more"
     },
 
-    "summary": {
-        "message": "Summary"
-    }
+    "open_overview_in_new_tab": {
+        "message": "Open Overview in New Tab"
+    },
 
+	"warning_file_access_required": {
+		"message": "NB: This is an offline page (stored locally in a file). The highlights it contains can only be shown if 'Allow access to file URLs' is enabled for this extension. You may choose to do this via the 'Extensions' tool page."
+	},
+
+	"ok_got_it": {
+		"message": "OK, got it"
+	},
+	
+	"restore_all_warnings": {
+		"message": "Restore all warnings"
+	}
 }

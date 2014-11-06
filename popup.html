@@ -11,20 +11,18 @@
 
 <body >
 <div class="container" ng-controller="DocumentsController">
-    <!--Top (not nav)
-    http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3
-    -->
+    <!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
     <!--Header-->
     <div class="row">
         <div class="col-xs-8 vcenter" style="margin: 10px 0">
             <h5 class="title" title="{{match}}">{{title}}</h5>
-<!-- <span class="badge">{{docs.length}}</span> -->
+			<!-- <span class="badge">{{docs.length}}</span> -->
             <div class="dropdown" style="display: inline">
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                     <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickSummary()">
-                            {{'summary' | i18n}}
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()">
+                            {{'open_overview_in_new_tab' | i18n}}
                         </a>
                     </li>
 
@@ -46,6 +44,27 @@
                    placeholder="{{'placeholder_search' | i18n}}">
         </div>
     </div>
+	
+	<!-- optional file protocol warning. Only show if url protocol is 'file' -->
+	<div class="row" ng-show="fileAccessRequiredWarningVisible">
+		<div class="col-xs-12">
+			<div id="file-access-required-alert" class="alert alert-warning" role="alert">
+				<!-- <button type="button" class="close" data-dismiss="alert">
+					<span aria-hidden="true">&times;</span>
+					<span class="sr-only">Close</span>
+				</button>
+				 -->
+				<small>
+					{{'warning_file_access_required' | i18n}}
+				</small>
+				
+				<button type="button" class="btn btn-warning btn-sm btn-block" data-dismiss="alert" 
+					ng-click="onClickDismissFileAccessRequiredWarning()">
+					{{'ok_got_it' | i18n}}
+				</button>
+			</div>
+		</div>
+	</div>
 
     <!--List-->
     <ul class="list-unstyled">
@@ -119,6 +138,7 @@
 <script src="static/js/jquery.stylesheet.min.js"></script>
 <script src="static/js/angular.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/purl.min.js"></script>
 
 <script src="js/storage.js"></script>
 <script src="js/stylesheet.js"></script>

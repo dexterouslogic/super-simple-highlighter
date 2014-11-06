@@ -1,4 +1,4 @@
-/*global angular, _eventPage, _i18n, _storage*/
+/*global angular, _eventPage, _i18n, _storage, */
 
 /**
  * Controllers module
@@ -18,37 +18,65 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 //    $scope.docs = [];
 //    $scope.match = "hello";
 
-    /**
-     * Ini
-     * @param {object} _activeTab
-     * @param {object} _backgroundPage
-     */
-    function onInit(_activeTab, _backgroundPage){
-        activeTab = _activeTab;
-        backgroundPage = _backgroundPage;
+	// starter
+	chrome.tabs.query({ active: true, currentWindow: true }, function (result) {
+	    chrome.runtime.getBackgroundPage(function (bgPage) {
+	        // onInit(result[0], backgroundPage);
+	        activeTab = result[0];
+	        backgroundPage = bgPage;
 
-        _storage.getPopupHighlightTextMaxLength(function (max) {
-            if (max) {
-                $scope.popupHighlightTextMaxLength = max;
-            }
-        });
+			// initialize controller variables
+	        _storage.getPopupHighlightTextMaxLength(function (max) {
+	            if (max) {
+	                $scope.popupHighlightTextMaxLength = max;
+	            }
+	        });
+			
+			// if the url protocol is file based, and the user hasn't been warned to enable
+			// file access for the extension, set a flag now. The view will set the warning's
+			// visibility based on its value.
+			_storage.getFileAccessRequiredWarningDismissed(function(dismissed) {
+				// if its already been dismissed before, no need to check
+				if (!dismissed) {
+					// it not being a file protocol url is the same as invisible (dismissed)
+					var u = purl(activeTab.url);
+					dismissed = ('file' !== u.attr('protocol'));
+				}
+				
+				$scope.fileAccessRequiredWarningVisible = !dismissed;
+			});
+			
+			// listener for variable change. syncs value to storage
+            $scope.$watch('fileAccessRequiredWarningVisible', function (newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    console.log(newVal);
+                    _storage.setFileAccessRequiredWarningDismissed(!newVal);
+                }
+            });			
+			
+			// $scope.$apply();
+			
+	        // default to no clamp
+	//        chrome.storage.sync.get({
+	//            "highlightTextLineClamp": null
+	//        }, function (result) {
+	//            if (result) {
+	//                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
+	//                    result.highlightTextLineClamp.toString() : null);
+	//            }
+	//        });
 
-        // default to no clamp
-//        chrome.storage.sync.get({
-//            "highlightTextLineClamp": null
-//        }, function (result) {
-//            if (result) {
-//                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
-//                    result.highlightTextLineClamp.toString() : null);
-//            }
-//        });
+	        $scope.title = activeTab.title;
+	        $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
 
-        $scope.title = activeTab.title;
-        $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
+	        updateDocs();
+	    });
+	});
 
-        updateDocs();
-    }
-
+	/**
+	 * Show the remaining hidden text for a specific highlight
+	 * @param {Object} doc document for the specific highlight
+	 */
     $scope.onClickMore = function (doc) {
         // TODO: shouldn't really be in the controller...
         $("#" + doc._id + " .highlight-text").text(doc.text);
@@ -93,9 +121,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 
     /**
-     * Clicked menu 'summary' button
+     * Clicked menu 'open overview' button. Opens a new tab, with the highlights fully displayed in it
      */
-    $scope.onClickSummary = function () {
+    $scope.onClickOpenOverviewInNewTab = function () {
         // get the full uri for the tab. the summary page will get the match for it
         chrome.tabs.create({
             url: "summary.html?" +
@@ -131,6 +159,14 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
             window.close();
         }
     };
+	
+	/**
+	 * Clicked 'ok got it' button for the offline (file protocol) warning
+	 */	
+	$scope.onClickDismissFileAccessRequiredWarning = function () {
+		// a listener created in the initializer will set the value to the storage
+		$scope.fileAccessRequiredWarningVisible = false;
+	};
 
     /**
      * Clear and fill the 'docs' model
@@ -163,12 +199,4 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
             }
         });
     };
-
-    // starter
-    chrome.tabs.query({ active: true, currentWindow: true }, function (result) {
-        chrome.runtime.getBackgroundPage(function (backgroundPage) {
-            onInit(result[0], backgroundPage);
-        });
-    });
-
 }]);

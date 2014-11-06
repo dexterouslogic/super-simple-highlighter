@@ -1,3 +1,3 @@
-add warning to popup & options when highlights added to file:// urls (ie: you must enable 'allow access' to see them)
 'open popup in new window' (aka: summary page) in popup frame's dropdown
 context menu on  page action
+faq

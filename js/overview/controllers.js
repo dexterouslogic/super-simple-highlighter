@@ -4,11 +4,11 @@
  * Controllers module
  * @type {ng.IModule}
  */
-var summaryControllers = angular.module('summaryControllers', []);
+var overviewControllers = angular.module('overviewControllers', []);
 
 
 // array this is something to do with minification
-summaryControllers.controller('DocumentsController', ["$scope", function ($scope) {
+overviewControllers.controller('DocumentsController', ["$scope", function ($scope) {
     'use strict';
 
     /**
@@ -50,7 +50,7 @@ summaryControllers.controller('DocumentsController', ["$scope", function ($scope
     }
 
 
-    // starter - parse href to find url used to find match string
+    // starter - parse href (supplied by popup's controller) to find url, which is used to find match string
     var u = purl(location.href),
         id = u.param('id'), url = u.param('url'), title = u.param('title');
 

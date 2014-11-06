@@ -4,8 +4,8 @@
  * App Module
  * @type {ng.IModule}
  */
-var summaryApp = angular.module('summaryApp', [
-    'summaryControllers',
+var overviewApp = angular.module('overviewApp', [
+    'overviewControllers',
     'i18nFilters'
 ]);
 

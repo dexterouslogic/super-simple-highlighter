@@ -106,3 +106,11 @@ body {
 .not-in-dom .select {
     cursor: not-allowed;
 }
+
+#file-access-required-alert { 
+	border-left: 5px #d58512 solid;
+}
+
+#file-access-required-alert > .btn-block {
+	margin-top: 12px;
+}

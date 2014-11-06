@@ -1,8 +1,37 @@
 /*global _stringUtils*/
 
 var _storage = {
+	/**
+	 * Setter for 'has user explictly dismissed the 'you must enabled file access'' warning
+	 * @param {Boolean} fileAccessRequiredWarningDismissed true if warning was dismissed
+     * @param {function} callback standard storage setter callback
+	 * @type function
+	 */
+	setFileAccessRequiredWarningDismissed: function(fileAccessRequiredWarningDismissed, callback) {
+		"use strict";
+        chrome.storage.sync.set({
+            fileAccessRequiredWarningDismissed: fileAccessRequiredWarningDismissed
+        }, callback);
+	},
+	
+	/**
+	 * Getter for 'has user explictly dismissed the 'you must enabled file access'' warning
+	 * @param {function} callback function(fileAccessRequiredWarningDismissed)
+	 * @type function
+	 */
+	getFileAccessRequiredWarningDismissed: function (callback) {
+        "use strict";
+        chrome.storage.sync.get({
+            fileAccessRequiredWarningDismissed: false
+        }, function (items) {
+			if (callback) {
+				callback (items.fileAccessRequiredWarningDismissed);
+			}
+        });
+	},
+	
     /**
-     * Set unselect setting
+     * Set 'should selection be removed after selection' flag
      * @param {bool} unselectAfterHighlight
      * @param {function} [callback] Callback on success, or on failure (in which case runtime.lastError will be set).
      */
@@ -22,7 +51,9 @@ var _storage = {
         chrome.storage.sync.get({
             unselectAfterHighlight: false
         }, function (items) {
-            callback (items ? items.unselectAfterHighlight : undefined);
+			if (callback) {
+				callback (items ? items.unselectAfterHighlight : undefined);
+			}
         });
     },
 

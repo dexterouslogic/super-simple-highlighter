@@ -1,6 +1,6 @@
 3.0.5
 -----
-
+Add warning to enable 'allow file access' when highlights are added to a file protocol based page
 
 3.0.4
 -----
