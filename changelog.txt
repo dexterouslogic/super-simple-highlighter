@@ -1,8 +1,9 @@
 3.0.5
 -----
 Add warning to enable 'allow file access' when highlights are added to a file protocol based page
-Add Overview page to popup
-Cosmetic stuff
+Add Overview page to popup.
+F.A.Q link
+Minor bug fixes.
 
 3.0.4
 -----

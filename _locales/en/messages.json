@@ -219,5 +219,21 @@
 				"content": "$1"
 			}
 		}
-	}	
+	},	
+	
+    "activate_originating_tab": {
+        "message": "Open Originating Tab"
+    },
+	
+	"overview_page_title_prefix": {
+		"message": "Overview"
+	},
+	
+	"options_page_title_prefix": {
+		"message": "Options"
+	},
+	
+	"faq_title": {
+		"message": "F.A.Q"
+	}
 }

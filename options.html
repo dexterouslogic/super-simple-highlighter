@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html ng-app="optionsApp" ng-csp>
-<head lang="en">
+<head lang="en" data-ng-controller="AboutController">
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
@@ -8,10 +8,12 @@
     <link href="css/options.css" rel="stylesheet">
 
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" type="text/css">
+	
+	<title>{{'options_page_title_prefix' | i18n}} - {{manifest.name}}</title>
 </head>
 
 <body>
-<nav class="navbar navbar-inverse" role="navigation" data-ng-controller="AboutController">
+<nav class="navbar navbar-default" role="navigation" data-ng-controller="AboutController">
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
@@ -27,11 +29,17 @@
                 <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
                 <span style="font-size: small;">{{manifest.version}}</span>
             </a>
+			
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			<!-- <ul class="nav navbar-nav">
+
+			</ul>
+			 -->
             <ul class="nav navbar-nav navbar-right">
+				<li><a target="_blank" href="http://einzelcode.com/projects/supersimplehighlighter/faq">{{'faq_title' | i18n}}</a></li>
                 <li><a href="http://einzelcode.com">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
             </ul>
         </div>
@@ -215,6 +223,8 @@
                 <p>
 					&copy;2014 <a href="http://einzelcode.com">{{ 'extension_author' | i18n }}</a>
 				</p>
+
+				<a target="_blank" href="http://einzelcode.com/projects/supersimplehighlighter/faq">{{'faq_title' | i18n}}</a>
 <!-- 
                 <a href="mailto:support@einzelcode.com?subject=Re: {{manifest.name}} {{manifest.version}}">
                     {{ 'support' | i18n}}
@@ -268,7 +278,7 @@
 <script src="js/storage.js"></script>
 <script src="js/stylesheet.js"></script>
 <script src="js/string_utils.js"></script>
-<script src="js/changelog.js"></script>
+<!-- <script src="js/changelog.js"></script> -->
 <script src="js/libraries.js"></script>
 <script src="js/licenses.js"></script>
 

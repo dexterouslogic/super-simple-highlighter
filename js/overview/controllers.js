@@ -27,7 +27,7 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 
 		// share title with that of the source page
         $scope.title = title;
-		document.title = title;
+		// document.title = chrome.i18n.getMessage("overview_document_title", [title]);
 
 		// used to scroll tab's page to the clicked highlight
 		backgroundPage = bgPage;
