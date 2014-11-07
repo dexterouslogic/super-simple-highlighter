@@ -1,68 +1,65 @@
 <!DOCTYPE html>
-<html ng-app="summaryApp" ng-csp>
+<html ng-app="overviewApp" ng-csp>
 <head lang="en" >
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/popup.css" rel="stylesheet">
+    <link href="css/overview.css" rel="stylesheet">
 
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,300,600' rel='stylesheet' type='text/css'>
 </head>
 
-<body >
-<div class="container" ng-controller="DocumentsController">
-    Summary PAGE!!!!!!!
+<body data-ng-controller="DocumentsController">
+<nav class="navbar navbar-default" role="navigation" >
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
 
+            <a class="navbar-brand" href="https://chrome.google.com/webstore/detail/super-simple-highlighter/hhlhjgianpocpoppaiihmlpgcoehlhio">
+                <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
+                <span style="font-size: small;">{{manifest.version}}</span>
+            </a>
+        </div>
 
-    <!--List-->
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="http://einzelcode.com">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>	
+	
+	
+<div class="container">
+   <div class="page-header">
+	 <!-- Main Header -->
+     <h1>
+		 <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()"></span>
+		 <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
+		  If the associated tab has been removed, user should navigate explicitly (via context menu) -->
+		 <a href="{{url}}" target="_id">{{title}}</a>
+		 
+		 <h5>{{docsCount}}</h5>
+	 </h1>
+   </div>
+
+	<!-- Highlights List -->
     <ul class="list-unstyled">
-        <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
-        <!--isInDOM defaults to undefined-->
-        <li ng-repeat="doc in docs | filter:search"
-            id="{{doc._id}}"
-            class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
-            ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
-            <!--Text and floating button-->
-            <div class="highlight {{doc.className}} highlight-text-container"
-                 ng-click="onClickHighlight(doc)">
-                <!--Delete Button-->
-                <button type="button" class="close"  title="Remove Highlight"
-                        ng-click="onClickRemoveHighlight(doc._id); $event.preventDefault(); $event.stopPropagation();">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only"> {{ 'close' | i18n }}</span>
-                </button>
-                <!--text-->
-                <span class="highlight-text">{{doc.text.substring(0, popupHighlightTextMaxLength)}}</span>
-            </div>
-
-            <!--InfoBar-->
-            <div class="actions">
-                <span class="date">{{ doc.date | date:'medium' }}</span>
-
-                <!--Only show these if hovering-->
-                <span ng-show="doc.hover">
-                    <!--Copy-->
-                    <a href="" ng-click="onClickCopy(doc._id)" title="{{ 'tooltip_copy_highlight' | i18n }}">
-                        {{'copy_highlight_text' | i18n}}
-                    </a>
-                    <span class="separator">&nbsp;//&nbsp;</span>
-
-                    <!--Select-->
-                    <a href="" ng-click="onClickSelect(doc)" title="{{ 'tooltip_select_highlight' | i18n }}"
-                       class="select">
-                        {{'select_highlight_text' | i18n}}
-                    </a>
-                    <span class="separator">&nbsp;//&nbsp;</span>
-
-                    <!--Speak-->
-                    <a href="" ng-click="onClickSpeak(doc._id)" title="{{ 'tooltip_speak_highlight' | i18n }}">
-                        {{'speak_highlight_text' | i18n}}
-                    </a>
-                </span>
-            </div>
+        <li ng-repeat="doc in docs" id="{{doc._id}}" class="well-sm" ng-class="{'not-in-dom': doc.isInDOM === false}">
+            <!--Number (index+1)-->
+            <h2 class="number highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{$index + 1}}</h2>
+            <!--title-->
+            <h5 class="text" ng-click="onClickHighlight(doc)">{{doc.text}}</h5>
         </li>
     </ul>
-
 </div>
 
 <script src="static/js/jquery-2.1.1.min.js"></script>
@@ -74,8 +71,8 @@
 <script src="js/storage.js"></script>
 <script src="js/stylesheet.js"></script>
 
-<script src="js/summary/app.js"></script>
-<script src="js/summary/controllers.js"></script>
+<script src="js/overview/app.js"></script>
+<script src="js/overview/controllers.js"></script>
 <script src="js/i18n_filters.js"></script>
 
 </body>

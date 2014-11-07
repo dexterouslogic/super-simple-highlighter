@@ -1,3 +1,2 @@
-'open popup in new window' (aka: summary page) in popup frame's dropdown
 context menu on  page action
 faq

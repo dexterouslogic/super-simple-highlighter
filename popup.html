@@ -15,7 +15,12 @@
     <!--Header-->
     <div class="row">
         <div class="col-xs-8 vcenter" style="margin: 10px 0">
-            <h5 class="title" title="{{match}}">{{title}}</h5>
+            <h5 class="title">
+				<span class="glyphicon glyphicon-list-alt pointer" 
+					ng-click="onClickOpenOverviewInNewTab()" title="{{'open_overview_in_new_tab' | i18n}}"></span>
+				<span title="{{match}}">{{title}}</span>
+			</h5>
+			
 			<!-- <span class="badge">{{docs.length}}</span> -->
             <div class="dropdown" style="display: inline">
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
@@ -30,7 +35,7 @@
 
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickRemoveAllHighlights()">
-                            {{'remove_all_highlights' | i18n}}
+                            <span class="text-danger">{{'remove_all_highlights' | i18n}}</span>
                         </a>
                     </li>
 
@@ -41,7 +46,7 @@
         </div><!-- Search
         --><div class="col-xs-4 vcenter">
             <input type="search" class="form-control input-sm search" ng-model="search.text"
-                   placeholder="{{'placeholder_search' | i18n}}">
+                   placeholder="{{'placeholder_filter' | i18n}}">
         </div>
     </div>
 	
@@ -75,7 +80,7 @@
             class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
             <!--Text and floating button-->
-            <div class="highlight {{doc.className}} highlight-text-container"
+            <div class="highlight {{doc.className}} highlight-text-container pointer"
                  ng-click="onClickHighlight(doc)">
                 <!--Delete Button-->
                 <button type="button" class="close"  title="Remove Highlight"

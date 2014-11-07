@@ -9,6 +9,13 @@ var overviewApp = angular.module('overviewApp', [
     'i18nFilters'
 ]);
 
+// http://stackoverflow.com/questions/15606751/angular-changes-urls-to-unsafe-in-extension-page
+overviewApp.config( [ '$compileProvider', function( $compileProvider ) {
+    "use strict";
+    // $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file):/);
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
+}]);
+
 $().ready(function () {
     "use strict";
     // 1 - get current highlight styles, and apply to DOM

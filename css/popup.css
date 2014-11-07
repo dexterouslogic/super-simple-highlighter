@@ -32,15 +32,18 @@ body {
 }
 
 .search {
-    border-radius: 14px;
+    /*border-radius: 14px;*/
 }
 
 /*Can't use .highlight as it is overwritten in init*/
 .highlight-text-container {
     padding: 10px 15px !important;
-    cursor: pointer;
     font-size: small;
     box-shadow: initial !important;
+}
+
+.pointer {
+	cursor: pointer;
 }
 
 .highlight > .close {

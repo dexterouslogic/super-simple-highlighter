@@ -126,7 +126,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     $scope.onClickOpenOverviewInNewTab = function () {
         // get the full uri for the tab. the summary page will get the match for it
         chrome.tabs.create({
-            url: "summary.html?" +
+            url: "overview.html?" +
                 "id=" + activeTab.id + "&" +
                 "url=" + encodeURIComponent(activeTab.url) + "&" +
                 "title=" + encodeURIComponent($scope.title)

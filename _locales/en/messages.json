@@ -8,6 +8,9 @@
     "extension_author": {
         "message": "einzelcode"
     },
+    "copyright_year": {
+        "message": "2014"
+    },
     "select_highlight_text": {
         "message": "Select"
     },
@@ -53,8 +56,8 @@
         "message": "Untitled"
     },
 
-    "placeholder_search": {
-        "message": "Search"
+    "placeholder_filter": {
+        "message": "Filter"
     },
     "remove_all_highlights": {
         "message": "Remove all highlights"
@@ -125,10 +128,10 @@
     },
 
     "options_tab_page_header_sites": {
-        "message": "These are the highlight styles available to be applied to text. Click on them to edit their properties."
+        "message": "Click on a highlight defintion to edit its properties."
     },
     "options_tab_page_header_pages": {
-        "message": "These pages are marked as containing highlights. When you revisit them, with any luck they should reappear where you left them."
+        "message": "When you revisit these pages, their highlights should reappear where you placed them."
     },
 
 
@@ -199,5 +202,22 @@
 	
 	"restore_all_warnings": {
 		"message": "Restore all warnings"
-	}
+	},
+	
+	"plural_zero_highlights": {
+		"message": "No highlights"
+	},
+	
+	"plural_one_highlight": {
+		"message": "1 highlight"
+	},
+	
+	"plural_other_highlights": {
+		"message": "$count$ highlights",
+		"placeholders": {
+			"count": {
+				"content": "$1"
+			}
+		}
+	}	
 }

@@ -10,47 +10,107 @@ var overviewControllers = angular.module('overviewControllers', []);
 // array this is something to do with minification
 overviewControllers.controller('DocumentsController', ["$scope", function ($scope) {
     'use strict';
+	var backgroundPage;
+	
+    $scope.manifest = chrome.runtime.getManifest();
 
     /**
-     * Initializer
-     * @param {number} [id] tab id number, or Nan if not known or specified
+     * Initializer, called from the starter section
+     * @param {number} [tabId] tab id of the tab associated with the popup that navigated here, or NaN if not known or specified
      * @param {string} url tab url
      * @param {string} [title] optional tab title
-     * @param {object} backgroundPage
+     * @param {object} bgPage
      */
-    function onInit(id, url, title, backgroundPage){
-        console.log("init");
+    function onInit(tabId, url, title, bgPage){
+		$scope.tabId = tabId;
+		$scope.url = url;
 
+		// share title with that of the source page
         $scope.title = title;
+		document.title = title;
+
+		// used to scroll tab's page to the clicked highlight
+		backgroundPage = bgPage;
 
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         var match = backgroundPage._database.buildMatchString(url);
 
         backgroundPage._database.getCreateDocuments(match, function (err, docs) {
-            if (!err) {
-                $scope.docs = docs;
-                $scope.$apply();
+			if (err) {
+				return;
+			}
+			
+            $scope.docs = docs;
+			
+			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
+			var length = docs.length;
+			var messageName;
+			
+			if (length == 0) {
+				messageName = "plural_zero_highlights";
+			} else if (length == 1) {
+				messageName = "plural_one_highlight";
+			} else {
+				messageName = "plural_other_highlights";
+			}
+			
+			$scope.docsCount = chrome.i18n.getMessage(messageName, [docs.length]);
+            $scope.$apply();
 
-                // if the highlight cant be found in DOM, flag that
-                if (!isNaN(id)) {
-                    docs.forEach(function (doc) {
-                        // default to undefined, implying it IS in the DOM
-                        backgroundPage._eventPage.isHighlightInDOM(id, doc._id, function (isInDOM) {
-                            //                    if (!isInDOM) {
-                            //                        console.log("Not in DOM");
-                            //                    }
+            // if the highlight cant be found in DOM, flag that
+            if (!isNaN(tabId)) {
+                docs.forEach(function (doc) {
+                    // default to undefined, implying it IS in the DOM
+                    backgroundPage._eventPage.isHighlightInDOM(tabId, doc._id, function (isInDOM) {
+                        //                    if (!isInDOM) {
+                        //                        console.log("Not in DOM");
+                        //                    }
 
-                            doc.isInDOM = isInDOM;
-                            $scope.$apply();
-                        });
+                        doc.isInDOM = isInDOM;
+                        $scope.$apply();
                     });
-                }
+                });
             }
         });
     }
 
+	/**
+	 * Clicked the header, showing the source page title.
+     * Makes corresponding tab active
+	 * @type function
+	 */
+	$scope.onClickPageUrl = function () {
+		// make the tab which was associated with the popup that launched us the active tab.
+		// If it has been closed nothing will happen (but the user can open explicitly from the anchor instead)
+		chrome.tabs.update($scope.tabId, {
+			active: true
+		});
+	}
 
-    // starter - parse href (supplied by popup's controller) to find url, which is used to find match string
+	/**
+	 * Clicked a highlight. Make the associated tab active, and scroll it to its position
+	 * @param {Object} doc highlight document which was clicked
+	 */	
+	$scope.onClickHighlight = function(doc) {
+		// if scrolling to the element is successful, only then we can make the tab active
+        backgroundPage._eventPage.scrollTo($scope.tabId, doc._id, function(didScroll) {
+        	if (didScroll) {
+				// make it the active tab
+				chrome.tabs.update($scope.tabId, {
+					active: true
+				});
+        	}
+        });
+		
+	}
+
+
+
+
+	/**
+	 * Starter 
+	 * parse href (supplied by popup's controller) to find url, which is used to find match string
+	 */
     var u = purl(location.href),
         id = u.param('id'), url = u.param('url'), title = u.param('title');
 

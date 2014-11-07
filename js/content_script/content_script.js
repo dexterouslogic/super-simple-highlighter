@@ -139,6 +139,11 @@ var _contentScript  = {
         return _highlighter.update(id, [_contentScript.highlightClassName, className]);
     },
 
+    /**
+     * Scroll DOM to top of an element
+     * @param {Object} selector element selector
+     * @return {boolean} true if selector matched an element
+     */
     scrollTo: function (selector) {
         "use strict";
         var $elm = $(selector);
