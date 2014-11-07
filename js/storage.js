@@ -52,7 +52,7 @@ var _storage = {
             unselectAfterHighlight: false
         }, function (items) {
 			if (callback) {
-				callback (items ? items.unselectAfterHighlight : undefined);
+				callback (items.unselectAfterHighlight);
 			}
         });
     },
@@ -66,7 +66,7 @@ var _storage = {
         chrome.storage.sync.get({
             popupHighlightTextMaxLength: 512
         }, function (items) {
-            callback (items ? items.popupHighlightTextMaxLength : undefined);
+            callback (items.popupHighlightTextMaxLength);
         });
     },
 
@@ -92,7 +92,7 @@ var _storage = {
         chrome.storage.sync.get({
             highlightBackgroundAlpha: 0.8
         }, function (items) {
-            callback (items ? items.highlightBackgroundAlpha : undefined);
+            callback (items.highlightBackgroundAlpha);
         });
     },
 

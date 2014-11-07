@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html ng-app="overviewApp" ng-csp>
-<head lang="en" >
+<head lang="en" data-ng-controller="DocumentsController">
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/overview.css" rel="stylesheet">
 
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,300,600' rel='stylesheet' type='text/css'>
+	
+	<title>{{'overview_page_title_prefix' | i18n}} - {{title}}</title>
 </head>
 
 <body data-ng-controller="DocumentsController">
@@ -42,7 +44,7 @@
    <div class="page-header">
 	 <!-- Main Header -->
      <h1>
-		 <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()"></span>
+		 <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span>
 		 <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
 		  If the associated tab has been removed, user should navigate explicitly (via context menu) -->
 		 <a href="{{url}}" target="_id">{{title}}</a>

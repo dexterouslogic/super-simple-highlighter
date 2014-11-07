@@ -25,11 +25,10 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         // cache
         $modal = $('#myModal');
 
-        // 1
-        _storage.getUnselectAfterHighlight(function (unselect) {
-            if (unselectAfterHighlight === undefined) { return; }
+        // 1 - get storage value, and set up a watch on it
+        _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+            $scope.unselectAfterHighlight = unselectAfterHighlight;
 
-            $scope.unselectAfterHighlight = unselect;
             $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
