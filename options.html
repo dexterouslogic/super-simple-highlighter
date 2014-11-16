@@ -7,7 +7,7 @@
     <link href="static/css/angular.rangeSlider.css" rel="stylesheet">
     <link href="css/options.css" rel="stylesheet">
 
-    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" type="text/css">
+    <!-- <link href='http://fonts.googleapis.com/css?family=Roboto:400italic,400,300,600' rel='stylesheet' type='text/css'> -->
 	
 	<title>{{'options_page_title_prefix' | i18n}} - {{manifest.name}}</title>
 </head>
@@ -222,6 +222,8 @@
                 <h5>Version {{manifest.version}} (<a href="changelog.txt">{{'changelog' | i18n}}</a>)</h5>
                 <p>
 					&copy;2014 <a href="http://einzelcode.com">{{ 'extension_author' | i18n }}</a>
+					<br/>
+					<a target="_blank" href="https://github.com/einzelcode/super-simple-highlighter">Github</a>
 				</p>
 
 				<a target="_blank" href="http://einzelcode.com/projects/supersimplehighlighter/faq">{{'faq_title' | i18n}}</a>
@@ -243,7 +245,7 @@
                     by <a href="{{item.author.href}}">{{item.author.text}}</a>
                     is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
                 </div>
-
+				
                 <div class="row row-buttons">
 	                <button type="button" class="btn btn-warning" data-ng-click="onClickRestoreAllWarnings()">
 	                    {{ 'restore_all_warnings' | i18n }}

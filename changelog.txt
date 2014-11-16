@@ -1,4 +1,4 @@
-3.0.5
+3.1
 -----
 Add warning to enable 'allow file access' when highlights are added to a file protocol based page
 Add Overview page to popup.

@@ -1,12 +1,12 @@
 
 body {
-    font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;
+/*    font-family: "Lucida Grande", sans-serif;*/
     color: #777
 }
 
 h1, h2, h3, h4, h5, h6 {
     /*font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;*/
-    font-weight: 600;
+/*    font-weight: 600;*/
     color: #000
 }
 
@@ -83,3 +83,4 @@ input[type="color"] {
 .version {
     margin-bottom: 1em;
 }
+

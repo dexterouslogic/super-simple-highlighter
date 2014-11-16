@@ -6,7 +6,7 @@
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/popup.css" rel="stylesheet">
 
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,300,600' rel='stylesheet' type='text/css'>
+    <!-- <link href='http://fonts.googleapis.com/css?family=Roboto:400italic,400,300,600' rel='stylesheet' type='text/css'> -->
 </head>
 
 <body >
@@ -16,9 +16,10 @@
     <div class="row">
         <div class="col-xs-8 vcenter" style="margin: 10px 0">
             <h5 class="title">
-				<span class="glyphicon glyphicon-list pointer" 
-					ng-click="onClickOpenOverviewInNewTab()" title="{{'open_overview_in_new_tab' | i18n}}"></span>
-				<span title="{{match}}">{{title}}</span>
+				<!-- <span class="glyphicon glyphicon-list pointer"
+					ng-click="onClickOpenOverviewInNewTab()" title="{{'open_overview_in_new_tab' | i18n}}"></span> -->
+				<!-- <span title="{{match}}">{{title}}</span> -->
+				<span>{{manifest.name}}</span>
 			</h5>
 			
 			<!-- <span class="badge">{{docs.length}}</span> -->
@@ -27,6 +28,7 @@
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()">
+							<span class="glyphicon glyphicon-list"></span>
                             {{'open_overview_in_new_tab' | i18n}}
                         </a>
                     </li>
@@ -35,6 +37,7 @@
 
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickRemoveAllHighlights()">
+							<span class="glyphicon glyphicon-remove"></span>
                             <span class="text-danger">{{'remove_all_highlights' | i18n}}</span>
                         </a>
                     </li>
