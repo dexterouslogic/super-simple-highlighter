@@ -44,12 +44,14 @@ var _contentScript  = {
         // listen for messages from event page
         chrome.runtime.onMessage.addListener(_contentScript.onRuntimeMessage);
 
-        // because .on() expects the element to be in the DOM, we use this form
+        // because .on() expects the element to be in the DOM, use defered events
         // http://stackoverflow.com/questions/9827095/is-it-possible-to-use-jquery-on-and-hover
-        $(document).on({
-            mouseenter: _contentScript.onMouseEnterHighlight,
-            mouseleave: _contentScript.onMouseLeaveHighlight
-        }, "." + _contentScript.highlightClassName);
+
+		// OLD ROUTINE
+        // $(document).on({
+        //     mouseenter: _contentScript.onMouseEnterHighlight,
+        //     mouseleave: _contentScript.onMouseLeaveHighlight,
+        // }, "span." + _contentScript.highlightClassName);
     },
 
     isSelectionCollapsed: function () {
@@ -259,6 +261,7 @@ var _contentScript  = {
 
     /**
      * Mouse entered one of the highlight's spans
+     * NOT CALLED, DUE TO CONTEXT MENU CHANGES IN M41
      */
     onMouseEnterHighlight: function () {
         "use strict";
@@ -282,17 +285,14 @@ var _contentScript  = {
 
     /**
      * Mouse left one of the highlight's spans
-     */
+     * NOT CALLED, DUE TO CONTEXT MENU CHANGES IN M41
+	 */
     onMouseLeaveHighlight: function () {
         "use strict";
-        var id = _contentScript._getHighlightId(this);
-        if (id) {
-            // tell event page that this is the current highlight
-            chrome.runtime.sendMessage({
-                id: "on_mouse_leave_highlight",
-                highlightId: id
-            });
-        }
+        // tell event page that this is the current highlight
+		chrome.runtime.sendMessage({
+            id: "on_mouse_leave_highlight",
+        });
     },
 
     /**
@@ -378,9 +378,11 @@ var _contentScript  = {
 /**
  * Listener for change events in storage
  */
-_contentScript.init();
+//_contentScript.init();
 
-//$().ready(function () {
-//    "use strict";
-//    _contentScript.onReady();
-//});
+$().ready(function () {
+    "use strict";
+	_contentScript.init();
+
+    //_contentScript.onReady();
+});

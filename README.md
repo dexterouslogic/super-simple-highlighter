@@ -1,11 +1,11 @@
 # Super Simple Highlighter
-By [einzelcode](http://einzelcode.com)
-##What's that
+
+##What is it?
 A Chrome extension for highlighting text, and automatically attempt to restore highlight on each page revisit.
-##Donate
-Donations can be made with [Paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TXVYJTNXQKPCY) or [Amazon Wishlist](http://www.amazon.co.uk/registry/wishlist/2JZNJ3B74GUUU)
 ##Installation
 Use the prepackaged version in the [app store](https://chrome.google.com/webstore/detail/super-simple-highlighter/hhlhjgianpocpoppaiihmlpgcoehlhio).
+##Donate
+Donations can be made with [Paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TXVYJTNXQKPCY) or [Amazon Wishlist](http://www.amazon.co.uk/registry/wishlist/2JZNJ3B74GUUU)
 ##Licenses
 ###Highlighter Blue Icon
 [Highlighter Blue Icon](http://www.iconarchive.com/show/soft-scraps-icons-by-hopstarter/Highlighter-Blue-icon.html) by [Hopstarter](http://hopstarter.deviantart.com) is licensed under [CC BY-NC-ND 3.0](http://creativecommons.org/licenses/by-nc-nd/3.0/)

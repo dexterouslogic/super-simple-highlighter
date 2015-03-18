@@ -71,6 +71,7 @@ var _contextMenus = {
      */
     _recreateMenu: function (highlightDefinitions, doc) {
         "use strict";
+
         chrome.contextMenus.removeAll();
 
         if (doc) {

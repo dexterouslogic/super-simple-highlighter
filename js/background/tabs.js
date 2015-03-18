@@ -57,7 +57,7 @@ var _tabs = {
 
         // build the array supplied to executeScripts()
         [
-            "static/js/jquery-2.1.1.min.js",
+            "static/js/jquery-2.1.3.min.js",
             "static/js/jquery.stylesheet.min.js",
             "js/storage.js",
             "js/string_utils.js",

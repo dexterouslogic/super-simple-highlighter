@@ -32,7 +32,8 @@ var _eventPage = {
 
         chrome.webNavigation.onCompleted.addListener(_eventPage.onWebNavigationCompleted);
 
-        chrome.tabs.onActivated.addListener(_eventPage.onTabActivated);
+		// DISABLED UNTIL MOUSE EVENT BUG IS FIXED
+        // chrome.tabs.onActivated.addListener(_eventPage.onActivated);
 
         chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
 
@@ -212,6 +213,7 @@ var _eventPage = {
     /**
      * Fires when the active tab in a window changes. Note that the tab's URL may not be set at the time this event
      * fired, but you can listen to onUpdated events to be notified when a URL is set.
+	 * DISABLED UNTIL MOUSE EVENT BUG IS FIXED
      * @param activeInfo
      */
     onTabActivated: function (activeInfo) {

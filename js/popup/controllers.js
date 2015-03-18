@@ -32,7 +32,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
     // models
     $scope.manifest = chrome.runtime.getManifest();
-
+	// array of highlight definitions
+    _storage.highlightDefinitions.getAll(function (items) {
+        $scope.highlightDefinitions = items.highlightDefinitions;
+    });
+	
 //    $scope.docs = [];
 //    $scope.match = "hello";
 
@@ -95,9 +99,12 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * Show the remaining hidden text for a specific highlight
 	 * @param {Object} doc document for the specific highlight
 	 */
-    $scope.onClickMore = function (doc) {
+    $scope.onClickMore = function (event, doc) {
         // TODO: shouldn't really be in the controller...
         $("#" + doc._id + " .highlight-text").text(doc.text);
+		
+		event.preventDefault(); 
+		event.stopPropagation()
     };
 
     /**
@@ -139,6 +146,23 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 
     /**
+     * Clicked an existing definition
+     * @param {number} index index of definition in local array
+     */
+    $scope.onClickRedefinition = function (event, doc, index) {
+		// get classname of new definition
+		var newDefinition = $scope.highlightDefinitions[index];
+
+		backgroundPage._eventPage.updateHighlight(activeTab.id, 
+			doc._id, newDefinition.className);
+			
+		// update local classname, which will update class in dom
+		doc.className = newDefinition.className;
+		
+		event.stopPropagation()
+    };
+
+    /**
      * Clicked menu 'open overview' button. Opens a new tab, with the highlights fully displayed in it
      */
     $scope.onClickOpenOverviewInNewTab = function () {
@@ -155,7 +179,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clicked 'remove' button for a highlight
      * @param {string} documentId highlight id
      */
-    $scope.onClickRemoveHighlight = function (documentId) {
+    $scope.onClickRemoveHighlight = function (event, documentId) {
         backgroundPage._eventPage.deleteHighlight(activeTab.id,  documentId, function (err, result) {
             if (result && result.ok ) {
                 updateDocs(function (err, docs) {
@@ -166,16 +190,19 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 });
             }
         });
+		
+		// event.preventDefault();
+		event.stopPropagation();
     };
 
     /**
      * Clicked 'remove all' button
      */
     $scope.onClickRemoveAllHighlights = function () {
-        if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
+        // if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
             backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match);
             window.close();
-        }
+        // }
     };
 	
 	/**

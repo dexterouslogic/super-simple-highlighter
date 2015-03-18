@@ -117,3 +117,8 @@ body {
 #file-access-required-alert > .btn-block {
 	margin-top: 12px;
 }
+
+.redefinition-well-sm {
+	border-radius: 0.5em !important;
+	padding: 0px 5pt;
+}
