@@ -57,7 +57,7 @@
     },
 
     "placeholder_filter": {
-        "message": "Filter"
+        "message": "Filter By Content"
     },
     "remove_all_highlights": {
         "message": "Remove all highlights"
@@ -239,5 +239,18 @@
 	
 	"redefine_highlight": {
 		"message": "Style"
-	}
+	},
+	
+	"visible_style": {
+		"message": "Filtered Style"
+	},
+	
+	"visible_stylename_all": {
+		"message": "All"
+	},
+	
+    "title_filter_style": {
+        "message": "Filter By Style"
+    }
+	
 }

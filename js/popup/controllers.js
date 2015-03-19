@@ -36,6 +36,19 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     _storage.highlightDefinitions.getAll(function (items) {
         $scope.highlightDefinitions = items.highlightDefinitions;
     });
+
+	// current style filter. null for none
+	$scope.styleFilterHighlightDefinition = null;
+
+	// predicate for filter by style
+	$scope.styleFilterPredicate = function(doc, index) {
+		if (!$scope.styleFilterHighlightDefinition) {
+			return true;
+		}
+		
+		return doc.className === $scope.styleFilterHighlightDefinition.className;
+	};
+
 	
 //    $scope.docs = [];
 //    $scope.match = "hello";
@@ -94,6 +107,18 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	        updateDocs();
 	    });
 	});
+	
+    /**
+     * Clicked an existing definition
+     */
+    $scope.onClickStyleFilter = function (event, definition) {
+		$scope.styleFilterHighlightDefinition = definition;
+		
+		event.stopPropagation()
+		// $scope.$apply();
+    };
+
+	
 
 	/**
 	 * Show the remaining hidden text for a specific highlight

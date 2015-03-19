@@ -28,7 +28,7 @@
     <!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
     <!--Header-->
     <div class="row">
-        <div class="col-xs-8 vcenter" style="margin: 10px 0">
+        <div class="col-xs-7 vcenter" style="margin: 10px 0">
             <h5 class="title">
 				<!-- <span class="glyphicon glyphicon-list pointer"
 					ng-click="onClickOpenOverviewInNewTab()" title="{{'open_overview_in_new_tab' | i18n}}"></span> -->
@@ -57,10 +57,50 @@
                     </li>
                 </ul>
             </div>
+			
+			<!-- Count of number of documents (highlights) and number of docs actually shown -->
+			<div ng-hide="styleFilterHighlightDefinition == null && (search == null || search.text.length == 0)">
+				<small>{{filteredDocs.length}} / {{docs.length}}</small>
+			</div>
+			
         </div><!-- Search
         --><div class="col-xs-4 vcenter">
             <input type="search" class="form-control input-sm search" ng-model="search.text"
                    placeholder="{{'placeholder_filter' | i18n}}">
+        </div><!-- Filter by style
+        --><div class="col-xs-1 vcenter">
+			<div class="dropdown pull-right" style="display: inline">
+			   <button class="btn btn-sm btn-default" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-expanded="true"
+			   		ng-class="styleFilterHighlightDefinition.className"
+					style="box-shadow: none"
+					title="{{'title_filter_style' | i18n}}">
+				   <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+			  </button>				
+				
+                <!-- <a href="" class="dropdown-toggle caret" id="dropdownMenu3" data-toggle="dropdown"></a> -->
+			    <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu3">
+					<li role="presentation" class="dropdown-header">{{'visible_style' | i18n}}</li>
+					<li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickStyleFilter($event, null)">
+							{{'visible_stylename_all' | i18n}}
+							<span ng-hide="styleFilterHighlightDefinition != null" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                        </a>	
+					</li>
+					
+					 <li role="presentation" class="divider"></li>
+					 
+                    <li ng-repeat="d in highlightDefinitions" role="presentation">
+						<!-- Index - title -->
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickStyleFilter($event, d)">
+							<span class="redefinition-well-sm {{highlightClassName}} {{d.className}}">{{$index + 1}}</span>
+                    		<span>{{d.title}}</span>
+				
+							<span ng-hide="styleFilterHighlightDefinition.className != d.className" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                        </a>								
+
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 	
@@ -108,7 +148,7 @@
     <ul class="list-unstyled">
         <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
         <!--isInDOM defaults to undefined-->
-        <li ng-repeat="doc in docs | filter:search"
+        <li ng-repeat="doc in filteredDocs = (docs | filter:search | filter:styleFilterPredicate)"
             id="{{doc._id}}"
             class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
             ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
