@@ -32,7 +32,7 @@ var optionsApp = angular.module('optionsApp', [
 // http://stackoverflow.com/questions/15606751/angular-changes-urls-to-unsafe-in-extension-page
 optionsApp.config( [ '$compileProvider', function( $compileProvider ) {
     "use strict";
-    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file):/);
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file|mailto|chrome-extension):/);
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
 }]);
 //

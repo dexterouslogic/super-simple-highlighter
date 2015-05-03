@@ -75,8 +75,8 @@ var _licenses = [
 			text: "Super Simple Highlighter"
 		},
 		author: {
-			href: "http://einzelcode.com",
-			text: "einzelcode"
+			href: "http://dexterouslogic.com",
+			text: "Dexterous Logic"
 		},
 		license: {
 			href: "http://www.gnu.org/licenses/gpl-3.0.txt",
