@@ -1,0 +1,21 @@
+body {
+/*    font-family: "Lucida Grande", sans-serif;*/
+    color: #777
+}
+
+.number {
+    padding: 0 0.4em;
+    border-radius: 1em !important;
+	display: inline;	
+    cursor: pointer;
+	margin-right: 0.2em;
+}
+
+.text {
+	display: inline;
+    cursor: pointer;
+}
+
+.pointer {
+	cursor: pointer;
+}

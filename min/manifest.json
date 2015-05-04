@@ -1,0 +1,89 @@
+{
+    "manifest_version": 2,
+
+    "name": "__MSG_extension_name__",
+    "version": "3.1.4",
+
+    "default_locale": "en",
+    "description": "__MSG_extension_description__",
+    "icons": {
+        "16": "static/images/16.png",
+        "19": "static/images/19.png",
+        "32": "static/images/32.png",
+        "38": "static/images/38.png",
+        "48": "static/images/48.png",
+        "64": "static/images/64.png",
+        "96": "static/images/96.png",
+        "128": "static/images/128.png",
+        "256": "static/images/256.png"
+    },
+
+    "page_action": {
+        "default_popup": "popup.html",
+        "default_title": "__MSG_page_action_default_title__",
+        "default_icon": {
+            "19": "static/images/19.png",
+            "38": "static/images/38.png"
+        }
+    },
+
+    "author": "__MSG_extension_author__",
+    "background": {
+        "scripts": [
+            "static/js/purl.min.js",
+            "static/js/pouchdb-3.3.1.min.js",
+            "js/storage.js",
+            "js/string_utils.js",
+            "js/background/database.js",
+            "js/background/tabs.js",
+            "js/background/context_menus.js",
+            "js/background/event_page.js"
+        ],
+        "persistent": false
+    },
+    "commands": {
+        "apply_highlight.0": {
+            "description": "Highlight #1"
+        },
+        "apply_highlight.1": {
+            "description": "Highlight #2"
+        },
+        "apply_highlight.2": {
+            "description": "Highlight #3"
+        },
+        "apply_highlight.3": {
+            "description": "Highlight #4"
+        },
+        "apply_highlight.4": {
+            "description": "Highlight #5"
+        },
+        "apply_highlight.5": {
+            "description": "Highlight #6"
+        },
+        "apply_highlight.6": {
+            "description": "Highlight #7"
+        },
+        "apply_highlight.7": {
+            "description": "Highlight #8"
+        },
+        "apply_highlight.8": {
+            "description": "Highlight #9"
+        },
+        "apply_highlight.9": {
+            "description": "Highlight #10"
+        }
+    },
+
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "options_page": "options.html",
+    "permissions": [
+        "clipboardWrite",
+        "tts",
+        "storage",
+        "contextMenus",
+        "unlimitedStorage",
+        "webNavigation",
+        "tabs",
+        "<all_urls>"
+    ]
+}

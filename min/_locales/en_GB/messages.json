@@ -1,0 +1,14 @@
+{
+    "highlight_text_colour": {
+        "message": "Text Colour"
+    },
+    "highlight_text_colour_inherit": {
+        "message": "Keep original text colour"
+    },
+    "highlight_background_colour": {
+        "message": "Background Colour"
+    },
+    "color_title_grey": {
+        "message": "Grey"
+    }
+}

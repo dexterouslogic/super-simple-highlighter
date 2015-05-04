@@ -1,0 +1,256 @@
+{
+    "extension_name": {
+        "message": "Super Simple Highlighter"
+    },
+    "extension_description": {
+        "message": "Highlights text on web pages"
+    },
+    "extension_author": {
+        "message": "Dexterous Logic"
+    },
+    "copyright_year": {
+        "message": "2015"
+    },
+    "select_highlight_text": {
+        "message": "Select"
+    },
+    "copy_highlight_text": {
+        "message": "Copy"
+    },
+    "speak_highlight_text": {
+        "message": "Speak"
+    },
+    "delete_highlight": {
+        "message": "Remove"
+    },
+    "page_action_default_title": {
+        "message": "Show highlights"
+    },
+    "page_action_title_not_in_dom": {
+        "message": "Unable to match all highlights on the page"
+    },
+
+    "color_title_red": {
+        "message": "Red"
+    },
+    "color_title_orange": {
+        "message": "Orange"
+    },
+    "color_title_yellow": {
+        "message": "Yellow"
+    },
+    "color_title_green": {
+        "message": "Green"
+    },
+    "color_title_cyan": {
+        "message": "Cyan"
+    },
+    "color_title_purple": {
+        "message": "Purple"
+    },
+    "color_title_grey": {
+        "message": "Gray"
+    },
+
+    "highlight_title_undefined": {
+        "message": "Untitled"
+    },
+
+    "placeholder_filter": {
+        "message": "Filter By Content"
+    },
+    "remove_all_highlights": {
+        "message": "Remove all highlights"
+    },
+    "confirm_remove_all_highlights": {
+        "message": "Are you sure you wish to remove all the highlights on this page?"
+    },
+
+    "tooltip_select_highlight": {
+        "message": "Selects the highlighted text"
+    },
+    "tooltip_copy_highlight": {
+        "message": "Copy the highlighted text to the Clipboard"
+    },
+    "tooltip_speak_highlight": {
+        "message": "Speak the highlighted text"
+    },
+
+    "text_remove_all_pages": {
+        "message": "Remove All"
+    },
+    "confirm_remove_all_pages": {
+        "message": "This operation can't be undone. Are you sure you wish to remove all highlights on all pages?"
+    },
+    "pages_empty": {
+        "message": "Nothing to see here, move along"
+    },
+
+    "styles": {
+        "message": "Styles"
+    },
+    "pages": {
+        "message": "Pages"
+    },
+    "about": {
+        "message": "About"
+    },
+
+    "reset_default_styles": {
+        "message": "Reset All"
+    },
+    "confirm_reset_default_styles": {
+        "message": "This operation can't be undone. Are you sure you wish to restore the default styles?"
+    },
+    "confirm_remove_style": {
+        "message": "This operation can't be undone. Are you sure you wish to remove this style?"
+    },
+
+
+    "create_new_style": {
+        "message": "New Style"
+    },
+
+    "edit_style": {
+        "message": "Edit Style"
+    },
+    "close": {
+        "message": "Close"
+    },
+    "cancel": {
+        "message": "Cancel"
+    },
+    "create": {
+        "message": "Create"
+    },
+    "update": {
+        "message": "Update"
+    },
+
+    "options_tab_page_header_sites": {
+        "message": "Click on a highlight definition to edit its properties."
+    },
+    "options_tab_page_header_pages": {
+        "message": "When you revisit these pages, their highlights should reappear where you placed them."
+    },
+
+
+    "highlight_title": {
+        "message": "Title"
+    },
+    "required_highlight_title": {
+        "message": "Every style requires a title"
+    },
+
+    "highlight_text_colour": {
+        "message": "Text Color"
+    },
+    "highlight_text_colour_inherit": {
+        "message": "Keep original text color"
+    },
+    "highlight_background_colour": {
+        "message": "Background Color"
+    },
+
+    "highlight_help_keyboard_shortcut": {
+        "message": "A keyboard shortcut can be assigned to any of the first 10 styles. Use the 'Keyboard shortcuts' option, located at the bottom right of Chrome's main 'Extensions' page (also accessible via the Tools menu)."
+    },
+
+    "libraries": {
+        "message": "Developer Libraries"
+    },
+    "licenses": {
+        "message": "Licenses"
+    },
+    "changelog": {
+        "message": "Changelog"
+    },
+    "support": {
+        "message": "Support"
+    },
+
+    "highlight_opacity": {
+        "message": "Opacity"
+    },
+    "highlight_unselect": {
+        "message": "Unselect text after highlight creation"
+    },
+
+    "alert_create_highlight_in_subframe": {
+        "message": "Creating a highlight within a subframe of a page is currently unsupported."
+    },
+
+    "alert_create_highlight_in_editable": {
+        "message": "Unable to create a highlight within an editable text box."
+    },
+
+    "more": {
+        "message": "more"
+    },
+
+    "open_overview_in_new_tab": {
+        "message": "Open Overview in New Tab"
+    },
+
+	"warning_file_access_required": {
+		"message": "NB: This is an offline page (stored locally in a file). The highlights it contains can only be shown if 'Allow access to file URLs' is enabled for this extension. You may choose to do this via the 'Extensions' tool page."
+	},
+
+	"ok_got_it": {
+		"message": "OK, got it"
+	},
+	
+	"restore_all_warnings": {
+		"message": "Restore all warnings"
+	},
+	
+	"plural_zero_highlights": {
+		"message": "No highlights"
+	},
+	
+	"plural_one_highlight": {
+		"message": "1 highlight"
+	},
+	
+	"plural_other_highlights": {
+		"message": "$count$ highlights",
+		"placeholders": {
+			"count": {
+				"content": "$1"
+			}
+		}
+	},	
+	
+    "activate_originating_tab": {
+        "message": "Goto Originating Tab"
+    },
+	
+	"overview_page_title_prefix": {
+		"message": "Overview"
+	},
+	
+	"options_page_title_prefix": {
+		"message": "Options"
+	},
+	
+	"faq_title": {
+		"message": "FAQ"
+	},
+	
+	"redefine_highlight": {
+		"message": "Style"
+	},
+	
+	"visible_style": {
+		"message": "Filtered Style"
+	},
+	
+	"visible_stylename_all": {
+		"message": "All"
+	},
+	
+    "title_filter_style": {
+        "message": "Filter By Style"
+    }
+	
+}

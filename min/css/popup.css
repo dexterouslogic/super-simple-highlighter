@@ -1,0 +1,124 @@
+
+body {
+/*    font-family: "Lucida Grande", sans-serif;*/
+    color: #777;
+/*    font-weight: 400;*/
+}
+
+h1, h2, h3, h4, h5, h6 {
+/*    font-weight: 600;*/
+    color: #000;
+}
+
+body {
+    min-width: 500px;
+}
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+
+#remove-all {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.title {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search {
+    /*border-radius: 14px;*/
+}
+
+/*Can't use .highlight as it is overwritten in init*/
+.highlight-text-container {
+    padding: 10px 15px !important;
+    font-size: small;
+    box-shadow: initial !important;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.highlight > .close {
+    padding-left: 4px;
+    padding-bottom: 4px;
+}
+
+
+.highlight-text {
+/*
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+*/
+}
+
+.more {
+    font-weight: 600;
+}
+
+.doc {
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px 1px rgba(50,50,50,0.14);
+    padding: 10px;
+}
+
+.actions {
+    margin-top: 8px;
+    font-size: 8pt;
+    font-weight: 400;
+}
+
+.actions a {
+    font-weight: 400;
+    color: #A0A0A0;
+}
+
+.date {
+    color: #80C080;
+    margin-right: 10px;
+}
+
+.separator {
+    color: #CFCFCF;
+}
+
+.has-note {
+    /*background: #e9e9e9;*/
+    border-left: 4px solid #ee7;
+    padding: 0.8em 10px;
+}
+
+.not-in-dom {
+    border: 1px dashed #c66;
+}
+
+.not-in-dom .highlight {
+    cursor: not-allowed;
+}
+
+.not-in-dom .select {
+    cursor: not-allowed;
+}
+
+#file-access-required-alert { 
+	border-left: 5px #d58512 solid;
+}
+
+#file-access-required-alert > .btn-block {
+	margin-top: 12px;
+}
+
+.redefinition-well-sm {
+	border-radius: 0.5em !important;
+	padding: 0px 5pt;
+}
