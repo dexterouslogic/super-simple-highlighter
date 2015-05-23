@@ -528,20 +528,27 @@ var _eventPage = {
         "use strict";
         _database.getDocument(documentId, function (err, doc) {
             if (doc && doc.text) {
-                // https://coderwall.com/p/5rv4kq
-                var div = document.createElement('div');
-                div.contentEditable = true;
+				// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
 
-                document.body.appendChild(div);
+				// add temporary node which can contain our text
+		        var pre = document.createElement('pre');
+		        pre.innerHTML = doc.text;
 
-                div.innerHTML = doc.text;
-                div.unselectable = "off";
-                div.focus();
+		        document.body.appendChild(pre);
+		
+				var range = document.createRange();  
+			    range.selectNode(pre);  
+		
+				// make our node the sole selection
+				var selection = window.getSelection();
+				selection.removeAllRanges();
+				selection.addRange(range);  
+		
+				var successful = document.execCommand('copy'); 
 
-                document.execCommand('SelectAll');
-                document.execCommand("Copy", false, null);
+				selection.removeAllRanges();  
 
-                document.body.removeChild(div);
+		        document.body.removeChild(pre);
             }
         });
     },

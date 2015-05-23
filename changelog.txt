@@ -1,3 +1,8 @@
+3.1.6
+-----
+Add Copy to popup menu.
+Update support files to latest version;
+
 3.1.5
 -----
 Repack

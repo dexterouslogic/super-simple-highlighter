@@ -47,6 +47,13 @@
                         </a>
                     </li>
 
+                    <li role="presentation"  ng-class="{'disabled': (docs | filter:search | filter:styleFilterPredicate).length == 0}">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyDocumentText((docs | filter:search | filter:styleFilterPredicate))">
+							<span class="glyphicon glyphicon-copy"></span>
+                            {{'copy' | i18n}}
+                        </a>
+                    </li>
+
                     <li role="presentation" class="divider"></li>
 
                     <li role="presentation">

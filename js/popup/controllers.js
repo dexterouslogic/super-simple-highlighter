@@ -199,6 +199,37 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 "title=" + encodeURIComponent($scope.title)
         });
     };
+	
+	$scope.onClickCopyDocumentText = function (docs) {
+		// build string with 1 line of text per line
+		var text = docs.map(function(doc){
+			return doc.text;
+		}).join('\n');
+		
+		// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
+		
+		// add temporary node which can contain our text
+        var pre = document.createElement('pre');
+        pre.innerHTML = text;
+
+        document.body.appendChild(pre);
+		
+		var range = document.createRange();  
+	    range.selectNode(pre);  
+		
+		// make our node the sole selection
+		var selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);  
+		
+		var successful = document.execCommand('copy'); 
+
+		selection.removeAllRanges();  
+
+        document.body.removeChild(pre);
+
+		window.close();		
+	};
 
     /**
      * Clicked 'remove' button for a highlight
