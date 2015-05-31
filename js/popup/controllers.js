@@ -201,34 +201,61 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 	
 	$scope.onClickCopyDocumentText = function (docs) {
+		// {{title}}
+		// {{url}}
+		// (blank line)
+		// {{tag}}: text
+		// {{tag}}: text
+		
 		// build string with 1 line of text per line
-		var text = docs.map(function(doc){
-			return doc.text;
-		}).join('\n');
+		var innerHTML = "<p>" + chrome.i18n.getMessage("title") + ": " + $scope.title + '<br/>';
+		innerHTML += chrome.i18n.getMessage("url") + ": " + activeTab.url + '</p>';
 		
+		if (docs.length > 0) {
+			innerHTML += "<ol>";
+
+			// map style classname to its title
+			var highlightTitles = {};
+			$scope.highlightDefinitions.forEach(function(hd) {
+				highlightTitles[hd.className] = hd.title;
+			});
+
+			innerHTML += docs.map(function(doc){
+				// style title: text
+				return "<li><p>" + highlightTitles[doc.className] + ": " +  doc.text + "</p></li>";
+			}).join('\n');
+			
+			innerHTML += "</ol>"
+		}				
+
+		// var text = docs.map(function(doc){
+		// 	return doc.text;
+		// }).join('\n');
+
+		// copy text to clipboard
 		// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
-		
+
 		// add temporary node which can contain our text
-        var pre = document.createElement('pre');
-        pre.innerHTML = text;
+        var pre = document.createElement('div');
+        pre.innerHTML = innerHTML;
 
         document.body.appendChild(pre);
-		
-		var range = document.createRange();  
-	    range.selectNode(pre);  
-		
+
+		var range = document.createRange();
+	    range.selectNode(pre);
+
 		// make our node the sole selection
 		var selection = window.getSelection();
 		selection.removeAllRanges();
-		selection.addRange(range);  
-		
-		var successful = document.execCommand('copy'); 
+		selection.addRange(range);
 
-		selection.removeAllRanges();  
+		var successful = document.execCommand('copy');
+
+		selection.removeAllRanges();
 
         document.body.removeChild(pre);
 
-		window.close();		
+		window.close();
 	};
 
     /**

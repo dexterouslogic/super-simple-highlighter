@@ -57,7 +57,7 @@
     },
 
     "placeholder_filter": {
-        "message": "Filter By Content"
+        "message": "Filter"
     },
     "remove_all_highlights": {
         "message": "Remove all highlights"
@@ -189,11 +189,11 @@
     },
 
     "open_overview_in_new_tab": {
-        "message": "Open Overview in New Tab"
+        "message": "Open in New Tab"
     },
 	
 	"copy" : {
-		"message": "Copy"
+		"message": "Copy All"
 	},
 
 	"warning_file_access_required": {
@@ -225,10 +225,6 @@
 		}
 	},	
 	
-    "activate_originating_tab": {
-        "message": "Goto Originating Tab"
-    },
-	
 	"overview_page_title_prefix": {
 		"message": "Overview"
 	},
@@ -246,15 +242,22 @@
 	},
 	
 	"visible_style": {
-		"message": "Filtered Style"
+		"message": "Style"
 	},
 	
 	"visible_stylename_all": {
-		"message": "All"
+		"message": "Any"
 	},
 	
     "title_filter_style": {
         "message": "Filter By Style"
-    }
+    },
+	
+	"title": {
+		"message": "Title"
+	},
+	"url": {
+		"message": "URL"
+	}
 	
 }

@@ -1,3 +1,9 @@
+3.1.8
+-----
+Update copy text format
+Update overview page
+Update popup
+
 3.1.7
 -----
 Another repack. Why does this keep happening?

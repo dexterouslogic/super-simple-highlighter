@@ -25,7 +25,8 @@
             </button>
 
             <a class="navbar-brand" href="https://chrome.google.com/webstore/detail/super-simple-highlighter/hhlhjgianpocpoppaiihmlpgcoehlhio">
-                <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom">{{manifest.name}}
+                <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
+				{{manifest.name}}
                 <span style="font-size: small;">{{manifest.version}}</span>
             </a>
         </div>
@@ -41,20 +42,14 @@
 	
 	
 <div class="container">
-	<h6>
-		 <a href="" class="pull-right" ng-click="onClickPageUrl()">
-		 	<span class="glyphicon glyphicon-file"></span>
-			{{'activate_originating_tab' | i18n}}
-		 </a>
-	</h6>
-	
    <div class="page-header">
 	 <!-- Main Header -->
      <h2>
+		<a href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		 
 		 <!-- <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span> -->
 		 <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
 		  If the associated tab has been removed, user should navigate explicitly (via context menu) -->
-		 <a href="{{url}}" target="_id">{{title}}</a>
+		 <a href="" ng-click="onClickPageUrl()">{{title}}</a>
 		 <!-- <a href="" class="h6 glyphicon glyphicon-file">
 		 	({{'activate_originating_tab' | i18n}})
 		 </span> -->
