@@ -305,47 +305,53 @@ var _contentScript  = {
         if (namespace === "sync") {
             // changes is an Object mapping each key that changed to its
             // corresponding storage.StorageChange for that item.
+			
+			// this applies to all styles
+			_storage.isHighlightBoxShadowEnabled(function (isHighlightBoxShadowEnabled){
+	            // default FIRST
+	            if (changes.sharedHighlightStyle) {
+	                var c1 = changes.sharedHighlightStyle;
 
-            // default FIRST
-            if (changes.sharedHighlightStyle) {
-                var c1 = changes.sharedHighlightStyle;
+	                if (c1.oldValue) {
+	                    _stylesheet.clearHighlightStyle(_contentScript.highlightClassName);
+	                }
 
-                if (c1.oldValue) {
-                    _stylesheet.clearHighlightStyle(_contentScript.highlightClassName);
-                }
+	                if (c1.newValue) {
+	                    _stylesheet.setHighlightStyle({
+	                        className: _contentScript.highlightClassName,
+	                        style: c1.newValue,
+							disableBoxShadow: !isHighlightBoxShadowEnabled,
+	                    });
+	                }
+	            }
 
-                if (c1.newValue) {
-                    _stylesheet.setHighlightStyle({
-                        className: _contentScript.highlightClassName,
-                        style: c1.newValue
-                    });
-                }
-            }
+	            // specific last
+	            if (changes.highlightDefinitions) {
+	                var c2 = changes.highlightDefinitions;
 
-            // specific last
-            if (changes.highlightDefinitions) {
-                var c2 = changes.highlightDefinitions;
+	//                // Remove all event handlers in the ".hotkeys" namespace
+	//                $(document).off('keypress.hotkeys');
 
-//                // Remove all event handlers in the ".hotkeys" namespace
-//                $(document).off('keypress.hotkeys');
+	                if (c2.oldValue) {
+	                    c2.oldValue.forEach( function (h) {
+	                        _stylesheet.clearHighlightStyle(h.className);
+	                    });
+	                }
 
-                if (c2.oldValue) {
-                    c2.oldValue.forEach( function (h) {
-                        _stylesheet.clearHighlightStyle(h.className);
-                    });
-                }
+	                if (c2.newValue) {
+	                    c2.newValue.forEach( function (h) {
+							h.disableBoxShadow = !isHighlightBoxShadowEnabled;
+						
+	                        _stylesheet.setHighlightStyle(h);
+	                    });
+	                }
+	            }
 
-                if (c2.newValue) {
-                    c2.newValue.forEach( function (h) {
-                        _stylesheet.setHighlightStyle(h);
-                    });
-                }
-            }
-
-            // alpha
-            if (changes.highlightBackgroundAlpha) {
-                _contentScript.resetStylesheetHighlightStyle();
-            }
+	            // alpha
+	            if (changes.highlightBackgroundAlpha) {
+	                _contentScript.resetStylesheetHighlightStyle();
+	            }
+			});
         }
     },
 

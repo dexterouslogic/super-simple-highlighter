@@ -72,6 +72,10 @@ body {
     padding: 10px;
 }
 
+.doc .highlight {
+	border-radius: 5px;
+}
+
 .actions {
     margin-top: 8px;
     font-size: 8pt;

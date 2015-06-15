@@ -113,6 +113,22 @@ var _storage = {
             callback (items.highlightBackgroundAlpha);
         });
     },
+	
+	setEnableHighlightBoxShadow: function (enableHighlightBoxShadow, callback) {
+        "use strict";
+        chrome.storage.sync.set({
+            "enableHighlightBoxShadow": enableHighlightBoxShadow
+        }, callback);
+	},
+
+	isHighlightBoxShadowEnabled: function (callback) {
+        "use strict";
+        chrome.storage.sync.get({
+            "enableHighlightBoxShadow": true,
+        }, function (items) {
+            callback (items.enableHighlightBoxShadow);
+        });
+	},
 
     /**
      * Namespace for highlight definitions things
@@ -209,8 +225,8 @@ var _storage = {
 
                     // color & font-style when highlight is defined by a class which no longer exists
                     // each specific style must override these, or inherit default
-                    "color": "#806060",
-                    "background-color": "#D3D3D3",
+                    "color": "#BBBBBB",
+                    "background-color": "#EEEEEE",
 //                        "box-shadow": "0 0 8px #D3D3D3",
                     "font-style": "italic"
                 }

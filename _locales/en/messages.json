@@ -166,14 +166,17 @@
         "message": "Changelog"
     },
     "support": {
-        "message": "Support"
+        "message": "Email Support"
     },
 
     "highlight_opacity": {
         "message": "Opacity"
     },
     "highlight_unselect": {
-        "message": "Unselect text after highlight creation"
+        "message": "Unselect text after creating highlight"
+    },
+    "highlight_box_shadow": {
+        "message": "Blur highlight edges"
     },
 
     "alert_create_highlight_in_subframe": {

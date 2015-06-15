@@ -39,8 +39,11 @@ var _stylesheet = {
 
         // account for styles defined before box-shadow was defined
         var backgroundColor = style['background-color'];
-        style["box-shadow"] = "0 0 8px " + backgroundColor;
-
+		
+		if (!definition.disableBoxShadow) {
+			style["box-shadow"] = "0 0 8px " + backgroundColor;
+		}
+			
         var re = new RegExp("^#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})", "ig");
         var match = re.exec(backgroundColor);
 

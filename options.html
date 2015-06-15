@@ -59,7 +59,11 @@
 			</ul>
 			 -->
             <ul class="nav navbar-nav navbar-right">
+                <li><a href="mailto:support@dexterouslogic.com?subject=Re: {{manifest.name}} {{manifest.version}}">
+	                    {{ 'support' | i18n}}
+	            </a></li>
 				<li><a target="_blank" href="faq.html">{{'faq_title' | i18n}}</a></li>
+				<li><a href="https://twitter.com/moodSushi" class="twitter-follow-button" data-show-count="false">Follow @moodSushi</a> </li>
                 <li><a href="http://dexterouslogic.com">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
             </ul>
         </div>
@@ -196,6 +200,14 @@
                         </label>
                     </div>
 
+                    <!--Highlight box shadow enabled-->
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="isHighlightBoxShadowEnabled">
+                            {{ 'highlight_box_shadow' | i18n }}
+                        </label>
+                    </div>
+
                 </div>
 
                 <!-- Buttons -->
@@ -250,11 +262,7 @@
 					</div>
 				</p>
  
-                <a href="mailto:support@dexterouslogic.com?subject=Re: {{manifest.name}} {{manifest.version}}">
-                    {{ 'support' | i18n}}
-                </a>
-
-                <h4>{{'libraries' | i18n}}</h4>
+               <h4>{{'libraries' | i18n}}</h4>
                 <ul>
                     <li ng-repeat="library in libraries">
                         <a href="{{library.href}}">{{library.text}}</a>

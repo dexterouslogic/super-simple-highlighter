@@ -55,6 +55,18 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
             });
         });
 
+		// 1b - same, but for disable box shadow
+        _storage.isHighlightBoxShadowEnabled(function (isEnabled) {
+            $scope.isHighlightBoxShadowEnabled = isEnabled;
+
+            $scope.$watch('isHighlightBoxShadowEnabled', function (newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    console.log(newVal);
+                    _storage.setEnableHighlightBoxShadow(newVal);
+                }
+            });
+        });	
+
         // 2
         _storage.getHighlightBackgroundAlpha(function (opacity) {
             if (opacity === undefined) { return; }
@@ -197,6 +209,8 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                 }
             }
 
+			var disableBoxShadow = true;
+
             // default FIRST
             if (changes.sharedHighlightStyle) {
                 change = changes.sharedHighlightStyle;
@@ -208,7 +222,8 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                 if (change.newValue) {
                     _stylesheet.setHighlightStyle({
                         className: $scope.highlightClassName,
-                        style: change.newValue
+                        style: change.newValue,
+						disableBoxShadow: disableBoxShadow,
                     });
                 }
             }
@@ -232,6 +247,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 
                     // update stylesheet
                     definitions.forEach( function (definition) {
+						definition.disableBoxShadow = disableBoxShadow;
                         _stylesheet.setHighlightStyle(definition);
                     });
                 };
