@@ -1,1 +1,0 @@
-var optionsApp=angular.module("optionsApp",["optionsControllers","ui-rangeSlider","i18nFilters","optionsFilters"]);optionsApp.config(["$compileProvider",function($compileProvider){"use strict";$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file|mailto|chrome-extension):/),$compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/)}]);

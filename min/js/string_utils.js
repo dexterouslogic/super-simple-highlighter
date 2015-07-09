@@ -1,1 +1,0 @@
-var _stringUtils={createUUID:function(options){"use strict";return options||(options={beginWithLetter:!1}),"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c,index){var r=16*Math.random()|0,v="x"==c?r:3&r|8;return options.beginWithLetter&&0===index&&(v=v%6+10),v.toString(16)})}};
