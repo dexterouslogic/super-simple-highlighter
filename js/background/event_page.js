@@ -17,6 +17,9 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// disable console log
+console.log = function() {}
+
 var _eventPage = {
     /**
      * Run every time the event page is loaded
@@ -89,6 +92,8 @@ var _eventPage = {
             console.log("Compacting database");
             _database.compact();
         });
+		
+        _contextMenus.recreateMenu();
     },
 
     /**

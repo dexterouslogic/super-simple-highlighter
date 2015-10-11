@@ -57,7 +57,7 @@
     },
 
     "placeholder_filter": {
-        "message": "Filter"
+        "message": "Filter by Content"
     },
     "remove_all_highlights": {
         "message": "Remove all highlights"
@@ -128,10 +128,10 @@
     },
 
     "options_tab_page_header_sites": {
-        "message": "Click on a highlight definition to edit its properties."
+        "message": "Click on a highlight definition to change its style."
     },
     "options_tab_page_header_pages": {
-        "message": "When you revisit these pages, their highlights should reappear where you placed them."
+        "message": "The following web pages contain highlights."
     },
 
 
@@ -166,7 +166,7 @@
         "message": "Changelog"
     },
     "support": {
-        "message": "Email Support"
+        "message": "Support"
     },
 
     "highlight_opacity": {
@@ -245,15 +245,15 @@
 	},
 	
 	"visible_style": {
-		"message": "Style"
+		"message": "Filter by Style"
 	},
 	
 	"visible_stylename_all": {
-		"message": "Any"
+		"message": "All"
 	},
 	
     "title_filter_style": {
-        "message": "Filter By Style"
+        "message": "Filter by Style"
     },
 	
 	"title": {

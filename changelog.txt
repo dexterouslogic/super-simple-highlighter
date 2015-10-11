@@ -1,3 +1,7 @@
+3.1.10
+------
+Fix disappearing extension bug
+
 3.1.9
 -----
 Optional highlight border blur

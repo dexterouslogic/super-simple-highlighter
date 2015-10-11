@@ -17,6 +17,8 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// disable console log
+console.log = function() {}
 
 /**
  * Controllers module
