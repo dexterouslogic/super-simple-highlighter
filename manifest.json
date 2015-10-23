@@ -2,7 +2,7 @@
     "manifest_version": 2,
 
     "name": "__MSG_extension_name__",
-    "version": "3.1.10",
+    "version": "3.6.0",
 
     "default_locale": "en",
     "description": "__MSG_extension_description__",
@@ -31,7 +31,7 @@
     "background": {
         "scripts": [
             "static/js/purl.min.js",
-            "static/js/pouchdb-3.3.1.min.js",
+            "static/js/pouchdb-3.6.0.min.js",
             "js/storage.js",
             "js/string_utils.js",
             "js/background/database.js",
@@ -39,6 +39,7 @@
             "js/background/context_menus.js",
             "js/background/event_page.js"
         ],
+
         "persistent": false
     },
     "commands": {

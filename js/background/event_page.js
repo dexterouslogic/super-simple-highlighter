@@ -567,20 +567,10 @@ var _eventPage = {
         "use strict";
         _database.getDocument(documentId, function (err, doc) {
             if (doc && doc.text) {
-
-                if (options) {
-                    chrome.tts.speak(doc.text, options);
-                } else {
-                    chrome.storage.sync.get({
-                        ttsSpeakOptions: null
-                    }, function (items) {
-                        if (chrome.runtime.lastError) {
-                            return;
-                        }
-
-                        chrome.tts.speak(doc.text, items.ttsSpeakOptions);
-                    });
-                }
+                // workaround for Google Deutsch becoming the default voice, for some reason
+                chrome.tts.speak(doc.text, {
+                    lang: navigator.language}
+                )
             }
         });
     },

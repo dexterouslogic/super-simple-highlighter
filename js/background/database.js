@@ -39,7 +39,7 @@ var _database = {
      */
     putDesignDocuments: function (callback) {
         "use strict";
-        _database.getDatabase().bulkDocs([
+        var docs = [
 //            {
 //                _id: '_design/matches_count_view',
 //                views: {
@@ -110,7 +110,11 @@ var _database = {
 //                    }.toString()
 //                }
 //            }
-        ], callback);
+        ];
+
+        var options = {};
+
+        _database.getDatabase().bulkDocs(docs, options, callback);
     },
 
     /**
@@ -119,7 +123,8 @@ var _database = {
      */
     resetDatabase: function (callback) {
         "use strict";
-        _database.getDatabase().destroy(function (err) {
+        var options = {};
+        var callback = function (err) {
             if (err) {
                 if (callback) {
                     callback(err);
@@ -131,7 +136,9 @@ var _database = {
             _database.getDatabase();
 
             _database.putDesignDocuments(callback);
-        });
+        };
+
+        _database.getDatabase().destroy(options, callback);
     },
 
     /**
@@ -203,7 +210,14 @@ var _database = {
      */
     postCreateDocument: function (match, range, className, text, callback) {
         "use strict";
-        _database.getDatabase().put({
+        var docId = _stringUtils.createUUID({
+            beginWithLetter: true
+        });
+
+        var doc = {
+            _id: docId,
+            // _rev: undefined,
+
             match: match,
             date: Date.now(),
             verb: "create",
@@ -211,9 +225,23 @@ var _database = {
             range: range,
             className: className,
             text: text
-        }, _stringUtils.createUUID({
-            beginWithLetter: true
-        }), callback);
+        };
+
+        var options = {};
+
+        _database.getDatabase().put(doc, options, callback);
+
+        // _database.getDatabase().put({
+        //     match: match,
+        //     date: Date.now(),
+        //     verb: "create",
+
+        //     range: range,
+        //     className: className,
+        //     text: text
+        // }, _stringUtils.createUUID({
+        //     beginWithLetter: true
+        // }), callback);
     },
 
     /**
@@ -237,13 +265,25 @@ var _database = {
 
             // create a new document, detailing the 'delete' verb transaction
             // no need for createUUID, as it won't be used as an id/class attribute
-            _database.getDatabase().post({
+            var doc = {
                 match: match,
                 date: Date.now(),
                 verb: "delete",
                 //
                 correspondingDocumentId: documentId
-            }, callback);
+            };
+
+            var options = {};
+
+            _database.getDatabase().post(doc, options, callback);
+
+            // _database.getDatabase().post({
+            //     match: match,
+            //     date: Date.now(),
+            //     verb: "delete",
+            //     //
+            //     correspondingDocumentId: documentId
+            // }, callback);
         });
     },
 
@@ -286,7 +326,10 @@ var _database = {
 
             // update the property of the document
             doc.className = className;
-            _database.getDatabase().put(doc, callback);
+
+            var options = {};
+
+            _database.getDatabase().put(doc, options, callback);
         });
     },
 
@@ -297,7 +340,8 @@ var _database = {
      */
     getDocument: function (documentId, callback) {
         "use strict";
-        _database.getDatabase().get(documentId, callback);
+        var options = {};
+        _database.getDatabase().get(documentId, options, callback);
     },
 
     /**
@@ -308,12 +352,15 @@ var _database = {
     getDocuments: function (match, callback) {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         "use strict";
-        _database.getDatabase().query('match_date_view', {
+        var fun = "match_date_view";
+        var options = {
             startkey: [match],
             endkey: [match, {}],
             descending: false,
             include_docs: true
-        }, function (err, result) {
+        };
+
+        _database.getDatabase().query(fun, options, function (err, result) {
             if (!callback) {
                 return;
             }
@@ -334,11 +381,11 @@ var _database = {
      * Delete a specific document (any verb).
      * This is usually only called after a postDeleteDocument(), when the check for stale documents finds something,
      * or from event page's createHighlight(), when something went wrong inserting it in the DOM
-     * @param id
-     * @param rev
+     * @param docId
+     * @param docRev
      * @param {object} [callback] *seems to be required*
      */
-    removeDocument: function (id, rev, callback) {
+    removeDocument: function (docId, docRev, callback) {
         "use strict";
         if (!callback) {
             callback = function () {
@@ -346,7 +393,8 @@ var _database = {
             };
         }
 
-        _database.getDatabase().remove(id, rev, callback);
+        var options = {};
+        _database.getDatabase().remove(docId, docRev, options, callback);
     },
 
     /**
@@ -370,7 +418,8 @@ var _database = {
                doc._deleted = true;
             });
 
-            _database.getDatabase().bulkDocs(docs, callback);
+            var options = {};
+            _database.getDatabase().bulkDocs(docs, options, callback);
         });
     },
 
@@ -410,11 +459,14 @@ var _database = {
      */
     getMatchSums: function(callback) {
         "use strict";
-        _database.getDatabase().query('sum_view', {
+        var fun = "sum_view";
+        var options = {
             group: true,
             group_level: 1,
             include_docs: false
-        }, function (err, result) {
+        };
+
+        _database.getDatabase().query(fun, options, function (err, result) {
             if (err) {
                 callback(err);
             } else {
@@ -484,7 +536,8 @@ var _database = {
      */
     compact: function (callback) {
         "use strict";
-        _database.getDatabase().compact(callback);
+        var options = {};
+        _database.getDatabase().compact(options, callback);
     }
 
 };

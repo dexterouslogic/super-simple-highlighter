@@ -1,3 +1,8 @@
+3.6.0
+-----
+Really REALLY fix the disappearing extension bug, hopefully along with many others (fingers crossed this time).
+Force text-to-speech function to default to the browser's default language
+
 3.1.10
 ------
 Fix disappearing extension bug
