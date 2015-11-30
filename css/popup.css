@@ -46,22 +46,6 @@ body {
 	cursor: pointer;
 }
 
-.highlight > .close {
-    padding-left: 4px;
-    padding-bottom: 4px;
-}
-
-
-.highlight-text {
-/*
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-*/
-}
-
 .more {
     font-weight: 600;
 }
