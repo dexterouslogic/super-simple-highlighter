@@ -18,7 +18,7 @@
  */
 
 // disable console log
-console.log = function() {}
+// console.log = function() {}
 
 /**
  * Controllers module
@@ -318,15 +318,88 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     $scope.onClickRemoveAllPages = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
             // destroy and re-create the database
-            backgroundPage._database.resetDatabase(function (err, response) {
-                if (!err) {
-                    $scope.rows = [];
-                    $scope.$apply();
-                }
+            backgroundPage._database.reset().then(function() {
+                $scope.rows = [];
+                $scope.$apply();
             });
         }
     };
+	
+    // starter
+    chrome.runtime.getBackgroundPage(function (backgroundPage) {
+        onInit(backgroundPage);
+    });
+}]);
 
+/**
+ * Controller for Experimental pane
+ */
+optionsControllers.controller('ExperimentalController', ["$scope", function ($scope) {
+    'use strict';
+    var backgroundPage;
+
+	function onFileSelect(evt) {
+		var file = evt.target.files[0];	// FileList object
+		var reader = new FileReader();
+  	  	
+		// Closure to capture the file information.
+        reader.onload = function(e) {
+			// newline delimited json
+			var dumpedString = e.target.result;
+			
+			backgroundPage._database.load(dumpedString).catch(function(err) {
+				// error loading or replicating tmp db to main db
+				var text = "Status: " + err.status + "\nMessage: " + err.message;
+	        	alert(text);
+	        });
+		};
+        
+		 // Read in the image file as a data URL.
+        reader.readAsText(file);
+	}
+
+    /**
+     * Init
+     * @param {object} _backgroundPage
+     */
+    function onInit(_backgroundPage){
+        backgroundPage = _backgroundPage;
+		
+		// add event listener to files input element
+		document.getElementById('files').addEventListener('change', onFileSelect, false);
+    }
+	
+	/**
+	 * dump database to text, copy to clipboard
+	 */
+	$scope.onClickDump = function () {
+		var stream = new window.memorystream();
+		var dumpedString = '';
+		
+		stream.on('data', function(chunk) {
+			dumpedString += chunk.toString();
+		});
+		
+		return backgroundPage._database.dump(stream).then(function () {
+			// create a temporary anchor to navigate to data uri
+			var a = document.createElement("a");
+			
+			a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
+			a.href = "data:text;base64," + window.btoa(dumpedString);
+
+			// create & dispatch mouse event to hidden anchor
+			var mEvent = document.createEvent("MouseEvent");
+			mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+			
+			a.dispatchEvent(mEvent);
+		}).catch(function(err) {
+			// error loading or replicating tmp db to main db
+			var text = "Status: " + err.status + "\nMessage: " + err.message;
+        	alert(text);
+		});
+	};
+
+	
     // starter
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
         onInit(backgroundPage);
@@ -351,5 +424,4 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
 		// TODO: remember to keep all property setters in sync with this method
 		_storage.setFileAccessRequiredWarningDismissed(false);
 	};
-	
 }]);

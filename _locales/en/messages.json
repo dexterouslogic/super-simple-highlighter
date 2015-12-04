@@ -92,6 +92,10 @@
     "pages": {
         "message": "Pages"
     },
+    "experimental": {
+        "message": "Experimental"
+    },
+	
     "about": {
         "message": "About"
     },
@@ -261,6 +265,37 @@
 	},
 	"url": {
 		"message": "URL"
+	},
+	
+	"experimental_header": {
+		"message": "Caution! Items in this section should be considered experimental, not fully tested, or subject to change."
+	},
+	
+	"experimental_database_heading": {
+		"message": "Database functions"
+	},
+	
+	"experimental_database_export_title": {
+		"message": "Export highlights database"
+	},
+	"experimental_database_export_description": {
+		"message": "Saves the highlights database as a file. The database only contains the page & location of the highlights. If you have created new highlight styles, or customised existing styles, these are not included."
+	},
+	"experimental_database_export_button_text": {
+		"message": "Export..."
+	},	
+	"experimental_database_export_file_name": {
+		"message": "Database.ldjson"
+	},
+	
+	"experimental_database_import_title": {
+		"message": "Import highlights database"
+	},
+	"experimental_database_import_description": {
+		"message": "Replace the highlights database with those previously saved to a file. Note that all existing highlights will be removed"
+	},
+	"experimental_database_import_button_text": {
+		"message": "Import..."
 	}
 	
 }

@@ -42,6 +42,11 @@ body {
     box-shadow: initial !important;
 }
 
+.highlight .close {
+	margin-top: -6px;
+	margin-right: -6px;
+}
+
 .pointer {
 	cursor: pointer;
 }

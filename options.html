@@ -16,6 +16,7 @@
   <script src="static/js/angular.min.js"></script>
   <script src="static/js/bootstrap.min.js"></script>
   <script src="static/js/angular.rangeSlider.min.js"></script>
+  <script src="static/js/memorystream.js"></script>
 
   <script src="js/storage.js"></script>
   <script src="js/stylesheet.js"></script>
@@ -77,6 +78,7 @@
             <ul class="nav nav-pills nav-stacked" role="tablist">
                 <li class="active"><a href="#styles" role="tab" data-toggle="pill">{{ 'styles' | i18n }}</a></li>
                 <li><a href="#pages" role="tab" data-toggle="pill">{{ 'pages' | i18n }}</a></li>
+                <li><a href="#experimental" role="tab" data-toggle="pill">{{ 'experimental' | i18n }}</a></li>
                 <li><a href="#about" role="tab" data-toggle="pill">{{ 'about' | i18n }}</a></li>
             </ul>
         </div>
@@ -157,7 +159,7 @@
                     </div>
                 </div>
 
-                <!--Defintions-->
+                <!--Definitions-->
                 <!--<h4>Predefined Highlight Styles</h4>-->
                 <h4>{{ 'options_tab_page_header_sites' | i18n }}</h4>
                 <ul class="list-unstyled">
@@ -245,6 +247,43 @@
                     </button>
                 </div>
             </div>
+			
+            <!--Experimental Pane-->
+            <div class="tab-pane fade" id="experimental" ng-controller="ExperimentalController">
+				<h4>{{ 'experimental_header' | i18n }}</h4>
+
+				<div class="panel panel-default">
+				  <!-- Default panel contents -->
+				  <div class="panel-heading">{{ 'experimental_database_heading' | i18n }}</div>
+
+				  <!-- List group -->
+				  <ul class="list-group">
+				    <li class="list-group-item">
+						<strong>{{ 'experimental_database_export_title' | i18n }}</strong>
+						<p>{{ 'experimental_database_export_description' | i18n }}</p>
+
+		                <div class="row-buttons">
+		                    <button type="button" class="btn btn-default" data-ng-click="onClickDump()">
+								{{ 'experimental_database_export_button_text' | i18n }}
+							</button>
+		                </div>
+					</li>
+					
+				    <li class="list-group-item">
+						<strong>{{ 'experimental_database_import_title' | i18n }}</strong>
+						<p>{{ 'experimental_database_import_description' | i18n }}</p>
+						
+		                <div class="row-buttons">
+							<span class="btn btn-danger btn-file">
+							    {{ 'experimental_database_import_button_text' | i18n }}
+								<input type="file" id="files">
+							</span>
+		                </div>
+					</li>
+				  </ul>
+				</div>
+            </div>
+			
 
             <!--About Pane-->
             <div class="tab-pane fade" id="about" data-ng-controller="AboutController">

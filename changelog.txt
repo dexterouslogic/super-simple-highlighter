@@ -1,3 +1,7 @@
+3.6.1
+-----
+Branding
+
 3.6.0
 -----
 Really REALLY fix the disappearing extension bug, hopefully along with many others (fingers crossed this time).

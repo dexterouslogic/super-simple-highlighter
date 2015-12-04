@@ -55,7 +55,7 @@ var _eventPage = {
         console.log("onRuntimeInstalled: " + JSON.stringify(details));
 
         // one time initialization
-        _database.putDesignDocuments(function () {
+        _database.putDesignDocuments().then(function () {
             // error param might indicate a conflict, which is ok
 
             // delete stale views associated with design docs

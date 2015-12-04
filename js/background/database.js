@@ -19,6 +19,7 @@
 
 var _database = {
     db: null,
+	dbname: 'sos',
 
     /**
      * Lazy getter for database instance
@@ -27,7 +28,7 @@ var _database = {
     getDatabase: function () {
         "use strict";
         if (!_database.db) {
-            _database.db = new PouchDB('sos');
+            _database.db = new PouchDB(_database.dbname);
         }
 
         return _database.db;
@@ -37,7 +38,7 @@ var _database = {
      * Put the standard design documents
      * @param [callback] function(err, result) result = [{ok:"true,id:"123",rev:"456"}, ...]
      */
-    putDesignDocuments: function (callback) {
+    putDesignDocuments: function () {
         "use strict";
         var docs = [
 //            {
@@ -114,31 +115,25 @@ var _database = {
 
         var options = {};
 
-        _database.getDatabase().bulkDocs(docs, options, callback);
+        return _database.getDatabase().bulkDocs(docs, options);
     },
+
+	destroy: function () {
+        "use strict";
+		return _database.getDatabase().destroy().then(function() {
+			_database.db = null;
+		});
+	},
 
     /**
      * Destroy the database, then create it again, and put its design documents (as runtime.onInstalled does)
      * @param {function} [callback] function(err, response) (see putDesignDocuments)
      */
-    resetDatabase: function (callback) {
+    reset: function () {
         "use strict";
-        var options = {};
-        var callback = function (err) {
-            if (err) {
-                if (callback) {
-                    callback(err);
-                }
-                return;
-            }
-
-            _database.db = null;
-            _database.getDatabase();
-
-            _database.putDesignDocuments(callback);
-        };
-
-        _database.getDatabase().destroy(options, callback);
+		return _database.destroy().then(function() {
+            return _database.putDesignDocuments();
+		});
     },
 
     /**
@@ -538,7 +533,44 @@ var _database = {
         "use strict";
         var options = {};
         _database.getDatabase().compact(options, callback);
-    }
+    },
 
+	/**
+	 * Dump database to a stream
+	 * @param {Object} stream - stream to dump to
+	 * @returns - {Promise}
+	 */
+	dump: function (stream) {
+		return _database.getDatabase().dump(stream);
+	},
+	
+	/**
+	 * Load database from url or string
+	 * @param {String} urlOrString - source
+	 * @returns - {Promise}
+	 */
+	load: function (urlOrString) {
+		// attempt to load database into a temporary db (not in-memory, though)
+		var tmpdb = new PouchDB("_tmpdb");
+		
+		return tmpdb.load(urlOrString).then(function() {
+			// safe to destroy existing database
+			return _database.destroy();
+		}).then(function() {
+			// replicate loaded database, which includes design docs
+			return PouchDB.replicate(tmpdb, _database.getDatabase());
+		}).then(function() {
+			// cleanup
+			return tmpdb.destroy();
+		}).catch(function(err) {
+			// cleanup
+			tmpdb.destroy();
+
+			// let caller handle error
+			throw err;
+		});
+	}
+	
+	
 };
 
