@@ -18,7 +18,7 @@
  */
 
 // disable console log
-// console.log = function() {}
+console.log = function() {}
 
 /**
  * Controllers module
@@ -346,8 +346,18 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
         reader.onload = function(e) {
 			// newline delimited json
 			var dumpedString = e.target.result;
+			var jsonObjects = dumpedString.split('\n');
 			
-			backgroundPage._database.load(dumpedString).catch(function(err) {
+			// the first line-delimited json object is the storage highlights object
+			var highlightDefinitions = JSON.parse(jsonObjects.shift());
+			
+			dumpedString = jsonObjects.join('\n');			
+			backgroundPage._database.load(dumpedString).then(function() {
+				// set associated styles. null items are removed (implying default should be used)
+				return _storage.highlightDefinitions.setAll(highlightDefinitions);
+			}).then(function() {
+				location.reload();
+			}).catch(function(err) {
 				// error loading or replicating tmp db to main db
 				var text = "Status: " + err.status + "\nMessage: " + err.message;
 	        	alert(text);
@@ -373,29 +383,43 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 	 * dump database to text, copy to clipboard
 	 */
 	$scope.onClickDump = function () {
-		var stream = new window.memorystream();
-		var dumpedString = '';
+		var dumpedString = "";
 		
-		stream.on('data', function(chunk) {
-			dumpedString += chunk.toString();
-		});
+		return new Promise(function(resolve, reject) {
+			_storage.highlightDefinitions.getAll(function(items) {
+				if (chrome.runtime.lastError) {
+					reject(Error(chrome.runtime.lastError.message));
+					return;
+				}				
+				resolve(items)
+			}, {
+				defaults: false
+			})
+		}).then(function(items) {
+			// the first item is always the highlights object
+			dumpedString += JSON.stringify(items);
+			dumpedString += '\n'
 		
-		return backgroundPage._database.dump(stream).then(function () {
+			// the remainder is the dumped database
+			var stream = new window.memorystream();
+
+			stream.on('data', function(chunk) {
+				dumpedString += chunk.toString();
+			});
+			
+			return backgroundPage._database.dump(stream);
+		}).then(function () {
 			// create a temporary anchor to navigate to data uri
 			var a = document.createElement("a");
-			
+		
 			a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
 			a.href = "data:text;base64," + window.btoa(dumpedString);
 
 			// create & dispatch mouse event to hidden anchor
 			var mEvent = document.createEvent("MouseEvent");
 			mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-			
+		
 			a.dispatchEvent(mEvent);
-		}).catch(function(err) {
-			// error loading or replicating tmp db to main db
-			var text = "Status: " + err.status + "\nMessage: " + err.message;
-        	alert(text);
 		});
 	};
 

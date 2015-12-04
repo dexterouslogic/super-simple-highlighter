@@ -134,39 +134,11 @@ var _storage = {
      * Namespace for highlight definitions things
      */
     highlightDefinitions: {
-//        _defaults: {
-//            "highlightDefinitions": [
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_red"),
-//                    "default-red-aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce", "#ff8080", "#000000"),
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_orange"),
-//                    "default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14", "#ffd2AA", "#000000"),
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_yellow"),
-//                    "default-yellow-aaddcf5c-0e41-4f83-8a64-58c91f7c6250", "#ffffAA", "#000000"),
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_green"),
-//                    "default-green-c4d41e0a-e40f-4c3f-91ad-2d66481614c2", "#AAffAA", "#000000"),
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_cyan"),
-//                    "default-cyan-f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b", "#AAffff", "#000000"),
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_purple"),
-//                    "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a", "#FFAAFF", "#000000"),
-//                _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_grey"),
-//                    "default-grey-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#777777", "#FFFFFF")
-//            ],
-//            'sharedHighlightStyle': {
-//                "border-radius": "0.2em",
-//                //"padding": "0.2em",
-//                "transition-property": "color, background-color, box-shadow",
-//                "transition-duration": "0.1s, 0.1s, 0.1s",
-//                "transition-timing-function": "linear, linear, linear",
-//
-//                // color & font-style when highlight is defined by a class which no longer exists
-//                // each specific style must override these, or inherit default
-//                "color": "#806060",
-//                "background-color": "#D3D3D3",
-//            //                        "box-shadow": "0 0 8px #D3D3D3",
-//                "font-style": "italic"
-//            }
-//        },
-
+		_keyNames: {
+			highlightDefinitions: "highlightDefinitions",
+			sharedHighlightStyle: "sharedHighlightStyle"
+		},
+		
         /**
          * Create a new definition object, with the default properties
          * @param {string} [title] optional title
@@ -208,81 +180,99 @@ var _storage = {
             };
         },
 
+		setAll: function(items, callback) {
+			var setKeys = {};
+			var removeKeys = [];
+			
+			setKeys[this._keyNames.highlightDefinitions] = items.highlightDefinitions;
+			setKeys[this._keyNames.sharedHighlightStyle] = items.sharedHighlightStyle;
+			
+			// keys with explicit null value are removed
+			Object.keys(setKeys).forEach(function(key) {
+				if (items[key] == null) {
+					removeKeys.push(key);
+					delete setKeys[key];
+				}
+			});
+			
+			var sync = chrome.storage.sync;
+			
+			return new Promise(function(resolve, reject) {
+				sync.set(setKeys, function() {
+					if (chrome.runtime.lastError) {
+						reject(chrome.runtime.lastError);
+					} else {
+						resolve();
+					}
+				});
+			}).then(function() {
+				return new Promise(function(resolve, reject) {
+					sync.remove(removeKeys, function() {
+						if (chrome.runtime.lastError) {
+							reject(chrome.runtime.lastError);
+						} else {
+							resolve();
+						}
+					});
+				});
+			});
+		},
+
         /**
          * Get an array of objects describing highlight styles
          * @param {function} callback function (object), containing highlightDefinitions array, defaultHighlightStyle object
          */
-        getAll: function (callback) {
-            "use strict";
-            chrome.storage.sync.get({
-                "highlightDefinitions": null,
-                'sharedHighlightStyle': {
-                    "border-radius": "0.2em",
-                    //"padding": "0.2em",
-                    "transition-property": "color, background-color, box-shadow",
-                    "transition-duration": "0.1s, 0.1s, 0.1s",
-                    "transition-timing-function": "linear, linear, linear",
+        getAll: function (callback, options) {
+            "use strict";			
+			options = options || {};
+			
+			if (options.defaults === undefined) {
+				options.defaults = true;
+			}
 
-                    // color & font-style when highlight is defined by a class which no longer exists
-                    // each specific style must override these, or inherit default
-                    "color": "#BBBBBB",
-                    "background-color": "#EEEEEE",
-//                        "box-shadow": "0 0 8px #D3D3D3",
-                    "font-style": "italic"
-                }
-            }, function (items1) {
-                // if we've already defined highlight definition, and we'll always have sharedHighlightStyle, its OK
-                if (items1.highlightDefinitions) {
-                    callback(items1);
-                    return;
-                }
+			var keys = {};
+			keys[this._keyNames.highlightDefinitions] = null;
+			keys[this._keyNames.sharedHighlightStyle] = null;
+			
+			if (options.defaults) {
+				// cache defaults
+				if (this.defaultHighlightDefintions === undefined) {
+					this.defaultHighlightDefintions = [
+		                this.create(chrome.i18n.getMessage("color_title_red"),
+		                    "default-red-aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce", "#ff8080", "#000000"),
+		                this.create(chrome.i18n.getMessage("color_title_orange"),
+		                    "default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14", "#ffd2AA", "#000000"),
+		                this.create(chrome.i18n.getMessage("color_title_yellow"),
+		                    "default-yellow-aaddcf5c-0e41-4f83-8a64-58c91f7c6250", "#ffffAA", "#000000"),
+		                this.create(chrome.i18n.getMessage("color_title_green"),
+		                    "default-green-c4d41e0a-e40f-4c3f-91ad-2d66481614c2", "#AAffAA", "#000000"),
+		                this.create(chrome.i18n.getMessage("color_title_cyan"),
+		                    "default-cyan-f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b", "#AAffff", "#000000"),
+		                this.create(chrome.i18n.getMessage("color_title_purple"),
+		                    "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a", "#FFAAFF", "#000000"),
+		                this.create(chrome.i18n.getMessage("color_title_grey"),
+		                    "default-grey-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#777777", "#FFFFFF")
+					]
+				}
+				
+				keys[this._keyNames.highlightDefinitions] = this.defaultHighlightDefintions;
+				keys[this._keyNames.sharedHighlightStyle] = {
+	                "border-radius": "0.2em",
+	                //"padding": "0.2em",
+	                "transition-property": "color, background-color, box-shadow",
+	                "transition-duration": "0.1s, 0.1s, 0.1s",
+	                "transition-timing-function": "linear, linear, linear",
 
-                // if there's no highlightDefinitions, use the default set. BUT this must both be random per-user, but
-                // survive 'reset all styles'
-                chrome.storage.sync.get("defaultHighlightDefinitions", function (items2) {
-                    /**
-                     * Create a class name for one of the default styles
-                     * @return {string}
-                     * @private
-                     */
-                    function createClassName() {
-                        return "default-" + _stringUtils.createUUID();
-                    }
-
-                    // have defaults not yet been specified
-                    if (!items2.defaultHighlightDefinitions) {
-                        // TODO: eventually, once everyone has defaults with the default-color-xxx class, use the random function
-                        items2.defaultHighlightDefinitions = [
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_red"),
-                                "default-red-aa94e3d5-ab2f-4205-b74e-18ce31c7c0ce", "#ff8080", "#000000"),
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_orange"),
-                                "default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14", "#ffd2AA", "#000000"),
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_yellow"),
-                                "default-yellow-aaddcf5c-0e41-4f83-8a64-58c91f7c6250", "#ffffAA", "#000000"),
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_green"),
-                                "default-green-c4d41e0a-e40f-4c3f-91ad-2d66481614c2", "#AAffAA", "#000000"),
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_cyan"),
-                                "default-cyan-f88e8827-e652-4d79-a9d9-f6c8b8ec9e2b", "#AAffff", "#000000"),
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_purple"),
-                                "default-purple-c472dcdb-f2b8-41ab-bb1e-2fb293df172a", "#FFAAFF", "#000000"),
-                            _storage.highlightDefinitions.create(chrome.i18n.getMessage("color_title_grey"),
-                                "default-grey-da7cb902-89c6-46fe-b0e7-d3b35aaf237a", "#777777", "#FFFFFF")
-                        ];
-
-                        // store 'defaultHighlightDefinitions' array
-                        chrome.storage.sync.set(items2);
-                    }
-
-                    // use the defaults as the actual highlight definitions (but don't store it like that)
-                    items1.highlightDefinitions = items2.defaultHighlightDefinitions;
-                    callback(items1);
-                });
-            });
-
-
-
-
-//            chrome.storage.sync.get(_storage.highlightDefinitions._defaults, callback);
+	                // color & font-style when highlight is defined by a class which no longer exists
+	                // each specific style must override these, or inherit default
+	                "color": "#BBBBBB",
+	                "background-color": "#EEEEEE",
+	//                        "box-shadow": "0 0 8px #D3D3D3",
+	                "font-style": "italic"
+	            };
+			}
+				
+            chrome.storage.sync.get(keys, callback);
         },
 
         /**
@@ -368,11 +358,7 @@ var _storage = {
          */
         removeAll: function (callback) {
             "use strict";
-            chrome.storage.sync.remove("highlightDefinitions", function () {
-                if (callback) {
-                    callback(chrome.runtime.lastError);
-                }
-            });
+            chrome.storage.sync.remove(this._keyNames.sharedHighlightStyle, callback);
         },
 
         /**
