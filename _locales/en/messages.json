@@ -268,7 +268,7 @@
 	},
 	
 	"experimental_header": {
-		"message": "Caution! Items in this section should be considered experimental, not fully tested, and subject to change."
+		"message": "Caution! Items in this section should be considered experimental, not fully tested, and subject to change, so be careful!"
 	},
 	
 	"experimental_database_heading": {
@@ -279,7 +279,7 @@
 		"message": "Export"
 	},
 	"experimental_database_export_description": {
-		"message": "Saves a file containing the URL of each highlighted page, the location of the highlights on that page, and all currently defined styles."
+		"message": "Saves a file containing the URL of each highlighted page, the location of the highlights on that page, and all currently defined styles. If you haven't enabled the 'Ask where to save each file before downloading' option in Chrome, the file will probably be saved in your Downloads folder."
 	},
 	"experimental_database_export_button_text": {
 		"message": "Export..."

@@ -344,6 +344,15 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 	
 	const VALUE_MAGIC = "Super Simple Highlighter Exported Database";
 
+	function utf8_to_b64(str) {
+	    return window.btoa(unescape(encodeURIComponent(str)));
+	}
+
+	function b64_to_utf8(str) {
+	    return decodeURIComponent(escape(window.atob(str)));
+	}
+	
+
 	function onFileSelect(evt) {
 		var file = evt.target.files[0];	// FileList object
 		var reader = new FileReader();
@@ -351,7 +360,7 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 		// Closure to capture the file information.
         reader.onload = function(e) {
 			// newline delimited json
-			var dumpedString = decodeURIComponent(e.target.result);
+			var dumpedString = e.target.result;
 			
 			load(dumpedString).then(function() {
 				location.reload();
@@ -363,7 +372,8 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 		};
         
 		 // Read in the image file as a data URL.
-        reader.readAsText(file);
+        reader.readAsText(file, "utf-8");
+		// reader.readAsDataURL(file);
 	}
 
     /**
@@ -416,7 +426,9 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 			var a = document.createElement("a");
 			
 			a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
-			a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
+			a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+			
+			// a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
 			// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
 			// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
 				//window.btoa(dumpedString);

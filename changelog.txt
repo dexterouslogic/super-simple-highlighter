@@ -1,3 +1,11 @@
+3.7.1
+-----
+Better handling of Unicode characters in exported database (still testing).
+
+3.7.0
+-----
+Import/Export (experimental)
+
 3.6.1
 -----
 Branding
