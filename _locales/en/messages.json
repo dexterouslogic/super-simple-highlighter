@@ -279,7 +279,7 @@
 		"message": "Export"
 	},
 	"experimental_database_export_description": {
-		"message": "Save the URL of highlighted pages, the location of the highlights, and the defined styles."
+		"message": "Saves a file containing the URL of each highlighted page, the location of the highlights on that page, and all currently defined styles."
 	},
 	"experimental_database_export_button_text": {
 		"message": "Export..."
@@ -292,7 +292,7 @@
 		"message": "Import"
 	},
 	"experimental_database_import_description": {
-		"message": "Replace the highlights and styles with those previously exported to a file. NOTE: all existing highlights on ALL pages will be replaced, along with all modified highlight styles."
+		"message": "Replace the highlights and styles with those previously exported into a file. NOTE: ALL existing highlights on ALL pages will be replaced, along with ALL modified highlight styles."
 	},
 	"experimental_database_import_button_text": {
 		"message": "Import..."
