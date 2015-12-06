@@ -77,23 +77,41 @@ var _eventPage = {
         "use strict";
         console.log("onRuntimeStartup");
 
-        // remove entries in which the number of 'create' doc == number of 'delete' docs
-        _database.getMatchSums(function (err, rows) {
-            if (rows) {
-                rows.forEach(function (row) {
-                    // if the aggregate count of documents for this match is 0, remove all of them
-                    if (row.value === 0) {
-                        console.log("Removing stale matches for '" + row.key + "'");
-                        _database.removeDocuments(row.key);
-                    }
-                });
-            }
-
-            console.log("Compacting database");
-            _database.compact();
-        });
-		
         _contextMenus.recreateMenu();
+		
+        // remove entries in which the number of 'create' doc == number of 'delete' docs
+		_database.getMatchSums().then(function (rows) {
+			var promises = rows.filter(function(row) {
+				return row.value === 0;
+			}).map(function(row) {
+				return _database.removeDocuments2(row.key);
+			});
+			
+			return Promise.all(promises);
+		}).then(function() {
+			_database.compact()
+		}).then(function() {
+            console.log("Compacted database");
+		});
+					//
+			//         _database.getMatchSums(function (err, rows) {
+			// // TODO: Rewrite the whole extension using promises
+			//             _database.compact().then(function() {
+			// 	            console.log("Compacted database");
+			//
+			// 	            if (rows) {
+			// 	                rows.forEach(function (row) {
+			// 	                    // if the aggregate count of documents for this match is 0, remove all of them
+			// 	                    if (row.value === 0) {
+			// 	                        console.log("Removing stale matches for '" + row.key + "'");
+			// 	                        _database.removeDocuments(row.key);
+			// 	                    }
+			// 	                });
+			// 	            }
+			//             });
+			//         });
+			//
+			//         _contextMenus.recreateMenu();
     },
 
     /**

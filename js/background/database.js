@@ -40,21 +40,8 @@ var _database = {
      */
     putDesignDocuments: function () {
         "use strict";
-        var docs = [
-//            {
-//                _id: '_design/matches_count_view',
-//                views: {
-//                    'matches_count_view': {
-//                        map: function (doc) {
-//                            if (doc.match) {
-//                                emit(doc.match);
-//                            }
-//                        }.toString(),
-//                        reduce: "_count"
-//                    }
-//                }
-//            },
-            {
+        return _database.getDatabase().bulkDocs([
+			{
                 _id: '_design/match_date_view',
                 views: {
                     'match_date_view': {
@@ -85,37 +72,7 @@ var _database = {
                     }
                 }
             }
-
-//            {
-//                /**
-//                 * View of 'create' document's class names
-//                 */
-//                _id: '_design/class_name_view',
-//                views: {
-//                    'class_name_view': {
-//                        map: function (doc) {
-//                            if (doc.verb === "create") {
-//                                emit(doc.className);
-//                            }
-//                        }.toString()
-//                    }
-//                }
-//            },
-//
-//            {
-//                _id: '_design/delete_verb_filter',
-//                "filters": {
-//                    'delete_verb_filter': function (doc, req) {
-//                        // existence of verb property implies not a design document
-//                        return doc.verb === "delete";
-//                    }.toString()
-//                }
-//            }
-        ];
-
-        var options = {};
-
-        return _database.getDatabase().bulkDocs(docs, options);
+       ]);
     },
 
 	destroy: function () {
@@ -347,15 +304,12 @@ var _database = {
     getDocuments: function (match, callback) {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         "use strict";
-        var fun = "match_date_view";
-        var options = {
+        _database.getDatabase().query("match_date_view", {
             startkey: [match],
             endkey: [match, {}],
             descending: false,
             include_docs: true
-        };
-
-        _database.getDatabase().query(fun, options, function (err, result) {
+        }, function (err, result) {
             if (!callback) {
                 return;
             }
@@ -372,6 +326,20 @@ var _database = {
         });
     },
 
+	getDocuments2: function (match) {
+		// promise version
+		return _database.getDatabase().query("match_date_view", {
+            startkey: [match],
+            endkey: [match, {}],
+            descending: false,
+            include_docs: true
+        }).then(function(result) {
+			return result.rows.map(function (row) {
+            	return row.doc;
+            });
+        })
+	},
+	
     /**
      * Delete a specific document (any verb).
      * This is usually only called after a postDeleteDocument(), when the check for stale documents finds something,
@@ -397,7 +365,7 @@ var _database = {
      * Usually called via a 'remove all' button
      * @param {string} match key (eg www.google.com/something?qq)
      * @param {function} [callback] function(err, result)
-     */
+     */	
     removeDocuments: function (match, callback) {
         "use strict";
         _database.getDocuments(match, function (err, docs) {
@@ -418,6 +386,17 @@ var _database = {
         });
     },
 
+	removeDocuments2: function(match) {
+        "use strict";
+		// promise version
+        return _database.getDocuments2(match).then(function(docs) {
+            docs.forEach(function (doc) {
+               doc._deleted = true;
+            });
+
+            return _database.getDatabase().bulkDocs(docs);
+        })
+	},
 
     /**
      * map-reduce on a view of all documents associated with a key of 'match'.
@@ -452,21 +431,14 @@ var _database = {
      * If the value is zero, all documents with its match (key) can be removed
      * @param {function} callback function(err, rows): rows = [{key: match, value: count}]
      */
-    getMatchSums: function(callback) {
+    getMatchSums: function() {
         "use strict";
-        var fun = "sum_view";
-        var options = {
+        return _database.getDatabase().query("sum_view", {
             group: true,
             group_level: 1,
             include_docs: false
-        };
-
-        _database.getDatabase().query(fun, options, function (err, result) {
-            if (err) {
-                callback(err);
-            } else {
-                callback(null, result.rows);
-            }
+        }).then(function (result) {
+			return result.rows;
         });
     },
 
@@ -514,6 +486,34 @@ var _database = {
         });
     },
 
+	getCreateDocuments2: function (match) {
+        "use strict";
+		// promise version
+		
+        // get all the documents (create & delete) associated with the match, then filter the deleted ones
+        return _database.getDocuments2(match).then(function(docs) {
+            var filterable = {};
+
+            // map to just the documents,
+            return docs.filter(function (doc) {
+                // filter out delete documents, and mark corresponding 'create' document for filtering later
+                if (doc.verb === "delete") {
+                    // remove this, and mark the corresponding doc as being ready for removal later
+                    filterable[doc.correspondingDocumentId] = true;
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }).filter(function (doc) {
+                // filter out corresponding docs collected earlier
+
+                // return FALSE to filter it out
+                return filterable[doc._id] === undefined;
+            });
+        });
+	},
+
     /**
      * As design docs are deleted or modified, their associated index files (in CouchDB) or
      * companion databases (in local PouchDBs) continue to take up space on disk.
@@ -527,12 +527,10 @@ var _database = {
 
     /**
      * Runs compaction of the database. Fires callback when compaction is done.
-     * @param {function} [callback] ?
      */
-    compact: function (callback) {
+    compact: function () {
         "use strict";
-        var options = {};
-        _database.getDatabase().compact(options, callback);
+        return _database.getDatabase().compact();
     },
 
 	/**
@@ -541,7 +539,15 @@ var _database = {
 	 * @returns - {Promise}
 	 */
 	dump: function (stream) {
-		return _database.getDatabase().dump(stream);
+		var opts = {
+			filter: function (doc) {
+				// don't include internal documents
+				// return doc._id.match(/^_/) === null;
+				return doc._id.match(/^_design\//) === null;
+			}
+		};
+		
+		return _database.getDatabase().dump(stream, opts);
 	},
 	
 	/**
@@ -557,8 +563,11 @@ var _database = {
 			// safe to destroy existing database
 			return _database.destroy();
 		}).then(function() {
-			// replicate loaded database, which includes design docs
+			// replicate loaded database. Design docs were filtered out
 			return PouchDB.replicate(tmpdb, _database.getDatabase());
+		}).then(function() {
+			// add design docs
+			return _database.putDesignDocuments();
 		}).then(function() {
 			// cleanup
 			return tmpdb.destroy();

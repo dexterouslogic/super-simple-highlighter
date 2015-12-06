@@ -285,13 +285,12 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         backgroundPage = _backgroundPage;
 
         // get an array of each unique match, and the number of associated documents (which is of no use)
-        backgroundPage._database.getMatchSums(function (err, rows) {
-            if (rows) {
-                $scope.rows = rows.filter (function (row) {
-                    return row.value > 0;
-                });
-                $scope.$apply();
-            }
+        backgroundPage._database.getMatchSums().then(function (rows) {
+            $scope.rows = rows.filter (function (row) {
+                return row.value > 0;
+            });
+
+            $scope.$apply();
         });
     }
 
@@ -338,6 +337,13 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
     'use strict';
     var backgroundPage;
 
+	const KEYNAMES = {
+		magic: 'magic',
+		version: 'version'
+	};
+	
+	const VALUE_MAGIC = "Super Simple Highlighter Exported Database";
+
 	function onFileSelect(evt) {
 		var file = evt.target.files[0];	// FileList object
 		var reader = new FileReader();
@@ -345,17 +351,9 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 		// Closure to capture the file information.
         reader.onload = function(e) {
 			// newline delimited json
-			var dumpedString = e.target.result;
-			var jsonObjects = dumpedString.split('\n');
+			var dumpedString = decodeURIComponent(e.target.result);
 			
-			// the first line-delimited json object is the storage highlights object
-			var highlightDefinitions = JSON.parse(jsonObjects.shift());
-			
-			dumpedString = jsonObjects.join('\n');			
-			backgroundPage._database.load(dumpedString).then(function() {
-				// set associated styles. null items are removed (implying default should be used)
-				return _storage.highlightDefinitions.setAll(highlightDefinitions);
-			}).then(function() {
+			load(dumpedString).then(function() {
 				location.reload();
 			}).catch(function(err) {
 				// error loading or replicating tmp db to main db
@@ -383,7 +381,13 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 	 * dump database to text, copy to clipboard
 	 */
 	$scope.onClickDump = function () {
-		var dumpedString = "";
+		// header
+		var header = {};
+		
+		header[KEYNAMES.magic] = VALUE_MAGIC;
+		header[KEYNAMES.version] = 1;
+		
+		var dumpedString = JSON.stringify(header);
 		
 		return new Promise(function(resolve, reject) {
 			_storage.highlightDefinitions.getAll(function(items) {
@@ -397,9 +401,8 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 			})
 		}).then(function(items) {
 			// the first item is always the highlights object
-			dumpedString += JSON.stringify(items);
-			dumpedString += '\n'
-		
+			dumpedString += '\n' + JSON.stringify(items) + '\n';
+
 			// the remainder is the dumped database
 			var stream = new window.memorystream();
 
@@ -411,9 +414,12 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 		}).then(function () {
 			// create a temporary anchor to navigate to data uri
 			var a = document.createElement("a");
-		
+			
 			a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
-			a.href = "data:text;base64," + window.btoa(dumpedString);
+			a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
+			// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+			// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+				//window.btoa(dumpedString);
 
 			// create & dispatch mouse event to hidden anchor
 			var mEvent = document.createEvent("MouseEvent");
@@ -423,6 +429,34 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 		});
 	};
 
+	function load(dumpedString) {
+		var jsonObjects = dumpedString.split('\n');
+		var highlightDefinitions;
+		
+		// newline delimited json
+		return new Promise(function(resolve, reject) {
+			// validate header
+			var header = JSON.parse(jsonObjects.shift());
+			
+			if (header[KEYNAMES.magic] === VALUE_MAGIC || header[KEYNAMES.version] === 1) {
+				resolve()
+			} else {
+				reject({
+					status: 403,
+					message: "Invalid File"
+				});
+			}
+		}).then(function() {
+			// the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
+			highlightDefinitions = JSON.parse(jsonObjects.shift());
+			
+			// remainder is the database
+			return backgroundPage._database.load(jsonObjects.join('\n'));
+		}).then(function() {
+			// set associated styles. null items are removed (implying default should be used)
+			return _storage.highlightDefinitions.setAll(highlightDefinitions);
+		});
+	}
 	
     // starter
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
