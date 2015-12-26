@@ -203,44 +203,35 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
         });
     };
 	
-	$scope.onClickCopyDocumentText = function (docs) {
+	var utf8_to_b64 = function(str) {
+	    return window.btoa(unescape(encodeURIComponent(str)));
+	};
+	
+	$scope.onClickSaveOverview = function (docs) {
 		// format all highlights as a markdown document
-		var markdown = 
-			"#[" + $scope.title + "]" +
-			"(" +  activeTab.url + ")";
+		var markdown = getOverviewText(docs, "markdown");
 		
-		// map the highlight class name to its display name, for later usage
-		var titles = {};
+		// create a temporary anchor to navigate to data uri
+		var a = document.createElement("a");
+		
+		a.download = chrome.i18n.getMessage("save_overview_file_name");
+		a.href = "data:text;base64," + utf8_to_b64(markdown);
 
-		$scope.highlightDefinitions.forEach(function(hd) {
-			titles[hd.className] = hd.title;
-		});
-		
-		var currentClassName;
-		
-		// iterate each highlight
-		docs.forEach(function(doc) {
-			var isNewHeader = doc.className != currentClassName;
-			
-			// only add a new heading when the class of the header changes
-			if (isNewHeader) {
-				markdown += ("\n\n## " + titles[doc.className]);
-
-				currentClassName = doc.className;
-			} else {
-				// only seperate subsequent list items
-				markdown += "\n"
-			}
-			
-			// each highlight is an unordered list item
-			markdown += ("\n* " + doc.text)
-		});
+		// create & dispatch mouse event to hidden anchor
+		var mEvent = document.createEvent("MouseEvent");
+		mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+	
+		a.dispatchEvent(mEvent);
+	};
+	
+	$scope.onClickCopyOverview = function (docs) {
+		// format all highlights as a markdown document
+		var markdown = getOverviewText(docs, "markdown");
 		
 		// Create element to contain markdown
 		var pre = document.createElement('pre');
 		pre.innerText = markdown;
 		
-		// TODO: copy contents of element to clipboard
 		document.body.appendChild(pre);
 
 		var range = document.createRange();
@@ -283,7 +274,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clicked 'remove all' button
      */
     $scope.onClickRemoveAllHighlights = function () {
-        // if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
+        // if (window.confirm(chrome.extension.getMessage("confirm_remove_all_highlights"))) {
             backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match);
             window.close();
         // }
@@ -295,6 +286,52 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	$scope.onClickDismissFileAccessRequiredWarning = function () {
 		// a listener created in the initializer will set the value to the storage
 		$scope.fileAccessRequiredWarningVisible = false;
+	};
+
+	var getOverviewText = function (docs, format) {
+		switch(format) {
+		case "markdown":
+			var markdown = 
+				"#[" + $scope.title + "]" +
+				"(" +  activeTab.url + ")";
+	
+			// map the highlight class name to its display name, for later usage
+			var titles = {};
+
+			$scope.highlightDefinitions.forEach(function(hd) {
+				titles[hd.className] = hd.title;
+			});
+	
+			var currentClassName;
+	
+			// iterate each highlight
+			docs.forEach(function(doc) {
+				var isNewHeader = doc.className != currentClassName;
+		
+				// only add a new heading when the class of the header changes
+				if (isNewHeader) {
+					markdown += ("\n\n## " + titles[doc.className]);
+
+					currentClassName = doc.className;
+				} else {
+					// only seperate subsequent list items
+					markdown += "\n"
+				}
+		
+				// each highlight is an unordered list item
+				markdown += ("\n* " + doc.text)
+			});
+	
+			// footer
+			markdown += ("\n\n---\n" +
+				chrome.i18n.getMessage("overview_footer", [
+					chrome.i18n.getMessage("extension_name"),
+					chrome.i18n.getMessage("extension_url"),
+				])
+			);
+			
+			return markdown;
+		}
 	};
 
     /**

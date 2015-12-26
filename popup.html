@@ -30,18 +30,14 @@
     <div class="row">
         <div class="col-xs-7 vcenter" style="margin: 10px 0">
             <h5 class="title">
-                <a tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()" class="glyphicon glyphicon-list" title="{{'open_overview_in_new_tab' | i18n}}">
-                </a>
-				<!-- <span class="glyphicon glyphicon-list pointer"
-					ng-click="onClickOpenOverviewInNewTab()" title="{{'open_overview_in_new_tab' | i18n}}"></span> -->
-				<!-- <span title="{{match}}">{{title}}</span> -->
-				<span>{{manifest.name}}</span>
+                {{manifest.name}}
 			</h5>
 			
 			<!-- <span class="badge">{{docs.length}}</span> -->
             <div class="dropdown" style="display: inline">
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+					<li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()">
 							<span class="glyphicon glyphicon-list"></span>
@@ -50,9 +46,16 @@
                     </li>
 
                     <li role="presentation"  ng-class="{'disabled': (docs | filter:search | filter:styleFilterPredicate).length == 0}">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyDocumentText((docs | filter:search | filter:styleFilterPredicate))">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickSaveOverview((docs | filter:search | filter:styleFilterPredicate))">
+							<span class="glyphicon glyphicon-save"></span>
+                            {{'save_overview' | i18n}}
+                        </a>
+                    </li>
+
+                    <li role="presentation"  ng-class="{'disabled': (docs | filter:search | filter:styleFilterPredicate).length == 0}">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview((docs | filter:search | filter:styleFilterPredicate))">
 							<span class="glyphicon glyphicon-copy"></span>
-                            {{'copy' | i18n}}
+                            {{'copy_overview' | i18n}}
                         </a>
                     </li>
 

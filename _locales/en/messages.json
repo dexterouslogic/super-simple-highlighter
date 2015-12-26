@@ -8,6 +8,10 @@
     "extension_author": {
         "message": "Dexterous Logic"
     },
+	"extension_url": {
+		"message": "http://dexterouslogic.com"
+	},
+	
     "copyright_year": {
         "message": "2015"
     },
@@ -60,7 +64,7 @@
         "message": "Filter by Content"
     },
     "remove_all_highlights": {
-        "message": "Remove all highlights"
+        "message": "Remove All"
     },
     "confirm_remove_all_highlights": {
         "message": "Are you sure you wish to remove all the highlights on this page?"
@@ -196,11 +200,31 @@
     },
 
     "open_overview_in_new_tab": {
-        "message": "Open in New Tab"
+        "message": "Open"
     },
 	
-	"copy" : {
-		"message": "Copy All"
+	"copy_overview" : {
+		"message": "Copy As Markdown"
+	},
+	
+	"save_overview": {
+		"message": "Save Markdown As..."
+	},
+	
+	"save_overview_file_name": {
+		"message": "overview.md"
+	},
+	
+	"overview_footer": {
+		"message": "Created with [$EXTENSION_NAME$]($EXTENSION_URL$)",
+		"placeholders": {
+			"extension_name": {
+				"content": "$1"
+			},
+			"extension_url": {
+				"content": "$2"
+			}
+		}
 	},
 
 	"warning_file_access_required": {
