@@ -223,7 +223,18 @@ var _storage = {
          * @param {function} callback function (object), containing highlightDefinitions array, defaultHighlightStyle object
          */
         getAll: function (callback, options) {
-            "use strict";			
+            "use strict";
+			this.getAll_Promise(options).then(function(items) {
+				callback(items);
+			});
+        },
+		
+		/**
+		 * Version of getAll() that uses promise. 
+		 * TODO: Eventually promises will replace everything with a callback
+		 */
+        getAll_Promise: function (options) {
+            "use strict";
 			options = options || {};
 			
 			if (options.defaults === undefined) {
@@ -272,7 +283,11 @@ var _storage = {
 	            };
 			}
 				
-            chrome.storage.sync.get(keys, callback);
+			return new Promise(function (resolve) {
+				chrome.storage.sync.get(keys, function(items) {
+					resolve(items);
+				});
+			});
         },
 
         /**

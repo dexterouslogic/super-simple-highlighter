@@ -8,8 +8,11 @@
     "extension_author": {
         "message": "Dexterous Logic"
     },
-	"extension_url": {
-		"message": "http://dexterouslogic.com"
+    "extension_author_url": {
+        "message": "http://dexterouslogic.com"
+    },
+	"extension_webstore_url": {
+		"message": "https://chrome.google.com/webstore/detail/hhlhjgianpocpoppaiihmlpgcoehlhio"
 	},
 	
     "copyright_year": {
@@ -216,13 +219,22 @@
 	},
 	
 	"overview_footer": {
-		"message": "Created with [$EXTENSION_NAME$]($EXTENSION_URL$)",
+		"message": "Created with [$EXTENSION_NAME$]($EXTENSION_URL$). (C)$COPYRIGHT_YEAR$ [$EXTENSION_AUTHOR$]($EXTENSION_AUTHOR_URL$)",
 		"placeholders": {
 			"extension_name": {
 				"content": "$1"
 			},
 			"extension_url": {
 				"content": "$2"
+			},
+			"copyright_year": {
+				"content": "$3"
+			},
+			"extension_author": {
+				"content": "$4"
+			},
+			"extension_author_url": {
+				"content": "$5"
 			}
 		}
 	},

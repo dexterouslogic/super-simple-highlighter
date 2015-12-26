@@ -209,45 +209,47 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	
 	$scope.onClickSaveOverview = function (docs) {
 		// format all highlights as a markdown document
-		var markdown = getOverviewText(docs, "markdown");
-		
-		// create a temporary anchor to navigate to data uri
-		var a = document.createElement("a");
-		
-		a.download = chrome.i18n.getMessage("save_overview_file_name");
-		a.href = "data:text;base64," + utf8_to_b64(markdown);
+		return backgroundPage._eventPage.getOverviewText("markdown", activeTab)
+			.then(function (markdown) {
+				// create a temporary anchor to navigate to data uri
+				var a = document.createElement("a");
 
-		// create & dispatch mouse event to hidden anchor
-		var mEvent = document.createEvent("MouseEvent");
-		mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-	
-		a.dispatchEvent(mEvent);
+				a.download = chrome.i18n.getMessage("save_overview_file_name");
+				a.href = "data:text;base64," + utf8_to_b64(markdown);
+
+				// create & dispatch mouse event to hidden anchor
+				var mEvent = document.createEvent("MouseEvent");
+				mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+
+				a.dispatchEvent(mEvent);
+			});
 	};
 	
 	$scope.onClickCopyOverview = function (docs) {
 		// format all highlights as a markdown document
-		var markdown = getOverviewText(docs, "markdown");
+		return backgroundPage._eventPage.getOverviewText("markdown", activeTab)
+			.then(function (markdown) {
+				// Create element to contain markdown
+				var pre = document.createElement('pre');
+				pre.innerText = markdown;
 		
-		// Create element to contain markdown
-		var pre = document.createElement('pre');
-		pre.innerText = markdown;
+				document.body.appendChild(pre);
+
+				var range = document.createRange();
+			    range.selectNode(pre);
 		
-		document.body.appendChild(pre);
+				// make our node the sole selection
+				var selection = window.getSelection();
+				selection.removeAllRanges();
+				selection.addRange(range);
 
-		var range = document.createRange();
-	    range.selectNode(pre);
-		
-		// make our node the sole selection
-		var selection = window.getSelection();
-		selection.removeAllRanges();
-		selection.addRange(range);
+				document.execCommand('copy');
 
-		document.execCommand('copy');
+				selection.removeAllRanges();
+		        document.body.removeChild(pre);
 
-		selection.removeAllRanges();
-        document.body.removeChild(pre);
-
-		window.close();
+				window.close();
+			});
 	};
 
     /**
@@ -286,52 +288,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	$scope.onClickDismissFileAccessRequiredWarning = function () {
 		// a listener created in the initializer will set the value to the storage
 		$scope.fileAccessRequiredWarningVisible = false;
-	};
-
-	var getOverviewText = function (docs, format) {
-		switch(format) {
-		case "markdown":
-			var markdown = 
-				"#[" + $scope.title + "]" +
-				"(" +  activeTab.url + ")";
-	
-			// map the highlight class name to its display name, for later usage
-			var titles = {};
-
-			$scope.highlightDefinitions.forEach(function(hd) {
-				titles[hd.className] = hd.title;
-			});
-	
-			var currentClassName;
-	
-			// iterate each highlight
-			docs.forEach(function(doc) {
-				var isNewHeader = doc.className != currentClassName;
-		
-				// only add a new heading when the class of the header changes
-				if (isNewHeader) {
-					markdown += ("\n\n## " + titles[doc.className]);
-
-					currentClassName = doc.className;
-				} else {
-					// only seperate subsequent list items
-					markdown += "\n"
-				}
-		
-				// each highlight is an unordered list item
-				markdown += ("\n* " + doc.text)
-			});
-	
-			// footer
-			markdown += ("\n\n---\n" +
-				chrome.i18n.getMessage("overview_footer", [
-					chrome.i18n.getMessage("extension_name"),
-					chrome.i18n.getMessage("extension_url"),
-				])
-			);
-			
-			return markdown;
-		}
 	};
 
     /**

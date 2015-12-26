@@ -326,7 +326,7 @@ var _database = {
         });
     },
 
-	getDocuments2: function (match) {
+	getDocuments_Promise: function (match) {
 		// promise version
 		return _database.getDatabase().query("match_date_view", {
             startkey: [match],
@@ -386,10 +386,10 @@ var _database = {
         });
     },
 
-	removeDocuments2: function(match) {
+	removeDocuments_Promise: function(match) {
         "use strict";
 		// promise version
-        return _database.getDocuments2(match).then(function(docs) {
+        return _database.getDocuments_Promise(match).then(function(docs) {
             docs.forEach(function (doc) {
                doc._deleted = true;
             });
@@ -449,49 +449,27 @@ var _database = {
      * @param {function} [callback] function(err, docs)
      */
     getCreateDocuments: function (match, callback) {
+		"use strict";
+		// TODO: replace with promise version
+		
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        "use strict";
-        _database.getDocuments(match, function (err, docs) {
-            if (!callback) {
-                return;
-            }
-
-            if (err) {
-                callback(err);
-                return;
-            }
-
-            var filterable = {};
-
-            // map to just the documents,
-            docs = docs.filter(function (doc) {
-                // filter out delete documents, and mark corresponding 'create' document for filtering later
-                if (doc.verb === "delete") {
-                    // remove this, and mark the corresponding doc as being ready for removal later
-                    filterable[doc.correspondingDocumentId] = true;
-                    return false;
-                }
-                else {
-                    return true;
-                }
-            }).filter(function (doc) {
-                // filter out corresponding docs collected earlier
-
-                // return FALSE to filter it out
-                return filterable[doc._id] === undefined;
-            });
-
-            callback(null, docs);
-
-        });
+        if (typeof(callback) === "undefined") {
+            return;
+        }
+		
+		this.getCreateDocuments_Promise(match).then(function(docs) {
+			callback(null, docs);
+		}).catch(function(err) {
+			callback(err);
+		});
     },
 
-	getCreateDocuments2: function (match) {
+	getCreateDocuments_Promise: function (match) {
         "use strict";
 		// promise version
 		
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        return _database.getDocuments2(match).then(function(docs) {
+        return _database.getDocuments_Promise(match).then(function(docs) {
             var filterable = {};
 
             // map to just the documents,

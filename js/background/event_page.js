@@ -84,7 +84,7 @@ var _eventPage = {
 			var promises = rows.filter(function(row) {
 				return row.value === 0;
 			}).map(function(row) {
-				return _database.removeDocuments2(row.key);
+				return _database.removeDocuments_Promise(row.key);
 			});
 			
 			return Promise.all(promises);
@@ -229,7 +229,7 @@ var _eventPage = {
 //            break;
 
         default:
-            throw "unhandled message: sender=" + sender + ", id=" + message.id;
+            throw "Unhandled message: sender=" + sender + ", id=" + message.id;
         }
     },
 
@@ -267,70 +267,86 @@ var _eventPage = {
      */
     onCommandsCommand: function (command) {
         "use strict";
-        // parse the command string to find the style's index
-        // 'apply_highlight_index.0'
-        var re = new RegExp("^apply_highlight\\.(\\d+)$");
-        var match = re.exec(command);
+		// parse well-known command strings, but default to the formatted kind
+		switch(command) {
+		case "copy_overview":
+			return _eventPage.getOverviewText("markdown").then(function(markdown) {
+				// copy to clipboard
+				_eventPage.copyText(markdown);
+			});
+			
+		default:
+			// parse the command string to find the style's index
+	        // 'apply_highlight_index.0'
+	        var re = new RegExp("^apply_highlight\\.(\\d+)$");
+	        var match = re.exec(command);
 
-        if (!match || match.length !== 2) {
-            throw "unknown command " + command;
-        }
+	        if (!match || match.length !== 2) {
+	            throw "unknown command " + command;
+	        }
 
-        var index = parseInt(match[1]);
+	        var index = parseInt(match[1]);
+			var hd;
+			
+	        // convert to object
+	        return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
+	            if (!items.highlightDefinitions || items.highlightDefinitions.length <= index) {
+	                return Promise.reject(new Error("Unable to match command index to definition"));
+	            }
 
-        // convert to object
-        _storage.highlightDefinitions.getAll(function (items) {
-            if (!items || !items.highlightDefinitions || items.highlightDefinitions.length <= index) {
-                console.log("Unable to match command index to definition");
-                return;
-            }
-
-            var hd = items.highlightDefinitions[index];
-
-            // find the range of selected text for the active tab
-            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                if (!tabs) { return; }
-
-                var activeTab = tabs[0];
-
+	            hd = items.highlightDefinitions[index];
+				return _tabs.getActiveTab();
+			}).then(function(activeTab) {
                 var match = _database.buildMatchString(activeTab.url);
-                if (!match) { return; }
+                if (!match) {
+					 return Promise.reject(new Error());
+				}
 
-                // if there is text selected, we create a new highlight
-                _tabs.sendGetSelectionRangeMessage(activeTab.id, function (xpathRange) {
-                    if (!xpathRange) { return; }
+				// TODO: not needed when moved to all promises
+				return new Promise(function(resolve, reject) {
+	                // if there is text selected, we create a new highlight
+	                _tabs.sendGetSelectionRangeMessage(activeTab.id, function (xpathRange) {
+						if (!xpathRange) { 
+							return reject(new Error());
+						}
 
-                    // non collapsed selection means create new highlight
-                    if (!xpathRange.collapsed) {
-                        // requires selection text
-                        _tabs.sendGetRangeTextMessage(activeTab.id, xpathRange, function (selectionText) {
-                            if (!selectionText) { return; }
+	                    // non collapsed selection means create new highlight
+	                    if (!xpathRange.collapsed) {
+	                        // requires selection text
+	                        _tabs.sendGetRangeTextMessage(activeTab.id, xpathRange, function (selectionText) {
+	                            if (!selectionText) { 
+									return reject(new Error());
+								}
 
-                            // create new document for highlight, then update DOM
-                            _eventPage.createHighlight(activeTab.id,
-                                xpathRange, _database.buildMatchString(activeTab.url),
-                                selectionText, hd.className);
+	                            // create new document for highlight, then update DOM
+	                            _eventPage.createHighlight(activeTab.id,
+	                                xpathRange, _database.buildMatchString(activeTab.url),
+	                                selectionText, hd.className);
 
-                            // remove selection?
-                            _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
-                                if (unselectAfterHighlight) {
-                                    // unselect all
-                                    _eventPage.selectHighlightText(activeTab.id);
-                                }
-                            });
-
-                        });
-                    } else {
-                        // collapsed selection range means update the hovered highlight (if possible)
-                        var documentId = _contextMenus.getHoveredHighlightId();
-                        if (documentId) {
-                            _eventPage.updateHighlight(activeTab.id,
-                                documentId, hd.className);
-                        }
-                    }
-                });
-            });
-        });
+	                            // remove selection?
+	                            _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+	                                if (unselectAfterHighlight) {
+	                                    // unselect all
+	                                    _eventPage.selectHighlightText(activeTab.id);
+	                                }
+									
+									return resolve();
+	                            });
+	                        });
+	                    } else {
+	                        // collapsed selection range means update the hovered highlight (if possible)
+	                        var documentId = _contextMenus.getHoveredHighlightId();
+	                        if (documentId) {
+	                            _eventPage.updateHighlight(activeTab.id,
+	                                documentId, hd.className);
+	                        }
+							
+							return resolve();
+	                    }
+                	});
+				});
+			});
+		}	// end switch
     },
 
     /**
@@ -551,30 +567,35 @@ var _eventPage = {
         "use strict";
         _database.getDocument(documentId, function (err, doc) {
             if (doc && doc.text) {
-				// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
-
-				// add temporary node which can contain our text
-		        var pre = document.createElement('pre');
-		        pre.innerHTML = doc.text;
-
-		        document.body.appendChild(pre);
-		
-				var range = document.createRange();  
-			    range.selectNode(pre);  
-		
-				// make our node the sole selection
-				var selection = window.getSelection();
-				selection.removeAllRanges();
-				selection.addRange(range);  
-		
-				var successful = document.execCommand('copy'); 
-
-				selection.removeAllRanges();  
-
-		        document.body.removeChild(pre);
+				_eventPage.copyText(doc.text)
             }
         });
     },
+	
+	/**
+	 * generic text copy function. copies text to clipboard
+	 */
+	copyText: function (text) {
+		// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
+		// add temporary node which can contain our text
+        var pre = document.createElement('pre');
+        pre.innerText = text;
+
+        document.body.appendChild(pre);
+
+		var range = document.createRange();  
+	    range.selectNode(pre);  
+
+		// make our node the sole selection
+		var selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);  
+
+		document.execCommand('copy'); 
+
+		selection.removeAllRanges();  
+        document.body.removeChild(pre);
+	},
 
     /**
      * Speak text
@@ -613,7 +634,74 @@ var _eventPage = {
     scrollTo: function (tabId, documentId, responseCallback) {
         "use strict";
         _tabs.sendScrollToMessage(tabId, documentId, responseCallback);
-    }
+    },
+	
+	/**
+	 * Get an overiew of the highlights for the current page
+	 * @param {Object} tab one of the available tabs, or active tab if undefined
+	 * @param {string} format one of [markdown]
+	 * @returns: {Promise} overview correctly formatted as a string
+	 */
+	getOverviewText: function(format, tab) {
+		var titles = {};
+		var promise = (typeof(tab) === "undefined") ?
+			_tabs.getActiveTab() : Promise.resolve(tab);
+
+		return promise.then(function(t) {
+			tab = t;
+			
+			return _storage.highlightDefinitions.getAll_Promise();
+		}).then(function(items) {
+			return items.highlightDefinitions;
+		}).then(function(highlightDefinitions) {
+			// map the highlight class name to its display name, for later usage
+			highlightDefinitions.forEach(function(hd) {
+				titles[hd.className] = hd.title;
+			});
+
+			// get documents associated with the tab's url
+			var match = _database.buildMatchString(tab.url);
+			return _database.getCreateDocuments_Promise(match);
+		}).then(function(docs) {
+			switch(format) {
+			case "markdown":
+				var markdown = "#[" + tab.title + "](" +  tab.url + ")";
+				var currentClassName;
+
+				// iterate each highlight
+				docs.forEach(function(doc) {
+					// only add a new heading when the class of the header changes
+					if (doc.className != currentClassName) {
+						markdown += ("\n\n## " + titles[doc.className]);
+
+						currentClassName = doc.className;
+					} else {
+						// only seperate subsequent list items
+						markdown += "\n"
+					}
+
+					// each highlight is an unordered list item
+					markdown += ("\n* " + doc.text)
+				});
+
+				// footer
+				markdown += ("\n\n---\n" +
+					chrome.i18n.getMessage("overview_footer", [
+						chrome.i18n.getMessage("extension_name"),
+						chrome.i18n.getMessage("extension_webstore_url"),
+						chrome.i18n.getMessage("copyright_year"),
+						chrome.i18n.getMessage("extension_author"),
+						chrome.i18n.getMessage("extension_author_url")
+					])
+				);
+
+				return Promise.resolve(markdown);
+
+			default:
+				return Promise.reject(new Error());
+			}
+		});
+	}
 };
 
 _eventPage.init();

@@ -16,6 +16,24 @@
  */
 
 var _tabs = {
+	/** 
+	 * Promise version of chrome's active tab getter
+	 */
+	getActiveTab: function() {
+		return new Promise(function(resolve, reject) {
+	        chrome.tabs.query({ 
+				active: true,
+				currentWindow: true 
+			}, function (tabs) {
+	            if (!tabs || tabs.length < 1) {
+					reject(new Error());
+				} else {
+					resolve(tabs[0]);
+				}
+			});
+		})        
+	},
+	
     /**
      * call {@link chrome.tabs.executeScript()} serially
      * @param {number} tabId

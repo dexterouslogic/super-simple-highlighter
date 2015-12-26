@@ -36,6 +36,7 @@
 			<!-- <span class="badge">{{docs.length}}</span> -->
             <div class="dropdown" style="display: inline">
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
+
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
 					<li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
                     <li role="presentation">
@@ -45,14 +46,15 @@
                         </a>
                     </li>
 
-                    <li role="presentation"  ng-class="{'disabled': (docs | filter:search | filter:styleFilterPredicate).length == 0}">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickSaveOverview((docs | filter:search | filter:styleFilterPredicate))">
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href=""
+							 ng-click="onClickSaveOverview((docs | filter:search | filter:styleFilterPredicate))">
 							<span class="glyphicon glyphicon-save"></span>
                             {{'save_overview' | i18n}}
                         </a>
                     </li>
 
-                    <li role="presentation"  ng-class="{'disabled': (docs | filter:search | filter:styleFilterPredicate).length == 0}">
+                    <li role="presentation" >
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview((docs | filter:search | filter:styleFilterPredicate))">
 							<span class="glyphicon glyphicon-copy"></span>
                             {{'copy_overview' | i18n}}
