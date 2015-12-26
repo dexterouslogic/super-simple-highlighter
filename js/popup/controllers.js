@@ -204,58 +204,56 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 	
 	$scope.onClickCopyDocumentText = function (docs) {
-		// {{title}}
-		// {{url}}
-		// (blank line)
-		// {{tag}}: text
-		// {{tag}}: text
+		// format all highlights as a markdown document
+		var markdown = 
+			"#[" + $scope.title + "]" +
+			"(" +  activeTab.url + ")";
 		
-		// build string with 1 line of text per line
-		var innerHTML = "<p>" + chrome.i18n.getMessage("title") + ": " + $scope.title + '<br/>';
-		innerHTML += chrome.i18n.getMessage("url") + ": " + activeTab.url + '</p>';
+		// map the highlight class name to its display name, for later usage
+		var titles = {};
+
+		$scope.highlightDefinitions.forEach(function(hd) {
+			titles[hd.className] = hd.title;
+		});
 		
-		if (docs.length > 0) {
-			innerHTML += "<ol>";
-
-			// map style classname to its title
-			var highlightTitles = {};
-			$scope.highlightDefinitions.forEach(function(hd) {
-				highlightTitles[hd.className] = hd.title;
-			});
-
-			innerHTML += docs.map(function(doc){
-				// style title: text
-				return "<li><p>" + highlightTitles[doc.className] + ": " +  doc.text + "</p></li>";
-			}).join('\n');
+		var currentClassName;
+		
+		// iterate each highlight
+		docs.forEach(function(doc) {
+			var isNewHeader = doc.className != currentClassName;
 			
-			innerHTML += "</ol>"
-		}				
+			// only add a new heading when the class of the header changes
+			if (isNewHeader) {
+				markdown += ("\n\n## " + titles[doc.className]);
 
-		// var text = docs.map(function(doc){
-		// 	return doc.text;
-		// }).join('\n');
-
-		// copy text to clipboard
-		// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
-
-		// add temporary node which can contain our text
-        var pre = document.createElement('div');
-        pre.innerHTML = innerHTML;
-
-        document.body.appendChild(pre);
+				currentClassName = doc.className;
+			} else {
+				// only seperate subsequent list items
+				markdown += "\n"
+			}
+			
+			// each highlight is an unordered list item
+			markdown += ("\n* " + doc.text)
+		});
+		
+		// Create element to contain markdown
+		var pre = document.createElement('pre');
+		pre.innerText = markdown;
+		
+		// TODO: copy contents of element to clipboard
+		document.body.appendChild(pre);
 
 		var range = document.createRange();
 	    range.selectNode(pre);
-
+		
 		// make our node the sole selection
 		var selection = window.getSelection();
 		selection.removeAllRanges();
 		selection.addRange(range);
 
-		var successful = document.execCommand('copy');
+		document.execCommand('copy');
 
 		selection.removeAllRanges();
-
         document.body.removeChild(pre);
 
 		window.close();
