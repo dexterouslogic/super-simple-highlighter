@@ -401,15 +401,17 @@ var _eventPage = {
      */
     updateHighlight: function (tabId, documentId, className) {
         "use strict";
-        _database.updateCreateDocument(documentId, className, function (err, response) {
-            if (response && response.ok) {
-                // document updated - now update DOM
-                _tabs.sendUpdateHighlightMessage(tabId, documentId, className, function (is_updated) {
-                    if (!is_updated) {
-                        console.log("Error updating highlight in DOM");
-                    }
-                });
-            }
+        return _database.updateCreateDocument_Promise(documentId, className).then(function (response) {
+        	if (!response.ok) {
+        		return Promise.reject();
+        	}
+			
+            // document updated - now update DOM
+            _tabs.sendUpdateHighlightMessage(tabId, documentId, className, function (is_updated) {
+                if (!is_updated) {
+                    console.log("Error updating highlight in DOM");
+                }
+            });
         });
     },
 
@@ -417,9 +419,8 @@ var _eventPage = {
      * Delete a highlight in the database, and in the page DOM
      * @param {number} tabId tab id of associated tab, whose DOM should contain the highlight.
      * @param {string} documentId id of the document representing the highlight to remove
-     * @param {function} [callback] function(err, result), result = standard {ok/id/rev} reply
      */
-    deleteHighlight: function (tabId, documentId, callback) {
+    deleteHighlight: function (tabId, documentId) {
         "use strict";
 		var inDOM;
 		

@@ -217,8 +217,10 @@ var _contextMenus = {
 
             case "update_highlight":
                 if (_contextMenus.hoveredHighlightId) {
-                    _eventPage.updateHighlight(tab.id,
+                    return _eventPage.updateHighlight(tab.id,
                         _contextMenus.hoveredHighlightId, className);
+                } else {
+                	return Promise.reject();
                 }
                 break;
 
@@ -251,7 +253,7 @@ var _contextMenus = {
 
         case "delete_highlight":
             if (_contextMenus.hoveredHighlightId) {
-                _eventPage.deleteHighlight(tab.id,
+                return _eventPage.deleteHighlight(tab.id,
                     _contextMenus.hoveredHighlightId);
             }
             break;
