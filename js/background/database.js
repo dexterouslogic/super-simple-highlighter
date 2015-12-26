@@ -197,6 +197,37 @@ var _database = {
     },
 
     /**
+     * Post a new document with the 'create' verb
+     * @param match
+     * @param range
+     * @param className
+     * @param text
+     * @param callback function(err, res)
+     */
+    postCreateDocument_Promise: function (match, range, className, text) {
+        "use strict";
+        var docId = _stringUtils.createUUID({
+            beginWithLetter: true
+        });
+
+        var doc = {
+            _id: docId,
+            // _rev: undefined,
+
+            match: match,
+            date: Date.now(),
+            verb: "create",
+
+            range: range,
+            className: className,
+            text: text
+        };
+
+        var options = {};
+        return _database.getDatabase().put(doc, options);
+    },
+
+    /**
      * Post a new document with the 'delete' verb
      * @param documentId the id for an existing document which specifies the
      * @param callback
@@ -236,6 +267,26 @@ var _database = {
             //     //
             //     correspondingDocumentId: documentId
             // }, callback);
+        });
+    },
+
+    postDeleteDocument_Promise: function (documentId) {
+        "use strict";
+        return _database.getDocument_Promise(documentId).then(function (doc) {
+            var match = doc.match;
+
+            // create a new document, detailing the 'delete' verb transaction
+            // no need for createUUID, as it won't be used as an id/class attribute
+            var doc = {
+                match: match,
+                date: Date.now(),
+                verb: "delete",
+                //
+                correspondingDocumentId: documentId
+            };
+
+            var options = {};
+            return _database.getDatabase().post(doc, options);
         });
     },
 
@@ -284,6 +335,28 @@ var _database = {
             _database.getDatabase().put(doc, options, callback);
         });
     },
+	
+    updateCreateDocument_Promise: function (documentId, className) {
+        "use strict";
+        return _database.getDocument_Promise(documentId).then(function (doc) {
+            // can only update 'create' documents
+            if (doc.verb !== 'create') {
+				return Promise.reject(new Error('Attempted to update document with unhandled verb: ' + doc.verb));
+            }
+
+            // don't update if the class name is already the same
+            if (doc.className === className) {
+                // no change
+				return Promise.resolve(doc);
+            }
+
+            // update the property of the document
+            doc.className = className;
+
+            var options = {};
+            return _database.getDatabase().put(doc, options);
+        });
+    },
 
     /**
      * Get document (of any verb). Always latest revision
@@ -295,6 +368,18 @@ var _database = {
         var options = {};
         _database.getDatabase().get(documentId, options, callback);
     },
+	
+    /**
+     * Get document (of any verb). Always latest revision
+     * @param {string} documentId
+     * @param {function} callback (err, doc)
+	*/
+    getDocument_Promise: function (documentId) {
+        "use strict";
+        var options = {};
+        return _database.getDatabase().get(documentId, options);
+    },
+	
 
     /**
      * Get all documents for a match, in ascending date order.
@@ -360,32 +445,17 @@ var _database = {
         _database.getDatabase().remove(docId, docRev, options, callback);
     },
 
+    removeDocument_Promise: function (docId, docRev) {
+        "use strict";
+        var options = {};
+        return _database.getDatabase().remove(docId, docRev, options);
+    },
+
     /**
      * Delete all documents associated with 'match' key (any verb).
      * Usually called via a 'remove all' button
      * @param {string} match key (eg www.google.com/something?qq)
-     * @param {function} [callback] function(err, result)
      */	
-    removeDocuments: function (match, callback) {
-        "use strict";
-        _database.getDocuments(match, function (err, docs) {
-            if (err) {
-                if (callback) {
-                    callback(err);
-                }
-                return;
-            }
-
-            // map to an array of objects which bulkDocs() can use to delete them
-            docs.forEach(function (doc) {
-               doc._deleted = true;
-            });
-
-            var options = {};
-            _database.getDatabase().bulkDocs(docs, options, callback);
-        });
-    },
-
 	removeDocuments_Promise: function(match) {
         "use strict";
 		// promise version
@@ -426,6 +496,20 @@ var _database = {
         });
     },
 
+    getMatchSum_Promise: function (match) {
+        "use strict";
+        return _database.getDatabase().query('sum_view', {
+            key: match
+        }).then(function(result) {
+            var sum = result.rows[0].value;
+            if (sum < 0) {
+                console.log("WARNING: create/delete sum < 0");
+            }
+
+            return sum;
+        });
+    },
+
     /**
      * Get an array of unique matches, and the number of documents (accounting for 'delete' documents)
      * If the value is zero, all documents with its match (key) can be removed
@@ -446,24 +530,7 @@ var _database = {
      * Get all documents for a match, in ascending date order.
      * If a 'delete' document exists, it is filtered out, along with its corresponding 'create' document.
      * @param {string} match
-     * @param {function} [callback] function(err, docs)
      */
-    getCreateDocuments: function (match, callback) {
-		"use strict";
-		// TODO: replace with promise version
-		
-        // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        if (typeof(callback) === "undefined") {
-            return;
-        }
-		
-		this.getCreateDocuments_Promise(match).then(function(docs) {
-			callback(null, docs);
-		}).catch(function(err) {
-			callback(err);
-		});
-    },
-
 	getCreateDocuments_Promise: function (match) {
         "use strict";
 		// promise version
@@ -502,6 +569,11 @@ var _database = {
         "use strict";
         _database.getDatabase().viewCleanup(callback);
     },
+	
+    viewCleanup_Promise: function () {
+        "use strict";
+        return _database.getDatabase().viewCleanup();
+    },
 
     /**
      * Runs compaction of the database. Fires callback when compaction is done.
@@ -517,15 +589,13 @@ var _database = {
 	 * @returns - {Promise}
 	 */
 	dump: function (stream) {
-		var opts = {
+		return _database.getDatabase().dump(stream, {
 			filter: function (doc) {
 				// don't include internal documents
 				// return doc._id.match(/^_/) === null;
 				return doc._id.match(/^_design\//) === null;
 			}
-		};
-		
-		return _database.getDatabase().dump(stream, opts);
+		});
 	},
 	
 	/**

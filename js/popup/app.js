@@ -31,11 +31,7 @@ $().ready(function () {
     "use strict";
     // 1 - get current highlight styles, and apply to DOM
     // Note that we share this script with the content page (directly)
-    _storage.highlightDefinitions.getAll(function (items) {
-        if (!items) {
-            return;
-        }
-
+    _storage.highlightDefinitions.getAll_Promise().then(function (items) {
         // shared highlight styles
         if (items.sharedHighlightStyle) {
             _stylesheet.setHighlightStyle({

@@ -36,7 +36,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     // models
     $scope.manifest = chrome.runtime.getManifest();
 	// array of highlight definitions
-    _storage.highlightDefinitions.getAll(function (items) {
+    _storage.highlightDefinitions.getAll_Promise().then(function (items) {
         $scope.highlightDefinitions = items.highlightDefinitions;
     });
 
@@ -57,7 +57,10 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 //    $scope.match = "hello";
 
 	// starter
-	chrome.tabs.query({ active: true, currentWindow: true }, function (result) {
+	chrome.tabs.query({ 
+		active: true, 
+		currentWindow: true 
+	}, function (result) {
 	    chrome.runtime.getBackgroundPage(function (bgPage) {
 	        // onInit(result[0], backgroundPage);
 	        activeTab = result[0];
@@ -257,19 +260,21 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * @param {string} documentId highlight id
      */
     $scope.onClickRemoveHighlight = function (event, documentId) {
-        backgroundPage._eventPage.deleteHighlight(activeTab.id,  documentId, function (err, result) {
-            if (result && result.ok ) {
-                updateDocs(function (err, docs) {
-                    // close popup on last doc removed
-                    if (docs && docs.length === 0) {
-                        window.close();
-                    }
-                });
-            }
-        });
-		
 		// event.preventDefault();
 		event.stopPropagation();
+		
+        backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
+            if (result.ok ) {
+                return updateDocs();
+			} else {
+				return Promise.reject();
+			}
+		}).then(function (docs) {
+            // close popup on last doc removed
+            if (docs.length === 0) {
+                window.close();
+            }
+        });
     };
 
     /**
@@ -277,8 +282,10 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      */
     $scope.onClickRemoveAllHighlights = function () {
         // if (window.confirm(chrome.extension.getMessage("confirm_remove_all_highlights"))) {
-            backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match);
-            window.close();
+	    return backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match).then(function(){
+	    	window.close();
+	    });
+            
         // }
     };
 	
@@ -295,30 +302,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * @param {function} [callback] function(err, docs)
      * @private
      */
-    var updateDocs = function (callback) {
+    var updateDocs = function () {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        backgroundPage._database.getCreateDocuments($scope.match, function (err, docs) {
-            if (!err) {
-                $scope.docs = docs;
-                $scope.$apply();
+        return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
+            $scope.docs = docs;
+            $scope.$apply();
 
-                // if the highlight cant be found in DOM, flag that
-                docs.forEach(function (doc) {
-                    // default to undefined, implying it IS in the DOM
-                    backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id, function (isInDOM) {
-                        //                    if (!isInDOM) {
-                        //                        console.log("Not in DOM");
-                        //                    }
-
-                        doc.isInDOM = isInDOM;
-                        $scope.$apply();
-                    });
+            // if the highlight cant be found in DOM, flag that
+            docs.forEach(function (doc) {
+                // default to undefined, implying it IS in the DOM
+                backgroundPage._eventPage.isHighlightInDOM_Promise(activeTab.id, doc._id).then(function (isInDOM) {
+                    doc.isInDOM = isInDOM;
+                    $scope.$apply();
                 });
-            }
-
-            if (callback) {
-                callback(err, docs);
-            }
+            });
+			
+			return docs;
         });
     };
 }]);

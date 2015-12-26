@@ -365,11 +365,7 @@ var _contentScript  = {
     resetStylesheetHighlightStyle: function () {
         "use strict";
         // fake a change for initial update
-        _storage.highlightDefinitions.getAll(function (result) {
-            if (!result) {
-                return;
-            }
-
+        return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
             _contentScript.onStorageChanged({
                 sharedHighlightStyle: {
                     newValue: result.sharedHighlightStyle

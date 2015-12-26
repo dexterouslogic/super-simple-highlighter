@@ -55,11 +55,7 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         var match = backgroundPage._database.buildMatchString(url);
 
-        backgroundPage._database.getCreateDocuments(match, function (err, docs) {
-			if (err) {
-				return;
-			}
-			
+        backgroundPage._database.getCreateDocuments_Promise(match).then(function (docs) {
             $scope.docs = docs;
 			
 			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
@@ -81,12 +77,9 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
             if (!isNaN(tabId)) {
                 docs.forEach(function (doc) {
                     // default to undefined, implying it IS in the DOM
-                    backgroundPage._eventPage.isHighlightInDOM(tabId, doc._id, function (isInDOM) {
-                        //                    if (!isInDOM) {
-                        //                        console.log("Not in DOM");
-                        //                    }
-
+                    backgroundPage._eventPage.isHighlightInDOM_Promise(tabId, doc._id).then(function (isInDOM) {
                         doc.isInDOM = isInDOM;
+
                         $scope.$apply();
                     });
                 });

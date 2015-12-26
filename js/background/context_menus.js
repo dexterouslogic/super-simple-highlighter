@@ -49,7 +49,7 @@ var _contextMenus = {
     recreateMenu: function () {
         "use strict";
         // do all the async work beforehand, to prepare for the actual update
-        _storage.highlightDefinitions.getAll(function (items) {
+        return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
             // if we're hovering over a highlight, we need the corresponding class to check the radio item
             if (_contextMenus.hoveredHighlightId) {
                 _database.getDocument(_contextMenus.hoveredHighlightId, function (err, doc) {

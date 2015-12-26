@@ -421,47 +421,12 @@ var _eventPage = {
      */
     deleteHighlight: function (tabId, documentId, callback) {
         "use strict";
-
+		var inDOM;
+		
         // if the highlight isn't in the DOM, then deleting the 'create' document can be done directly,
         // as create never had any effect
-        _eventPage.isHighlightInDOM(tabId, documentId, function (inDOM) {
-            /**
-             * Callback handler for posting 'delete' doc or removing 'create' doc
-             * @param [err]
-             * @param {object} response (ok/id/rev)
-             * @private
-             */
-            function _resultCallback(err, response) {
-                if (response && response.ok) {
-                    if (inDOM) {
-                        console.log("Successfully posted ;delete' document. Removing in DOM");
-                        _tabs.sendDeleteHighlightMessage(tabId, documentId);
-                    } else {
-                        console.log("Removed 'create' document");
-                    }
-
-                    console.log("reevaluating page action visibility");
-
-                    // check the number of 'create' and 'delete' documents. if equal, there
-                    // are no highlights for the page, so the page action can be removed
-                    chrome.tabs.get(tabId, function (tab) {
-                        var match = _database.buildMatchString(tab.url);
-
-                        // sum of +create-delete verbs for a specific match
-                        _database.getMatchSum(match, function (err, sum) {
-                            if (!err && sum <= 0) {
-                                chrome.pageAction.hide(tabId);
-                            }
-                        });
-                    });
-                }
-
-                if (callback) {
-                    callback(err, response);
-                }
-
-            }
-
+        return _eventPage.isHighlightInDOM_Promise(tabId, documentId).then(function (result) {
+			inDOM = result;
 
             // check the number of 'create' and 'delete' documents. if equal, there
             // are no highlights for the page, so the page action can be removed
@@ -469,58 +434,55 @@ var _eventPage = {
                 console.log("Highlight IS in DOM. Posting 'delete' doc");
 
                 // highlight was in DOM, so we post an additional 'delete' document
-                _database.postDeleteDocument(documentId, _resultCallback);
+                return _database.postDeleteDocument_Promise(documentId);//, _resultCallback);
             } else {
                 // remove directly
                 console.log("Highlight IS NOT in DOM. Directly removing 'create' doc");
 
-                _database.getDocument(documentId, function (err, doc) {
-                    if (err) {
-                        if (callback) {
-                            callback(err, null);
-                        }
-                        return;
-                    }
-
-                    _database.removeDocument(doc._id, doc._rev, _resultCallback);
+                return _database.getDocument_Promise(documentId).then(function (doc) {
+                    return _database.removeDocument_Promise(doc._id, doc._rev);//, _resultCallback);                	
                 });
             }
-        });
+        }).then(function (response) {
+            /**
+             * Callback handler for posting 'delete' doc or removing 'create' doc
+             * @param [err]
+             * @param {object} response (ok/id/rev)
+             * @private
+             */
+			if (!response.ok) {
+				return response;
+			}
+		
+			if (inDOM) {
+                console.log("Successfully posted ;delete' document. Removing in DOM");
+                _tabs.sendDeleteHighlightMessage(tabId, documentId);
+            } else {
+                console.log("Removed 'create' document");
+            }
 
-//        _database.postDeleteDocument(documentId, function (err, response) {
-//            if (err) {
-//                if (callback) {
-//                    callback(err);
-//                }
-//
-//                return;
-//            }
-//
-//            // check the number of 'create' and 'delete' documents. if equal, there
-//            // are no highlights for the page, so the page action can be removed
-//            chrome.tabs.get(tabId, function (tab) {
-//                var match = _database.buildMatchString(tab.url);
-//
-//                // sum of +create-delete verbs for a specific match
-//                _database.getMatchSum(match, function (err, sum) {
-//                    if (err) {
-//                        return;
-//                    }
-//
-//                    if (sum <= 0) {
-//                        chrome.pageAction.hide(tabId);
-//                    }
-//                });
-//            });
-//
-//
-//            // remove in DOM
-//            _tabs.sendDeleteHighlightMessage(tabId, documentId);
-//
-//            if (callback) {
-//                callback(null, response);
-//            }
-//        });
+            console.log("reevaluating page action visibility");
+
+            // check the number of 'create' and 'delete' documents. 
+			// if equal, there are no highlights for the page, 
+			// so the page action can be removed
+			return new Promise(function(resolve, reject) {
+				chrome.tabs.get(tabId, function (tab) {
+					resolve(tab);
+				});
+			}).then(function (tab) {
+				var match = _database.buildMatchString(tab.url);
+
+                // sum of +create-delete verbs for a specific match
+				return _database.getMatchSum_Promise(match);
+			}).then(function (sum) {
+                if (sum <= 0) {
+                    chrome.pageAction.hide(tabId);
+                }
+			}).then(function () {
+				return response;
+			});
+        });
     },
 
     /**
@@ -530,21 +492,17 @@ var _eventPage = {
      */
     deleteHighlights: function (tabId, match) {
         "use strict";
-        _database.removeDocuments(match, function (err, response) {
-            if (err) {
-                return;
-            }
-
+        return _database.removeDocuments_Promise(match).then(function (response) {
             chrome.pageAction.hide(tabId);
 
             // Response is an array containing the id and rev of each deleted document.
             // We can use id to remove highlights in the DOM (although some won't match)
-            response.forEach(function (r) {
+			response.filter(function(r) {
+				return r.ok;
+			}).forEach(function (r) {
                 // remove in DOM
-                if (r.ok) {
-                    _tabs.sendDeleteHighlightMessage(tabId, r.id);
-                }
-            });
+				_tabs.sendDeleteHighlightMessage(tabId, r.id);
+			});
         });
     },
 
@@ -620,9 +578,13 @@ var _eventPage = {
      * @param {string} documentId
      * @param {function} [responseCallback] function(boolean)
      */
-    isHighlightInDOM: function (tabId, documentId, responseCallback) {
+    isHighlightInDOM_Promise: function (tabId, documentId) {
         "use strict";
-        _tabs.sendIsHighlightInDOMMessage(tabId, documentId, responseCallback);
+        return new Promise(function(resolve, reject) {
+			_tabs.sendIsHighlightInDOMMessage(tabId, documentId, function (isInDOM) {
+				resolve(isInDOM);
+			});
+		});
     },
 
     /**

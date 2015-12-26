@@ -218,20 +218,8 @@ var _storage = {
 			});
 		},
 
-        /**
-         * Get an array of objects describing highlight styles
-         * @param {function} callback function (object), containing highlightDefinitions array, defaultHighlightStyle object
-         */
-        getAll: function (callback, options) {
-            "use strict";
-			this.getAll_Promise(options).then(function(items) {
-				callback(items);
-			});
-        },
-		
 		/**
-		 * Version of getAll() that uses promise. 
-		 * TODO: Eventually promises will replace everything with a callback
+		 *  Get an array of objects describing highlight styles
 		 */
         getAll_Promise: function (options) {
             "use strict";
@@ -293,21 +281,15 @@ var _storage = {
         /**
          * Add/update a highlight definition. If one exists with this classname it is updated, else a new entry is created
          * @param {object} newDefinition
-         * @param [callback] function(err)
          */
-        set: function (newDefinition, callback) {
+        set: function (newDefinition) {
             "use strict";
             // if we need to update an existing definition, need to search for it
-            _storage.highlightDefinitions.getAll(function (result) {
-                if (chrome.runtime.lastError) {
-                    if (callback) {
-                        callback(chrome.runtime.lastError);
-                    }
-                    return;
-                }
-
+            _storage.highlightDefinitions.getAll_Promise().then(function (result) {
                 // find the existing definition
-                var index = _storage.highlightDefinitions.getIndex(newDefinition.className, result.highlightDefinitions);
+                var index = _storage.highlightDefinitions.getIndex(
+					newDefinition.className, result.highlightDefinitions);
+
                 if (index === -1) {
                     // add as a new definition
                     result.highlightDefinitions.push(newDefinition);
@@ -317,13 +299,17 @@ var _storage = {
                 }
 
                 // replace entire array
-                chrome.storage.sync.set({
-                    highlightDefinitions: result.highlightDefinitions
-                }, function () {
-                    if (callback) {
-                        callback(chrome.runtime.lastError);
-                    }
-                });
+				return new Promise(function(resolve, reject) {
+	                chrome.storage.sync.set({
+	                    highlightDefinitions: result.highlightDefinitions
+	                }, function () {
+						if (chrome.runtime.lastError) {
+							reject(chrome.runtime.lastError);
+						} else {
+							resolve();
+						}
+	                });
+				});
             });
         },
 
@@ -331,49 +317,49 @@ var _storage = {
         /**
          * Remove a highlight definition
          * @param {string} className class name to identify definition
-         * @param {function} [callback] function(err) {...} (runtime.lastError set on failure)
          */
-        remove: function (className, callback) {
+        remove: function (className) {
             "use strict";
             // find the existing object with this class name
-            _storage.highlightDefinitions.getAll(function (result) {
-                if (chrome.runtime.lastError) {
-                    if (callback) {
-                        callback(chrome.runtime.lastError);
-                    }
-                    return;
-                }
+			return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
+                var index = _storage.highlightDefinitions.getIndex(className,
+					result.highlightDefinitions);
 
-                var index = _storage.highlightDefinitions.getIndex(className, result.highlightDefinitions);
                 if (index === -1) {
-                    if (callback) {
-                        callback({
-                            message: "Unable to find defintion with this class name"
-                        });
-                    }
-                    return;
-                }
+					return Promise.reject(new Error("Unable to find defintion with this class name"))
+               }
 
                 result.highlightDefinitions.splice(index, 1);
 
                 // replace existing array with this one
-                chrome.storage.sync.set({
-                    highlightDefinitions: result.highlightDefinitions
-                }, function () {
-                    if (callback) {
-                        callback(chrome.runtime.lastError);
-                    }
-                });
+				return new Promise(function(resolve, reject) {
+	                chrome.storage.sync.set({
+	                    highlightDefinitions: result.highlightDefinitions
+	                }, function () {
+						if (chrome.runtime.lastError) {
+							reject(chrome.runtime.lastError);
+						} else {
+							resolve();
+						}
+	                });
+				});
             });
         },
 
         /**
          * Remove every highlight style from storage
-         * @param {function} [callback] function(err): if !err, success
          */
-        removeAll: function (callback) {
+        removeAll: function () {
             "use strict";
-            chrome.storage.sync.remove(this._keyNames.sharedHighlightStyle, callback);
+			return new Promise(function(resolve, reject) {
+                chrome.storage.sync.remove(_storage.highlightDefinitions._keyNames.sharedHighlightStyle, function () {
+					if (chrome.runtime.lastError) {
+						reject(chrome.runtime.lastError);
+					} else {
+						resolve();
+					}
+                });
+			});
         },
 
         /**

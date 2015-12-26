@@ -113,7 +113,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
      * @private
      */
     function resetStylesheetHighlightStyle() {
-        _storage.highlightDefinitions.getAll(function (result) {
+        return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
             onStorageChanged({
                 sharedHighlightStyle: {
                     newValue: result.sharedHighlightStyle
@@ -127,12 +127,14 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     }
 
     $scope.onClickModalSave = function () {
+        $modal.modal('hide');
+
         // set contents of selectedDefintion into storage
         if ($scope.modalDefinition) {
-            _storage.highlightDefinitions.set($scope.modalDefinition);
+            return _storage.highlightDefinitions.set($scope.modalDefinition);
+        } else {
+        	return Promise.reject();
         }
-
-        $modal.modal('hide');
     };
 
     /**
@@ -155,11 +157,9 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
      */
     $scope.onClickReset = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
-            _storage.highlightDefinitions.removeAll();
-
-//            chrome.storage.sync.set({
-//                highlightBackgroundAlpha: 0.8
-//            });
+            return _storage.highlightDefinitions.removeAll();
+        } else {
+        	return Promise.resolve();
         }
     };
 
@@ -185,7 +185,9 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     $scope.onClickDelete = function (className) {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_style"))) {
             // delete from storage. model should update automatically
-            _storage.highlightDefinitions.remove(className);
+            return _storage.highlightDefinitions.remove(className);
+        } else {
+        	return Promise.resolve();
         }
     };
 	
@@ -256,7 +258,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 
                 if (!change.newValue) {
                     // get defaults
-                    _storage.highlightDefinitions.getAll(function (items) {
+                    _storage.highlightDefinitions.getAll_Promise().then(function (items) {
                         setDefinitions(items.highlightDefinitions);
                     });
                 } else {
@@ -281,8 +283,8 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
      * Init
      * @param {object} _backgroundPage
      */
-    function onInit(_backgroundPage){
-        backgroundPage = _backgroundPage;
+    function onInit(bp){
+        backgroundPage = bp;
 
         // get an array of each unique match, and the number of associated documents (which is of no use)
         backgroundPage._database.getMatchSums().then(function (rows) {
@@ -302,12 +304,12 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
             var match = $scope.rows[index].key;
 
-            backgroundPage._database.removeDocuments(match, function (err, result) {
-                if (!err) {
-                    $scope.rows.splice(index, 1);
-                    $scope.$apply();
-                }
+            return backgroundPage._database.removeDocuments_Promise(match).then(function(result) {
+                $scope.rows.splice(index, 1);
+                $scope.$apply();
             });
+        } else {
+        	return Promise.reject();
         }
     };
 
@@ -399,17 +401,9 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 		
 		var dumpedString = JSON.stringify(header);
 		
-		return new Promise(function(resolve, reject) {
-			_storage.highlightDefinitions.getAll(function(items) {
-				if (chrome.runtime.lastError) {
-					reject(Error(chrome.runtime.lastError.message));
-					return;
-				}				
-				resolve(items)
-			}, {
-				defaults: false
-			})
-		}).then(function(items) {
+		return _storage.highlightDefinitions.getAll_Promise({
+			defaults: false
+		}).then(function (items) {
 			// the first item is always the highlights object
 			dumpedString += '\n' + JSON.stringify(items) + '\n';
 
