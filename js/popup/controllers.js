@@ -100,8 +100,10 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	            }
 	        });
 			
-			// if the url protocol is file based, and the user hasn't been warned to enable
-			// file access for the extension, set a flag now. The view will set the warning's
+			// if the url protocol is file based, and the
+			// user hasn't been warned to enable
+			// file access for the extension, set a flag now. 
+			// The view will set the warning's
 			// visibility based on its value.
 			_storage.getFileAccessRequiredWarningDismissed_Promise().then(function(dismissed) {
 				// if its already been dismissed before, no need to check
@@ -147,9 +149,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * Clicked an existing definition
      */
     $scope.onClickStyleFilter = function (event, definition) {
-		$scope.styleFilterHighlightDefinition = definition;
+		event.stopPropagation();
 		
-		event.stopPropagation()
+		$scope.styleFilterHighlightDefinition = definition;
 		// $scope.$apply();
     };
 
@@ -160,11 +162,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @param {Object} doc document for the specific highlight
 	 */
     $scope.onClickMore = function (event, doc) {
-        // TODO: shouldn't really be in the controller...
-        $("#" + doc._id + " .highlight-text").text(doc.text);
-		
 		event.preventDefault(); 
 		event.stopPropagation()
+
+        // TODO: shouldn't really be in the controller...
+        $("#" + doc._id + " .highlight-text").text(doc.text);
     };
 
     /**
@@ -212,6 +214,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * @param {number} index index of definition in local array
      */
     $scope.onClickRedefinition = function (event, doc, index) {
+		event.stopPropagation()
+
 		// get classname of new definition
 		var newDefinition = $scope.highlightDefinitions[index];
 
@@ -220,8 +224,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			
 		// update local classname, which will update class in dom
 		doc.className = newDefinition.className;
-		
-		event.stopPropagation()
     };
 
     /**
@@ -249,7 +251,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 				// create & dispatch mouse event to hidden anchor
 				var mEvent = document.createEvent("MouseEvent");
-				mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+				mEvent.initMouseEvent("click", true, true, window,
+					0, 0, 0, 0, 0, false, false, false, false, 0, null);
 
 				a.dispatchEvent(mEvent);
 			});

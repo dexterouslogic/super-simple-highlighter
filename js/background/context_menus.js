@@ -52,7 +52,7 @@ var _contextMenus = {
         return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
             // if we're hovering over a highlight, we need the corresponding class to check the radio item
             if (_contextMenus.hoveredHighlightId) {
-                return _daiocument_Promise(_contextMenus.hoveredHighlightId).then(function (doc) {
+                return _database.getDocument_Promise(_contextMenus.hoveredHighlightId).then(function (doc) {
                     _contextMenus._recreateMenu(items.highlightDefinitions, doc);
                 });
             } else {
@@ -231,27 +231,28 @@ var _contextMenus = {
             default:
                 throw "Unhandled menu item id: " + info.menuItemId;
             }
-
-            return;
         }
 
         // default (constant ids)
         switch (info.menuItemId) {
         case "select_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.selectHighlightText(tab.id, _contextMenus.hoveredHighlightId);
+                return _eventPage.selectHighlightText(
+					tab.id, _contextMenus.hoveredHighlightId);
             }
             break;
 
         case "copy_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
+                return _eventPage.copyHighlightText(
+					_contextMenus.hoveredHighlightId);
             }
             break;
 
         case "speak_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.speakHighlightText(_contextMenus.hoveredHighlightId);
+                return _eventPage.speakHighlightText(
+					_contextMenus.hoveredHighlightId);
             }
             break;
 
@@ -265,5 +266,7 @@ var _contextMenus = {
         default:
             throw "Unhandled menu item. id=" + info.menuItemId;
         }
+		
+		return Promise.reject();
     }
 };

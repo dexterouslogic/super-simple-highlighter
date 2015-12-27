@@ -55,7 +55,7 @@ var _eventPage = {
         console.log("onRuntimeInstalled: " + JSON.stringify(details));
 
         // one time initialization
-        _database.putDesignDocuments().then(function () {
+        return _database.putDesignDocuments().then(function () {
             // error param might indicate a conflict, which is ok
 
             // delete stale views associated with design docs
@@ -105,7 +105,7 @@ var _eventPage = {
 
         // 0 indicates the navigation happens in the tab content window
         if (details.frameId !== 0) {
-            return Promise.reject();
+            return Promise.resolve();//reject();
         }
 
         // default (ok)
@@ -320,52 +320,10 @@ var _eventPage = {
                             _eventPage.updateHighlight(activeTab.id,
                                 documentId, hd.className);
                         }
+						
+						return Promise.resolve();
 					}
 				});
-								//
-				//
-				// return new Promise(function(resolve, reject) {
-				// 	                // if there is text selected, we create a new highlight
-				// 	                _tabs.sendGetSelectionRangeMessage(activeTab.id, function (xpathRange) {
-				// 		if (!xpathRange) {
-				// 			return reject(new Error());
-				// 		}
-				//
-				// 	                    // non collapsed selection means create new highlight
-				// 	                    if (!xpathRange.collapsed) {
-				// 	                        // requires selection text
-				// 	                        _tabs.sendGetRangeTextMessage(activeTab.id, xpathRange, function (selectionText) {
-				// 	                            if (!selectionText) {
-				// 					return reject(new Error());
-				// 				}
-				//
-				// 	                            // create new document for highlight, then update DOM
-				// 	                            _eventPage.createHighlight(activeTab.id,
-				// 	                                xpathRange, _database.buildMatchString(activeTab.url),
-				// 	                                selectionText, hd.className);
-				//
-				// 	                            // remove selection?
-				// 	                            _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
-				// 	                                if (unselectAfterHighlight) {
-				// 	                                    // unselect all
-				// 	                                    _eventPage.selectHighlightText(activeTab.id);
-				// 	                                }
-				//
-				// 					return resolve();
-				// 	                            });
-				// 	                        });
-				// 	                    } else {
-				// 	                        // collapsed selection range means update the hovered highlight (if possible)
-				// 	                        var documentId = _contextMenus.getHoveredHighlightId();
-				// 	                        if (documentId) {
-				// 	                            _eventPage.updateHighlight(activeTab.id,
-				// 	                                documentId, hd.className);
-				// 	                        }
-				//
-				// 			return resolve();
-				// 	                    }
-				//                 	});
-				// });
 			});
 		}	// end switch
     },
@@ -381,8 +339,7 @@ var _eventPage = {
     createHighlight: function (tabId, xpathRange, match, selectionText, className) {
         "use strict";
         if (xpathRange.collapsed) {
-            console.log("Ignoring collapsed range");
-            return Promise.reject();
+            return Promise.reject(new Error("Ignoring collapsed range"));
         }
 
         // not being collapsed is implicit
@@ -398,6 +355,7 @@ var _eventPage = {
                         if (is_created) {
                             // (re) show page action on success
                             chrome.pageAction.show(tabId);
+							return Promise.resolve();
                         } else {
                             console.log("Error creating highlight in DOM - Removing associated document");
 
@@ -433,8 +391,7 @@ var _eventPage = {
             return _tabs.sendUpdateHighlightMessage_Promise(tabId, documentId, className)
 		}).then(function (is_updated) {
             if (!is_updated) {
-                console.log("Error updating highlight in DOM");
-				return Promise.reject();
+				return Promise.reject(new Error("Error updating highlight in DOM"));
             }
         });
     },
@@ -448,17 +405,20 @@ var _eventPage = {
         "use strict";
 		var inDOM;
 		
-        // if the highlight isn't in the DOM, then deleting the 'create' document can be done directly,
+        // if the highlight isn't in the DOM, then deleting
+		// the 'create' document can be done directly,
         // as create never had any effect
         return _eventPage.isHighlightInDOM(tabId, documentId).then(function (result) {
 			inDOM = result;
 
-            // check the number of 'create' and 'delete' documents. if equal, there
-            // are no highlights for the page, so the page action can be removed
+            // check the number of 'create' and 'delete' documents.
+			// if equal, there are no highlights for the page,
+			// so the page action can be removed
             if (inDOM) {
                 console.log("Highlight IS in DOM. Posting 'delete' doc");
 
-                // highlight was in DOM, so we post an additional 'delete' document
+                // highlight was in DOM, so we post an 
+				// additional 'delete' document
                 return _database.postDeleteDocument_Promise(documentId);//, _resultCallback);
             } else {
                 // remove directly
@@ -520,8 +480,10 @@ var _eventPage = {
         return _database.removeDocuments_Promise(match).then(function (response) {
             chrome.pageAction.hide(tabId);
 
-            // Response is an array containing the id and rev of each deleted document.
-            // We can use id to remove highlights in the DOM (although some won't match)
+            // Response is an array containing the id and 
+			// rev of each deleted document.
+            // We can use id to remove highlights in 
+			// the DOM (although some won't match)
 			response.filter(function(r) {
 				return r.ok;
 			}).forEach(function (r) {
@@ -592,12 +554,12 @@ var _eventPage = {
      */
     speakHighlightText: function (documentId, options) {
         "use strict";
-        _database.getDocument_Promise(documentId).then(function (doc) {
+        return _database.getDocument_Promise(documentId).then(function (doc) {
             if (doc.text) {
                 // workaround for Google Deutsch becoming the default voice, for some reason
                 chrome.tts.speak(doc.text, {
-                    lang: navigator.language}
-                )
+                    lang: navigator.language
+				})
             }
         });
     },

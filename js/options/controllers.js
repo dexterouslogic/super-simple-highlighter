@@ -292,7 +292,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         backgroundPage = bp;
 
         // get an array of each unique match, and the number of associated documents (which is of no use)
-        backgroundPage._database.getMatchSums_Promise().then(function (rows) {
+        return backgroundPage._database.getMatchSums_Promise().then(function (rows) {
             $scope.rows = rows.filter (function (row) {
                 return row.value > 0;
             });
@@ -324,10 +324,12 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     $scope.onClickRemoveAllPages = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
             // destroy and re-create the database
-            backgroundPage._database.reset().then(function() {
+            return backgroundPage._database.reset().then(function() {
                 $scope.rows = [];
                 $scope.$apply();
             });
+        } else {
+        	return Promise.reject();
         }
     };
 	

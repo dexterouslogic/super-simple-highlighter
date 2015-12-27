@@ -179,8 +179,8 @@ var _database = {
             text: text
         };
 
-        var options = {};
-        return _database.getDatabase().put(doc, options);
+        // var options = {};
+        return _database.getDatabase().put(doc);
     },
 
     /**
@@ -204,8 +204,8 @@ var _database = {
                 correspondingDocumentId: documentId
             };
 
-            var options = {};
-            return _database.getDatabase().post(doc, options);
+            // var options = {};
+            return _database.getDatabase().post(doc);
         });
     },
 
@@ -220,20 +220,25 @@ var _database = {
         return _database.getDocument_Promise(documentId).then(function (doc) {
             // can only update 'create' documents
             if (doc.verb !== 'create') {
-				return Promise.reject(new Error('Attempted to update document with unhandled verb: ' + doc.verb));
+				return Promise.reject(
+					new Error('Attempted to update document with unhandled verb: ' + doc.verb));
             }
 
             // don't update if the class name is already the same
             if (doc.className === className) {
                 // no change
-				return Promise.resolve(doc);
+				return Promise.resolve({
+					'ok': true,
+					'id': doc._id,
+					'rev': doc._rev
+				});
             }
 
             // update the property of the document
             doc.className = className;
 
-            var options = {};
-            return _database.getDatabase().put(doc, options);
+            // var options = {};
+            return _database.getDatabase().put(doc);
         });
     },
 
@@ -244,8 +249,8 @@ var _database = {
 	*/
     getDocument_Promise: function (documentId) {
         "use strict";
-        var options = {};
-        return _database.getDatabase().get(documentId, options);
+        // var options = {};
+        return _database.getDatabase().get(documentId);
     },
 	
 
@@ -278,8 +283,8 @@ var _database = {
      */    
     removeDocument_Promise: function (docId, docRev) {
         "use strict";
-        var options = {};
-        return _database.getDatabase().remove(docId, docRev, options);
+        // var options = {};
+        return _database.getDatabase().remove(docId, docRev);
     },
 
     /**

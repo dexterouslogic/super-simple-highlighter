@@ -329,9 +329,13 @@ var _storage = {
 	            };
 			}
 				
-			return new Promise(function (resolve) {
+			return new Promise(function (resolve, reject) {
 				chrome.storage.sync.get(keys, function(items) {
-					resolve(items);
+					if (chrome.runtime.lastError) {
+						reject(chrome.runtime.lastError);
+					} else {
+						resolve(items);
+					} 
 				});
 			});
         },
@@ -343,7 +347,7 @@ var _storage = {
         set_Promise: function (newDefinition) {
             "use strict";
             // if we need to update an existing definition, need to search for it
-            _storage.highlightDefinitions.getAll_Promise().then(function (result) {
+            return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
                 // find the existing definition
                 var index = _storage.highlightDefinitions.getIndex(
 					newDefinition.className, result.highlightDefinitions);

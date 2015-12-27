@@ -65,35 +65,6 @@ var _tabs = {
      * @param {bool} [allFrames] if true inject into all frames. if false, just the top frame (default false)
      * @param {function} [callback]
      */
-    // executeAllScripts: function (tabId, allFrames, callback) {
-    //     "use strict";
-    //     if (allFrames ===  undefined || allFrames === null) {
-    //         allFrames = false;
-    //     }
-    //
-    //     var injectDetailsArray = [];
-    //
-    //     // build the array supplied to executeScripts()
-    //     [
-    //         "static/js/jquery-2.1.3.min.js",
-    //         "static/js/jquery.stylesheet.min.js",
-    //         "js/storage.js",
-    //         "js/string_utils.js",
-    //         "js/stylesheet.js",
-    //         "js/content_script/xpath.js",
-    //         "js/content_script/highlighter.js",
-    //         "js/content_script/content_script.js"
-    //     ].forEach(function (file) {
-    //             injectDetailsArray.push({
-    //             file: file,
-    //             allFrames: allFrames
-    //         });
-    //     });
-    //
-    //     // inject scripts serially
-    //     _tabs.executeScripts(tabId, injectDetailsArray, callback);
-    // },
-	
 	executeAllScripts_Promise: function (tabId, allFrames) {
         "use strict";
         if (allFrames ===  undefined || allFrames === null) {
@@ -127,54 +98,37 @@ var _tabs = {
 		});
 	},
 
-    /**
-     * SendMessage helper which, on receiving an undefined response, injects all scripts and tries again
-     * @param tabId
-     * @param message
-     * @param responseCallback
-     * @private
-     */
-    // sendMessage: function (tabId, message, responseCallback) {
-    //     "use strict";
-    //     chrome.tabs.sendMessage(tabId, message, function (response) {
-    //         // it is possible that the script hasn't yet been injected, so check the response for a undefined param
-    //         if (response === undefined) {
-    //             console.log("sendMessage() response undefined. Executing scripts, then retrying...");
-    //
-    //             // inject scripts into top level frames, then send message again
-    //             _tabs.executeAllScripts(tabId, false, function () {
-    //                 // send again
-    //                 chrome.tabs.sendMessage(tabId, message, responseCallback);
-    //             });
-    //         } else if (responseCallback) {
-    //             // pass to original handler
-    //             responseCallback(response);
-    //         }
-    //     });
-    // },
-    //
     sendMessage_Promise: function (tabId, message) {
         "use strict";
 		return new Promise(function (resolve, reject) {
 			chrome.tabs.sendMessage(tabId, message, function (response) {
-	            // it is possible that the script hasn't yet been injected, so check the response for a undefined param
-	            if (response === undefined) {
-	                console.log("sendMessage() response undefined. Executing scripts, then retrying...");
-
-	                // inject scripts into top level frames, then send message again
-	                return _tabs.executeAllScripts_Promise(tabId, false).then(function () {
-	                    // send again
-						return new Promise(function (resolve, reject) {
-							chrome.tabs.sendMessage(tabId, message, function (response) {
-								// response may still be undefined, but legal
-								return resolve(response);
-							});
-						});
+				// it is possible that the script hasn't yet been injected,
+				// so check the response for a undefined param
+	            if (response !== undefined) {
+	                // ok - pass to original handler
+	            	resolve(response);	
+				} else {
+					// probably scripts not yet executed
+					reject();
+				}
+			});
+		}).catch(function () {
+            console.log("sendMessage() response undefined. Executing scripts, then retrying...");
+			
+            // inject scripts into top level frames, then send message again
+            return _tabs.executeAllScripts_Promise(tabId, false).then(function () {
+                // send again
+				return new Promise(function (resolve, reject) {
+					chrome.tabs.sendMessage(tabId, message, function (response) {
+						if (response === undefined && chrome.runtime.lastError) {
+							reject(chrome.runtime.lastError);
+						}  else {
+							// response may still be undefined, but legal
+							resolve(response);
+						}
+						// return resolve(response);
 					});
-	            } else {
-	                // pass to original handler
-	            	return resolve(response);
-	            }
+				});
 			});
 		});
     },

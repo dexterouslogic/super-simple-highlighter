@@ -1,3 +1,7 @@
+3.8.1
+-----
+Internal restructuring
+
 3.8
 ---
 Reformat highlight overview page
