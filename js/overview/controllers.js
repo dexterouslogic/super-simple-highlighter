@@ -77,7 +77,7 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
             if (!isNaN(tabId)) {
                 docs.forEach(function (doc) {
                     // default to undefined, implying it IS in the DOM
-                    backgroundPage._eventPage.isHighlightInDOM_Promise(tabId, doc._id).then(function (isInDOM) {
+                    backgroundPage._eventPage.isHighlightInDOM(tabId, doc._id).then(function (isInDOM) {
                         doc.isInDOM = isInDOM;
 
                         $scope.$apply();
@@ -106,7 +106,7 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 	 */	
 	$scope.onClickHighlight = function(doc) {
 		// if scrolling to the element is successful, only then we can make the tab active
-        backgroundPage._eventPage.scrollTo($scope.tabId, doc._id, function(didScroll) {
+        return backgroundPage._eventPage.scrollTo($scope.tabId, doc._id).then(function(didScroll) {
         	if (didScroll) {
 				// make it the active tab
 				chrome.tabs.update($scope.tabId, {

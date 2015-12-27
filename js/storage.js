@@ -25,11 +25,19 @@ var _storage = {
      * @param {function} callback standard storage setter callback
 	 * @type function
 	 */
-	setFileAccessRequiredWarningDismissed: function(fileAccessRequiredWarningDismissed, callback) {
+	setFileAccessRequiredWarningDismissed_Promise: function(dismissed) {
 		"use strict";
-        chrome.storage.sync.set({
-            fileAccessRequiredWarningDismissed: fileAccessRequiredWarningDismissed
-        }, callback);
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.set({
+	            fileAccessRequiredWarningDismissed: dismissed
+	        }, function () {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve();
+	        	}
+	        });
+		});
 	},
 	
 	/**
@@ -37,15 +45,19 @@ var _storage = {
 	 * @param {function} callback function(fileAccessRequiredWarningDismissed)
 	 * @type function
 	 */
-	getFileAccessRequiredWarningDismissed: function (callback) {
+	getFileAccessRequiredWarningDismissed_Promise: function () {
         "use strict";
-        chrome.storage.sync.get({
-            fileAccessRequiredWarningDismissed: false
-        }, function (items) {
-			if (callback) {
-				callback (items.fileAccessRequiredWarningDismissed);
-			}
-        });
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.get({
+	            fileAccessRequiredWarningDismissed: false
+	        }, function (items) {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve(items.fileAccessRequiredWarningDismissed);
+	        	}
+	        });
+		});
 	},
 	
     /**
@@ -53,39 +65,57 @@ var _storage = {
      * @param {bool} unselectAfterHighlight
      * @param {function} [callback] Callback on success, or on failure (in which case runtime.lastError will be set).
      */
-    setUnselectAfterHighlight: function (unselectAfterHighlight, callback) {
+    setUnselectAfterHighlight_Promise: function (unselectAfterHighlight) {
         "use strict";
-        chrome.storage.sync.set({
-            unselectAfterHighlight: unselectAfterHighlight
-        }, callback);
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.set({
+	            unselectAfterHighlight: unselectAfterHighlight
+	        }, function () {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve();
+	        	}
+	        });
+		});
     },
 
     /**
      * Getter for unselect setting
      * @param {function} callback function(unselectAfterHighlight)
      */
-    getUnselectAfterHighlight: function (callback) {
+    getUnselectAfterHighlight_Promise: function () {
         "use strict";
-        chrome.storage.sync.get({
-            unselectAfterHighlight: false
-        }, function (items) {
-			if (callback) {
-				callback (items.unselectAfterHighlight);
-			}
-        });
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.get({
+	            unselectAfterHighlight: false
+	        }, function (items) {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve(items.unselectAfterHighlight);
+	        	}
+	        });
+		});
     },
 
     /**
      * Getter for max number of characters a highlight's text can show in popup before ellipsis/more link shows
      * @param {function} callback function(max)
      */
-    getPopupHighlightTextMaxLength: function (callback) {
+    getPopupHighlightTextMaxLength_Promise: function () {
         "use strict";
-        chrome.storage.sync.get({
-            popupHighlightTextMaxLength: 512
-        }, function (items) {
-            callback (items.popupHighlightTextMaxLength);
-        });
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.get({
+	            popupHighlightTextMaxLength: 512
+	        }, function (items) {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve(items.popupHighlightTextMaxLength);
+	        	}
+	        });
+		});
     },
 
     /**
@@ -93,11 +123,19 @@ var _storage = {
      * @param {number} alpha
      * @param {function} callback Callback on success, or on failure (in which case runtime.lastError will be set).
      */
-    setHighlightBackgroundAlpha: function (alpha, callback) {
+    setHighlightBackgroundAlpha_Promise: function (alpha) {
         "use strict";
-        chrome.storage.sync.set({
-            highlightBackgroundAlpha: alpha
-        }, callback);
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.set({
+	            highlightBackgroundAlpha: alpha
+	        }, function () {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve();
+	        	}
+	        });
+		});
     },
 
     /**
@@ -105,29 +143,49 @@ var _storage = {
      * @param {function} callback function(alpha) (on error, alpha is undefined. call chrome.runtime.getLastError).
      *  Alpha is in range 0..1
      */
-    getHighlightBackgroundAlpha: function (callback) {
+    getHighlightBackgroundAlpha_Promise: function () {
         "use strict";
-        chrome.storage.sync.get({
-            highlightBackgroundAlpha: 0.8
-        }, function (items) {
-            callback (items.highlightBackgroundAlpha);
-        });
+		return new Promise(function (resolve, reject) {
+			chrome.storage.sync.get({
+	            highlightBackgroundAlpha: 0.8
+	        }, function (items) {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve(items.highlightBackgroundAlpha);
+	        	}
+	        });
+		});
     },
 	
-	setEnableHighlightBoxShadow: function (enableHighlightBoxShadow, callback) {
+	setEnableHighlightBoxShadow_Promise: function (enableHighlightBoxShadow) {
         "use strict";
-        chrome.storage.sync.set({
-            "enableHighlightBoxShadow": enableHighlightBoxShadow
-        }, callback);
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.set({
+	            "enableHighlightBoxShadow": enableHighlightBoxShadow
+	        }, function () {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve();
+	        	}
+	        });
+		});			
 	},
 
-	isHighlightBoxShadowEnabled: function (callback) {
+	isHighlightBoxShadowEnabled_Promise: function () {
         "use strict";
-        chrome.storage.sync.get({
-            "enableHighlightBoxShadow": true,
-        }, function (items) {
-            callback (items.enableHighlightBoxShadow);
-        });
+		return new Promise(function (resolve, reject) {
+	        chrome.storage.sync.get({
+	            "enableHighlightBoxShadow": true,
+	        }, function (items) {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve(items.enableHighlightBoxShadow);
+	        	}
+	        });
+		})
 	},
 
     /**
@@ -180,7 +238,7 @@ var _storage = {
             };
         },
 
-		setAll: function(items, callback) {
+		setAll_Promise: function(items) {
 			var setKeys = {};
 			var removeKeys = [];
 			
@@ -282,7 +340,7 @@ var _storage = {
          * Add/update a highlight definition. If one exists with this classname it is updated, else a new entry is created
          * @param {object} newDefinition
          */
-        set: function (newDefinition) {
+        set_Promise: function (newDefinition) {
             "use strict";
             // if we need to update an existing definition, need to search for it
             _storage.highlightDefinitions.getAll_Promise().then(function (result) {
@@ -318,7 +376,7 @@ var _storage = {
          * Remove a highlight definition
          * @param {string} className class name to identify definition
          */
-        remove: function (className) {
+        remove_Promise: function (className) {
             "use strict";
             // find the existing object with this class name
 			return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
@@ -349,7 +407,7 @@ var _storage = {
         /**
          * Remove every highlight style from storage
          */
-        removeAll: function () {
+        removeAll_Promise: function () {
             "use strict";
 			return new Promise(function(resolve, reject) {
                 chrome.storage.sync.remove(_storage.highlightDefinitions._keyNames.sharedHighlightStyle, function () {

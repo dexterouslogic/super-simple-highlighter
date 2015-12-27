@@ -48,8 +48,10 @@ var _stylesheet = {
         var match = re.exec(backgroundColor);
 
         if (match && match.length >= 4) {
-            _storage.getHighlightBackgroundAlpha(function(alpha){
-                if (alpha === undefined) { return; }
+            _storage.getHighlightBackgroundAlpha_Promise().then(function(alpha){
+                if (alpha === undefined) { 
+					return;
+				}
 
                 style["background-color"] = "rgba(" +
                     parseInt(match[1], 16) + ", " +

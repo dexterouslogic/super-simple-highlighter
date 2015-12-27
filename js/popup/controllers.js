@@ -52,6 +52,33 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		return doc.className === $scope.styleFilterHighlightDefinition.className;
 	};
 
+	var utf8_to_b64 = function(str) {
+	    return window.btoa(unescape(encodeURIComponent(str)));
+	};
+
+    /**
+     * Clear and fill the 'docs' model
+     * @param {function} [callback] function(err, docs)
+     * @private
+     */
+    var updateDocs = function () {
+        // get all the documents (create & delete) associated with the match, then filter the deleted ones
+        return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
+            $scope.docs = docs;
+            $scope.$apply();
+
+            // if the highlight cant be found in DOM, flag that
+            docs.forEach(function (doc) {
+                // default to undefined, implying it IS in the DOM
+                backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
+                    doc.isInDOM = isInDOM;
+                    $scope.$apply();
+                });
+            });
+			
+			return docs;
+        });
+    };
 	
 //    $scope.docs = [];
 //    $scope.match = "hello";
@@ -67,7 +94,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	        backgroundPage = bgPage;
 
 			// initialize controller variables
-	        _storage.getPopupHighlightTextMaxLength(function (max) {
+	        _storage.getPopupHighlightTextMaxLength_Promise().then(function (max) {
 	            if (max) {
 	                $scope.popupHighlightTextMaxLength = max;
 	            }
@@ -76,7 +103,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			// if the url protocol is file based, and the user hasn't been warned to enable
 			// file access for the extension, set a flag now. The view will set the warning's
 			// visibility based on its value.
-			_storage.getFileAccessRequiredWarningDismissed(function(dismissed) {
+			_storage.getFileAccessRequiredWarningDismissed_Promise().then(function(dismissed) {
 				// if its already been dismissed before, no need to check
 				if (!dismissed) {
 					// it not being a file protocol url is the same as invisible (dismissed)
@@ -89,10 +116,12 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			
 			// listener for variable change. syncs value to storage
             $scope.$watch('fileAccessRequiredWarningVisible', function (newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    console.log(newVal);
-                    _storage.setFileAccessRequiredWarningDismissed(!newVal);
-                }
+                if (newVal === oldVal) {
+					return;
+				}
+				
+                console.log(newVal);
+                _storage.setFileAccessRequiredWarningDismissed_Promise(!newVal);
             });			
 			
 			// $scope.$apply();
@@ -143,9 +172,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * @param {object} doc
      */
     $scope.onClickHighlight = function (doc) {
-        if (doc.isInDOM) {
-            backgroundPage._eventPage.scrollTo(activeTab.id, doc._id);
-        }
+        if (!doc.isInDOM) {
+			return Promise.reject();
+		}
+		
+		return backgroundPage._eventPage.scrollTo(activeTab.id, doc._id);
     };
 
     /**
@@ -205,10 +236,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 "title=" + encodeURIComponent($scope.title)
         });
     };
-	
-	var utf8_to_b64 = function(str) {
-	    return window.btoa(unescape(encodeURIComponent(str)));
-	};
 	
 	$scope.onClickSaveOverview = function (docs) {
 		// format all highlights as a markdown document
@@ -297,27 +324,4 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		$scope.fileAccessRequiredWarningVisible = false;
 	};
 
-    /**
-     * Clear and fill the 'docs' model
-     * @param {function} [callback] function(err, docs)
-     * @private
-     */
-    var updateDocs = function () {
-        // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
-            $scope.docs = docs;
-            $scope.$apply();
-
-            // if the highlight cant be found in DOM, flag that
-            docs.forEach(function (doc) {
-                // default to undefined, implying it IS in the DOM
-                backgroundPage._eventPage.isHighlightInDOM_Promise(activeTab.id, doc._id).then(function (isInDOM) {
-                    doc.isInDOM = isInDOM;
-                    $scope.$apply();
-                });
-            });
-			
-			return docs;
-        });
-    };
 }]);

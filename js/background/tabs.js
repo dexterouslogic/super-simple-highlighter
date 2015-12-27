@@ -65,34 +65,34 @@ var _tabs = {
      * @param {bool} [allFrames] if true inject into all frames. if false, just the top frame (default false)
      * @param {function} [callback]
      */
-    executeAllScripts: function (tabId, allFrames, callback) {
-        "use strict";
-        if (allFrames ===  undefined || allFrames === null) {
-            allFrames = false;
-        }
-
-        var injectDetailsArray = [];
-
-        // build the array supplied to executeScripts()
-        [
-            "static/js/jquery-2.1.3.min.js",
-            "static/js/jquery.stylesheet.min.js",
-            "js/storage.js",
-            "js/string_utils.js",
-            "js/stylesheet.js",
-            "js/content_script/xpath.js",
-            "js/content_script/highlighter.js",
-            "js/content_script/content_script.js"
-        ].forEach(function (file) {
-                injectDetailsArray.push({
-                file: file,
-                allFrames: allFrames
-            });
-        });
-
-        // inject scripts serially
-        _tabs.executeScripts(tabId, injectDetailsArray, callback);
-    },
+    // executeAllScripts: function (tabId, allFrames, callback) {
+    //     "use strict";
+    //     if (allFrames ===  undefined || allFrames === null) {
+    //         allFrames = false;
+    //     }
+    //
+    //     var injectDetailsArray = [];
+    //
+    //     // build the array supplied to executeScripts()
+    //     [
+    //         "static/js/jquery-2.1.3.min.js",
+    //         "static/js/jquery.stylesheet.min.js",
+    //         "js/storage.js",
+    //         "js/string_utils.js",
+    //         "js/stylesheet.js",
+    //         "js/content_script/xpath.js",
+    //         "js/content_script/highlighter.js",
+    //         "js/content_script/content_script.js"
+    //     ].forEach(function (file) {
+    //             injectDetailsArray.push({
+    //             file: file,
+    //             allFrames: allFrames
+    //         });
+    //     });
+    //
+    //     // inject scripts serially
+    //     _tabs.executeScripts(tabId, injectDetailsArray, callback);
+    // },
 	
 	executeAllScripts_Promise: function (tabId, allFrames) {
         "use strict";
@@ -134,25 +134,25 @@ var _tabs = {
      * @param responseCallback
      * @private
      */
-    sendMessage: function (tabId, message, responseCallback) {
-        "use strict";
-        chrome.tabs.sendMessage(tabId, message, function (response) {
-            // it is possible that the script hasn't yet been injected, so check the response for a undefined param
-            if (response === undefined) {
-                console.log("sendMessage() response undefined. Executing scripts, then retrying...");
-
-                // inject scripts into top level frames, then send message again
-                _tabs.executeAllScripts(tabId, false, function () {
-                    // send again
-                    chrome.tabs.sendMessage(tabId, message, responseCallback);
-                });
-            } else if (responseCallback) {
-                // pass to original handler
-                responseCallback(response);
-            }
-        });
-    },
-	
+    // sendMessage: function (tabId, message, responseCallback) {
+    //     "use strict";
+    //     chrome.tabs.sendMessage(tabId, message, function (response) {
+    //         // it is possible that the script hasn't yet been injected, so check the response for a undefined param
+    //         if (response === undefined) {
+    //             console.log("sendMessage() response undefined. Executing scripts, then retrying...");
+    //
+    //             // inject scripts into top level frames, then send message again
+    //             _tabs.executeAllScripts(tabId, false, function () {
+    //                 // send again
+    //                 chrome.tabs.sendMessage(tabId, message, responseCallback);
+    //             });
+    //         } else if (responseCallback) {
+    //             // pass to original handler
+    //             responseCallback(response);
+    //         }
+    //     });
+    // },
+    //
     sendMessage_Promise: function (tabId, message) {
         "use strict";
 		return new Promise(function (resolve, reject) {
@@ -187,18 +187,6 @@ var _tabs = {
      * @param {string} documentId
      * @param [responseCallback]
      */
-    sendCreateHighlightMessage: function (tabId,
-                                          range, className, documentId,
-                                          responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "create_highlight",
-            range: range,
-            highlightId: documentId,
-            className: className
-        }, responseCallback);
-    },
-
     sendCreateHighlightMessage_Promise: function (
 		tabId, range, className, documentId) {
         "use strict";
@@ -217,15 +205,6 @@ var _tabs = {
      * @param className new class name
      * @param [responseCallback] function(is_updated)
      */
-    sendUpdateHighlightMessage: function (tabId, documentId, className, responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "update_highlight",
-            highlightId: documentId,
-            className: className
-        }, responseCallback);
-    },
-	
 	sendUpdateHighlightMessage_Promise: function (tabId, documentId, className) {
         "use strict";
         return _tabs.sendMessage_Promise(tabId, {
@@ -241,14 +220,6 @@ var _tabs = {
      * @param documentId
      * @param [responseCallback] function(is_deleted)
      */
-    sendDeleteHighlightMessage: function (tabId, documentId, responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "delete_highlight",
-            highlightId: documentId
-        }, responseCallback);
-    },
-	
     sendDeleteHighlightMessage_Promise: function (tabId, documentId) {
         "use strict";
         return _tabs.sendMessage_Promise(tabId, {
@@ -263,13 +234,6 @@ var _tabs = {
      * @param {number} tabId
      * @param [responseCallback]
      */
-    sendGetSelectionRangeMessage: function (tabId, responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "get_selection_range"
-        }, responseCallback);
-    },
-	
     sendGetSelectionRangeMessage_Promise: function (tabId) {
         "use strict";
         return _tabs.sendMessage_Promise(tabId, {
@@ -283,14 +247,6 @@ var _tabs = {
      * @param {object} xpathRange
      * @param {function} [responseCallback] function(text)
      */
-    sendGetRangeTextMessage: function (tabId, xpathRange, responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "get_range_text",
-            range: xpathRange
-        }, responseCallback);
-    },
-	
     sendGetRangeTextMessage_Promise: function (tabId, xpathRange) {
         "use strict";
         return _tabs.sendMessage_Promise(tabId, {
@@ -304,21 +260,7 @@ var _tabs = {
      * @param {number} tabId
      * @param {string} [documentId] if undefined, remove selection
      * @param {function} [responseCallback] function(xpathRange)
-     */
-    sendSelectHighlightTextMessage: function (tabId, documentId, responseCallback) {
-        "use strict";
-        var message = {
-            id: "select_highlight"
-        };
-
-        // optional id of highlight. if null/undefined, removes selection
-        if (documentId) {
-            message.highlightId = documentId;
-        }
-
-        _tabs.sendMessage(tabId, message, responseCallback);
-    },
-	
+     */	
     sendSelectHighlightTextMessage_Promise: function (tabId, documentId) {
         "use strict";
         var message = {
@@ -339,14 +281,6 @@ var _tabs = {
      * @param {string} documentId 'create' document id
      * @param {function} [responseCallback] function(boolean)
      */
-    sendIsHighlightInDOMMessage: function (tabId, documentId, responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "is_highlight_in_dom",
-            highlightId: documentId
-        }, responseCallback);
-    },
-
     sendIsHighlightInDOMMessage_Promise: function (tabId, documentId) {
         "use strict";
         return _tabs.sendMessage_Promise(tabId, {
@@ -361,14 +295,6 @@ var _tabs = {
      * @param {string} documentId
      * @param {function} [responseCallback]
      */
-    sendScrollToMessage: function (tabId, documentId, responseCallback) {
-        "use strict";
-        _tabs.sendMessage(tabId, {
-            id: "scroll_to",
-            fragment: documentId
-        }, responseCallback);
-    },
-
     sendScrollToMessage_Promise: function (tabId, documentId) {
         "use strict";
         return _tabs.sendMessage_Promise(tabId, {
@@ -385,44 +311,6 @@ var _tabs = {
      *  it can't create highlight for this doc
      * @return {number} sum of create/delete documents, where create is +1, delete is -1. If zero, no highlights!
      */
-    replayDocuments: function (tabId, docs, errorCallback) {
-        // final callback after all scripts injected
-        // send each transaction to the content script as a message
-        "use strict";
-        var sum = 0;
-
-        docs.forEach(function (doc) {
-            switch (doc.verb) {
-            case "create":
-                sum++;
-
-                // re-use document id as span element's id
-                _tabs.sendCreateHighlightMessage(tabId, doc.range, doc.className, doc._id, function (response) {
-                    if (errorCallback && response !== true) {
-                        errorCallback(doc);
-                    }
-                });
-                break;
-
-            case "delete":
-                sum--;
-
-                _tabs.sendDeleteHighlightMessage(tabId, doc.correspondingDocumentId, function (response) {
-                    if (errorCallback && response !== true) {
-                        errorCallback(doc);
-                    }
-                });
-                break;
-
-            default:
-                console.log("unhandled verb: " + doc.verb);
-                break;
-            }
-        });
-
-        return sum;
-    },
-	
     replayDocuments_Promise: function (tabId, docs, errorCallback) {
         // final callback after all scripts injected
         // send each transaction to the content script as a message
@@ -445,7 +333,7 @@ var _tabs = {
             case "delete":
                 sum--;
 
-                return _tabs.sendDeleteHighlightMessage_Promse(tabId, doc.correspondingDocumentId)
+                return _tabs.sendDeleteHighlightMessage_Promise(tabId, doc.correspondingDocumentId)
 					.then(function (response) {
 	                    if (response !== true && errorCallback) {
 	                        errorCallback(doc);

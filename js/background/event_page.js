@@ -60,10 +60,11 @@ var _eventPage = {
 
             // delete stale views associated with design docs
             console.log("Cleaning stale views associated with design docs");
-            _database.viewCleanup();
-        });
 
-        _contextMenus.recreateMenu();
+            return _database.viewCleanup_Promise();
+        }).then(function () {
+	        _contextMenus.recreateMenu();        	
+        });
 
 //        _eventPage.onRuntimeStartup();
     },
@@ -80,38 +81,17 @@ var _eventPage = {
         _contextMenus.recreateMenu();
 		
         // remove entries in which the number of 'create' doc == number of 'delete' docs
-		_database.getMatchSums().then(function (rows) {
-			var promises = rows.filter(function(row) {
+		return _database.getMatchSums_Promise().then(function (rows) {
+			return Promise.all(rows.filter(function(row) {
 				return row.value === 0;
 			}).map(function(row) {
 				return _database.removeDocuments_Promise(row.key);
-			});
-			
-			return Promise.all(promises);
+			}));
 		}).then(function() {
 			_database.compact()
 		}).then(function() {
             console.log("Compacted database");
 		});
-					//
-			//         _database.getMatchSums(function (err, rows) {
-			// // TODO: Rewrite the whole extension using promises
-			//             _database.compact().then(function() {
-			// 	            console.log("Compacted database");
-			//
-			// 	            if (rows) {
-			// 	                rows.forEach(function (row) {
-			// 	                    // if the aggregate count of documents for this match is 0, remove all of them
-			// 	                    if (row.value === 0) {
-			// 	                        console.log("Removing stale matches for '" + row.key + "'");
-			// 	                        _database.removeDocuments(row.key);
-			// 	                    }
-			// 	                });
-			// 	            }
-			//             });
-			//         });
-			//
-			//         _contextMenus.recreateMenu();
     },
 
     /**
@@ -125,7 +105,7 @@ var _eventPage = {
 
         // 0 indicates the navigation happens in the tab content window
         if (details.frameId !== 0) {
-            return;
+            return Promise.reject();
         }
 
         // default (ok)
@@ -141,41 +121,42 @@ var _eventPage = {
         // get all the documents with our desired highlight key, in increasing order
         // query for all documents with this key
         var match = _database.buildMatchString(details.url);
+		var docs;
 
-        _database.getDocuments(match, function (err, docs) {
-            if (err) {
-                return;
-            }
-
+		return _database.getDocuments_Promise(match).then(function (d) {
+			docs = d;
+			
             // configure and show page action
             console.log("Matched " + docs.length + " document(s) with '" + match + "'");
             if (docs.length === 0) {
                 return;
             }
+			
+			console.log("Injecting scripts into top level frames...");
+			
+			return _tabs.executeAllScripts_Promise(details.tabId, false);
+		}).then(function () {
+			console.log("Replaying documents into DOM");
+			
+            return _tabs.replayDocuments_Promise(details.tabId, docs, function (errorDoc) {
+                // method only called if there's an error. called multiple times
+                console.log("Error in '" + errorDoc.verb + 
+					"' highlight in DOM for " +
+					 JSON.stringify(errorDoc.range) );
 
-            console.log("Injecting scripts into top level frames...");
-
-            _tabs.executeAllScripts(details.tabId, false, function () {
-                console.log("Replaying documents into DOM");
-
-                var sum = _tabs.replayDocuments(details.tabId, docs, function (doc) {
-                    // method only called if there's an error. called multiple times
-                    console.log("Error in '" + doc.verb + "' highlight in DOM for " + JSON.stringify(doc.range) );
-
-                    // update page action
-                    if (doc.verb === "create") {
-                        _eventPage.setPageActionStatus(details.tabId, true);
-                    }
-                });
-
-                console.log("Create/Delete document sum is " + sum);
-
-                if (sum > 0) {
-                    console.log("Showing page action");
-                    chrome.pageAction.show(details.tabId);
+                // update page action
+                if (errorDoc.verb === "create") {
+                    _eventPage.setPageActionStatus(details.tabId, true);
                 }
             });
-        });
+		}).then(function (sum) {
+            console.log("Create/Delete document sum is " + sum);
+
+            if (sum > 0) {
+                console.log("Showing page action");
+                chrome.pageAction.show(details.tabId);
+            }
+		});
     },
 
     /**
@@ -191,7 +172,8 @@ var _eventPage = {
         // any errors will changes the page action image
         chrome.pageAction.setTitle({
             tabId: tabId,
-            title: chrome.i18n.getMessage(not_in_dom ? "page_action_title_not_in_dom" : "page_action_default_title")
+            title: chrome.i18n.getMessage(not_in_dom ? 
+				"page_action_title_not_in_dom" : "page_action_default_title")
         });
 
         chrome.pageAction.setIcon({
@@ -302,49 +284,88 @@ var _eventPage = {
 					 return Promise.reject(new Error());
 				}
 
-				// TODO: not needed when moved to all promises
-				return new Promise(function(resolve, reject) {
-	                // if there is text selected, we create a new highlight
-	                _tabs.sendGetSelectionRangeMessage(activeTab.id, function (xpathRange) {
-						if (!xpathRange) { 
-							return reject(new Error());
-						}
-
-	                    // non collapsed selection means create new highlight
-	                    if (!xpathRange.collapsed) {
-	                        // requires selection text
-	                        _tabs.sendGetRangeTextMessage(activeTab.id, xpathRange, function (selectionText) {
-	                            if (!selectionText) { 
-									return reject(new Error());
-								}
-
-	                            // create new document for highlight, then update DOM
-	                            _eventPage.createHighlight(activeTab.id,
-	                                xpathRange, _database.buildMatchString(activeTab.url),
-	                                selectionText, hd.className);
-
-	                            // remove selection?
-	                            _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
-	                                if (unselectAfterHighlight) {
-	                                    // unselect all
-	                                    _eventPage.selectHighlightText(activeTab.id);
-	                                }
-									
-									return resolve();
-	                            });
-	                        });
-	                    } else {
-	                        // collapsed selection range means update the hovered highlight (if possible)
-	                        var documentId = _contextMenus.getHoveredHighlightId();
-	                        if (documentId) {
-	                            _eventPage.updateHighlight(activeTab.id,
-	                                documentId, hd.className);
-	                        }
+				return _tabs.sendGetSelectionRangeMessage_Promise(activeTab.id).then(function (xpathRange) {
+					if (!xpathRange) { 
+						return Promise.reject(new Error());
+					}
+					
+                    // non collapsed selection means create new highlight
+                    if (!xpathRange.collapsed) {
+                        // requires selection text
+                        return _tabs.sendGetRangeTextMessage_Promise(activeTab.id, xpathRange).then(function (selectionText) {
+                            if (!selectionText) { 
+								return reject(new Error());
+							}
 							
-							return resolve();
-	                    }
-                	});
+                            // create new document for highlight,
+							// then update DOM
+                            return _eventPage.createHighlight(activeTab.id,
+                                xpathRange, _database.buildMatchString(activeTab.url),
+                                selectionText, hd.className);
+						}).then(function () {
+                            // remove selection?
+                            return _storage.getUnselectAfterHighlight_Promise().then(function (unselectAfterHighlight) {
+                                if (unselectAfterHighlight) {
+                                    // unselect all
+                                    _eventPage.selectHighlightText(activeTab.id);
+                                }
+                            });
+                        });
+					} else {
+                        // collapsed selection range means update 
+						// the hovered highlight (if possible)
+                        var documentId = _contextMenus.getHoveredHighlightId();
+						
+                        if (documentId) {
+                            _eventPage.updateHighlight(activeTab.id,
+                                documentId, hd.className);
+                        }
+					}
 				});
+								//
+				//
+				// return new Promise(function(resolve, reject) {
+				// 	                // if there is text selected, we create a new highlight
+				// 	                _tabs.sendGetSelectionRangeMessage(activeTab.id, function (xpathRange) {
+				// 		if (!xpathRange) {
+				// 			return reject(new Error());
+				// 		}
+				//
+				// 	                    // non collapsed selection means create new highlight
+				// 	                    if (!xpathRange.collapsed) {
+				// 	                        // requires selection text
+				// 	                        _tabs.sendGetRangeTextMessage(activeTab.id, xpathRange, function (selectionText) {
+				// 	                            if (!selectionText) {
+				// 					return reject(new Error());
+				// 				}
+				//
+				// 	                            // create new document for highlight, then update DOM
+				// 	                            _eventPage.createHighlight(activeTab.id,
+				// 	                                xpathRange, _database.buildMatchString(activeTab.url),
+				// 	                                selectionText, hd.className);
+				//
+				// 	                            // remove selection?
+				// 	                            _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
+				// 	                                if (unselectAfterHighlight) {
+				// 	                                    // unselect all
+				// 	                                    _eventPage.selectHighlightText(activeTab.id);
+				// 	                                }
+				//
+				// 					return resolve();
+				// 	                            });
+				// 	                        });
+				// 	                    } else {
+				// 	                        // collapsed selection range means update the hovered highlight (if possible)
+				// 	                        var documentId = _contextMenus.getHoveredHighlightId();
+				// 	                        if (documentId) {
+				// 	                            _eventPage.updateHighlight(activeTab.id,
+				// 	                                documentId, hd.className);
+				// 	                        }
+				//
+				// 			return resolve();
+				// 	                    }
+				//                 	});
+				// });
 			});
 		}	// end switch
     },
@@ -361,34 +382,36 @@ var _eventPage = {
         "use strict";
         if (xpathRange.collapsed) {
             console.log("Ignoring collapsed range");
-            return;
+            return Promise.reject();
         }
 
         // not being collapsed is implicit
         delete xpathRange.collapsed;
 
-        _database.postCreateDocument(match, xpathRange, className, selectionText, function (err, response) {
-            if (err) {
-                return;
-            }
-
+        return _database.postCreateDocument_Promise(match, xpathRange, className, selectionText).then(function (response) {
             // use the new document's id for the element id of the (first) highlight element
             try {
-                _tabs.sendCreateHighlightMessage(tabId,
-                    xpathRange, className, response.id, function (is_created) {
-                        // a false response means something went wrong - delete document from db
+                return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, response.id)
+					.then(function (is_created) {
+                        // a false response means something went wrong.
+						// Delete document from db
                         if (is_created) {
                             // (re) show page action on success
                             chrome.pageAction.show(tabId);
                         } else {
                             console.log("Error creating highlight in DOM - Removing associated document");
 
-                            _database.removeDocument(response.id, response.rev);
+                            return _database.removeDocument_Promise(response.id, response.rev).then(function () {
+								return Promise.reject();
+							});
                         }
                     });
             }catch (e){
                 console.log("Exception creating highlight in DOM - Removing associated document");
-                _database.removeDocument(response.id, response.rev);
+
+                _database.removeDocument_Promise(response.id, response.rev).then(function () {
+					return Promise.reject();
+				});
             }
         });
     },
@@ -407,11 +430,12 @@ var _eventPage = {
         	}
 			
             // document updated - now update DOM
-            _tabs.sendUpdateHighlightMessage(tabId, documentId, className, function (is_updated) {
-                if (!is_updated) {
-                    console.log("Error updating highlight in DOM");
-                }
-            });
+            return _tabs.sendUpdateHighlightMessage_Promise(tabId, documentId, className)
+		}).then(function (is_updated) {
+            if (!is_updated) {
+                console.log("Error updating highlight in DOM");
+				return Promise.reject();
+            }
         });
     },
 
@@ -426,7 +450,7 @@ var _eventPage = {
 		
         // if the highlight isn't in the DOM, then deleting the 'create' document can be done directly,
         // as create never had any effect
-        return _eventPage.isHighlightInDOM_Promise(tabId, documentId).then(function (result) {
+        return _eventPage.isHighlightInDOM(tabId, documentId).then(function (result) {
 			inDOM = result;
 
             // check the number of 'create' and 'delete' documents. if equal, there
@@ -457,7 +481,7 @@ var _eventPage = {
 		
 			if (inDOM) {
                 console.log("Successfully posted ;delete' document. Removing in DOM");
-                _tabs.sendDeleteHighlightMessage(tabId, documentId);
+                _tabs.sendDeleteHighlightMessage_Promise(tabId, documentId);
             } else {
                 console.log("Removed 'create' document");
             }
@@ -501,8 +525,9 @@ var _eventPage = {
 			response.filter(function(r) {
 				return r.ok;
 			}).forEach(function (r) {
-                // remove in DOM
-				_tabs.sendDeleteHighlightMessage(tabId, r.id);
+                // remove in DOM - note that the result is ignored 
+				// (and also not awaited)
+				_tabs.sendDeleteHighlightMessage_Promise(tabId, r.id);
 			});
         });
     },
@@ -513,9 +538,9 @@ var _eventPage = {
      * @param {string} [documentId] if undefined, remove selection
      * @param {function} [responseCallback] function(xpathRange)
      */
-    selectHighlightText: function (tabId, documentId,responseCallback) {
+    selectHighlightText: function (tabId, documentId) {
         "use strict";
-        _tabs.sendSelectHighlightTextMessage(tabId, documentId, responseCallback);
+        return _tabs.sendSelectHighlightTextMessage_Promise(tabId, documentId);
     },
 
     /**
@@ -524,9 +549,11 @@ var _eventPage = {
      */
     copyHighlightText: function (documentId) {
         "use strict";
-        _database.getDocument(documentId, function (err, doc) {
-            if (doc && doc.text) {
-				_eventPage.copyText(doc.text)
+        return _database.getDocument_Promise(documentId).then(function (doc) {
+            if (doc.text) {
+				if (!_eventPage.copyText(doc.text)) {
+					return Promise.reject();
+				}
             }
         });
     },
@@ -550,10 +577,12 @@ var _eventPage = {
 		selection.removeAllRanges();
 		selection.addRange(range);  
 
-		document.execCommand('copy'); 
+		var result = document.execCommand('copy'); 
 
 		selection.removeAllRanges();  
         document.body.removeChild(pre);
+		
+		return result;
 	},
 
     /**
@@ -563,8 +592,8 @@ var _eventPage = {
      */
     speakHighlightText: function (documentId, options) {
         "use strict";
-        _database.getDocument(documentId, function (err, doc) {
-            if (doc && doc.text) {
+        _database.getDocument_Promise(documentId).then(function (doc) {
+            if (doc.text) {
                 // workaround for Google Deutsch becoming the default voice, for some reason
                 chrome.tts.speak(doc.text, {
                     lang: navigator.language}
@@ -579,13 +608,9 @@ var _eventPage = {
      * @param {string} documentId
      * @param {function} [responseCallback] function(boolean)
      */
-    isHighlightInDOM_Promise: function (tabId, documentId) {
+    isHighlightInDOM: function (tabId, documentId) {
         "use strict";
-        return new Promise(function(resolve, reject) {
-			_tabs.sendIsHighlightInDOMMessage(tabId, documentId, function (isInDOM) {
-				resolve(isInDOM);
-			});
-		});
+        return _tabs.sendIsHighlightInDOMMessage_Promise(tabId, documentId);
     },
 
     /**
@@ -594,9 +619,9 @@ var _eventPage = {
      * @param documentId
      * @param {function} responseCallback function(boolean)
      */
-    scrollTo: function (tabId, documentId, responseCallback) {
+    scrollTo: function (tabId, documentId) {
         "use strict";
-        _tabs.sendScrollToMessage(tabId, documentId, responseCallback);
+        return _tabs.sendScrollToMessage_Promise(tabId, documentId);
     },
 	
 	/**

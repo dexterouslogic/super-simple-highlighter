@@ -309,7 +309,7 @@ var _contentScript  = {
             // corresponding storage.StorageChange for that item.
 			
 			// this applies to all styles
-			_storage.isHighlightBoxShadowEnabled(function (isHighlightBoxShadowEnabled){
+			_storage.isHighlightBoxShadowEnabled_Promise().then(function (enabled){
 	            // default FIRST
 	            if (changes.sharedHighlightStyle) {
 	                var c1 = changes.sharedHighlightStyle;
@@ -322,7 +322,7 @@ var _contentScript  = {
 	                    _stylesheet.setHighlightStyle({
 	                        className: _contentScript.highlightClassName,
 	                        style: c1.newValue,
-							disableBoxShadow: !isHighlightBoxShadowEnabled,
+							disableBoxShadow: !enabled,
 	                    });
 	                }
 	            }
@@ -342,7 +342,7 @@ var _contentScript  = {
 
 	                if (c2.newValue) {
 	                    c2.newValue.forEach( function (h) {
-							h.disableBoxShadow = !isHighlightBoxShadowEnabled;
+							h.disableBoxShadow = !enabled;
 						
 	                        _stylesheet.setHighlightStyle(h);
 	                    });

@@ -46,37 +46,42 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         $modal = $('#myModal');
 
         // 1 - get storage value, and set up a watch on it
-        _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
-            $scope.unselectAfterHighlight = unselectAfterHighlight;
+        _storage.getUnselectAfterHighlight_Promise().then(function (unselect) {
+            $scope.unselectAfterHighlight = unselect;
 
             $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
-                    _storage.setUnselectAfterHighlight(newVal);
+					
+                    _storage.setUnselectAfterHighlight_Promise(newVal);
                 }
             });
         });
 
 		// 1b - same, but for disable box shadow
-        _storage.isHighlightBoxShadowEnabled(function (isEnabled) {
+        _storage.isHighlightBoxShadowEnabled_Promise().then(function (isEnabled) {
             $scope.isHighlightBoxShadowEnabled = isEnabled;
 
             $scope.$watch('isHighlightBoxShadowEnabled', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
-                    _storage.setEnableHighlightBoxShadow(newVal);
+					
+                    _storage.setEnableHighlightBoxShadow_Promise(newVal);
                 }
             });
         });	
 
         // 2
-        _storage.getHighlightBackgroundAlpha(function (opacity) {
-            if (opacity === undefined) { return; }
+        _storage.getHighlightBackgroundAlpha_Promise().then(function (opacity) {
+            if (opacity === undefined) {
+				 return;
+			 }
 
             $scope.opacity = opacity;
 
             // watch our model, sync on change
             var timeout = null;     // debounce
+			
             $scope.$watch('opacity', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     // save the new value. debounce for 1 second
@@ -87,7 +92,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                     timeout = $timeout(function () {
                         console.log(newVal);
 
-                        _storage.setHighlightBackgroundAlpha(newVal);
+                        _storage.setHighlightBackgroundAlpha_Promise(newVal);
                     }, 1000);
                 }
             });
@@ -131,7 +136,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 
         // set contents of selectedDefintion into storage
         if ($scope.modalDefinition) {
-            return _storage.highlightDefinitions.set($scope.modalDefinition);
+            return _storage.highlightDefinitions.set_Promise($scope.modalDefinition);
         } else {
         	return Promise.reject();
         }
@@ -157,7 +162,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
      */
     $scope.onClickReset = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
-            return _storage.highlightDefinitions.removeAll();
+            return _storage.highlightDefinitions.removeAll_Promise();
         } else {
         	return Promise.resolve();
         }
@@ -185,7 +190,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     $scope.onClickDelete = function (className) {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_style"))) {
             // delete from storage. model should update automatically
-            return _storage.highlightDefinitions.remove(className);
+            return _storage.highlightDefinitions.remove_Promise(className);
         } else {
         	return Promise.resolve();
         }
@@ -287,7 +292,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         backgroundPage = bp;
 
         // get an array of each unique match, and the number of associated documents (which is of no use)
-        backgroundPage._database.getMatchSums().then(function (rows) {
+        backgroundPage._database.getMatchSums_Promise().then(function (rows) {
             $scope.rows = rows.filter (function (row) {
                 return row.value > 0;
             });
@@ -460,7 +465,7 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 			return backgroundPage._database.load(jsonObjects.join('\n'));
 		}).then(function() {
 			// set associated styles. null items are removed (implying default should be used)
-			return _storage.highlightDefinitions.setAll(highlightDefinitions);
+			return _storage.highlightDefinitions.setAll_Promise(highlightDefinitions);
 		});
 	}
 	
@@ -486,6 +491,6 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
 	 */
 	$scope.onClickRestoreAllWarnings = function () {
 		// TODO: remember to keep all property setters in sync with this method
-		_storage.setFileAccessRequiredWarningDismissed(false);
+		return _storage.setFileAccessRequiredWarningDismissed_Promise(false);
 	};
 }]);

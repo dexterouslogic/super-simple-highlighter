@@ -52,13 +52,11 @@ var _contextMenus = {
         return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
             // if we're hovering over a highlight, we need the corresponding class to check the radio item
             if (_contextMenus.hoveredHighlightId) {
-                _database.getDocument(_contextMenus.hoveredHighlightId, function (err, doc) {
-                    if (doc) {
-                        _contextMenus._recreateMenu(items.highlightDefinitions, doc);
-                    }
+                return _daiocument_Promise(_contextMenus.hoveredHighlightId).then(function (doc) {
+                    _contextMenus._recreateMenu(items.highlightDefinitions, doc);
                 });
             } else {
-                _contextMenus._recreateMenu(items.highlightDefinitions);
+                return _contextMenus._recreateMenu(items.highlightDefinitions);
             }
         });
     },
@@ -89,83 +87,88 @@ var _contextMenus = {
         });
 
         // required to find shortcut keys
-        chrome.commands.getAll(function (commands) {
-            for (var i=0; i < highlightDefinitions.length; i++) {
-                var hd = highlightDefinitions[i];
+		return new Promise(function (resolve, reject) {
+	        chrome.commands.getAll(function (commands) {
+	            for (var i=0; i < highlightDefinitions.length; i++) {
+	                var hd = highlightDefinitions[i];
 
-                var title = hd.title;
-                // find the matching shortcut, if possible
-                var shortcut = (i < commands.length ? commands[i].shortcut : null);
-                if (shortcut && shortcut.length > 0) {
-                    title += " [" + shortcut + "]";
-                }
+	                var title = hd.title;
+	                // find the matching shortcut, if possible
+	                var shortcut = (i < commands.length ? commands[i].shortcut : null);
+	                if (shortcut && shortcut.length > 0) {
+	                    title += " [" + shortcut + "]";
+	                }
 
-                // existence of doc means use update-type commands
-                var options = {
-                    type: doc ? "radio" : "normal",
-                    id: (doc ? "update_highlight." : "create_highlight.") + hd.className,
-                    parentId: parentId,
-                    title: title,
-                    contexts: doc ? ["all"] : ["selection"]
-                };
+	                // existence of doc means use update-type commands
+	                var options = {
+	                    type: doc ? "radio" : "normal",
+	                    id: (doc ? "update_highlight." : "create_highlight.") + hd.className,
+	                    parentId: parentId,
+	                    title: title,
+	                    contexts: doc ? ["all"] : ["selection"]
+	                };
 
-                if (doc) {
-                    options.checked = doc.className === hd.className;
-                }
+	                if (doc) {
+	                    options.checked = doc.className === hd.className;
+	                }
 
-                chrome.contextMenus.create(options);
-            }
+	                chrome.contextMenus.create(options);
+	            }
 
-            if (doc) {
-                // --
-                chrome.contextMenus.create({
-                    id: "sep1",
-                    parentId: parentId,
-                    type: "separator",
-                    contexts: ["all"]
-                });
+	            if (doc) {
+	                // --
+	                chrome.contextMenus.create({
+	                    id: "sep1",
+	                    parentId: parentId,
+	                    type: "separator",
+	                    contexts: ["all"]
+	                });
 
-                // select
-                chrome.contextMenus.create({
-                    id: "select_highlight_text",
-                    parentId: parentId,
-                    title: chrome.i18n.getMessage("select_highlight_text"),
-                    contexts: ["all"]
-                });
+	                // select
+	                chrome.contextMenus.create({
+	                    id: "select_highlight_text",
+	                    parentId: parentId,
+	                    title: chrome.i18n.getMessage("select_highlight_text"),
+	                    contexts: ["all"]
+	                });
 
-                // copy
-                chrome.contextMenus.create({
-                    id: "copy_highlight_text",
-                    parentId: parentId,
-                    title: chrome.i18n.getMessage("copy_highlight_text"),
-                    contexts: ["all"]
-                });
+	                // copy
+	                chrome.contextMenus.create({
+	                    id: "copy_highlight_text",
+	                    parentId: parentId,
+	                    title: chrome.i18n.getMessage("copy_highlight_text"),
+	                    contexts: ["all"]
+	                });
 
-                // say
-                chrome.contextMenus.create({
-                    id: "speak_highlight_text",
-                    parentId: parentId,
-                    title: chrome.i18n.getMessage("speak_highlight_text"),
-                    contexts: ["all"]
-                });
+	                // say
+	                chrome.contextMenus.create({
+	                    id: "speak_highlight_text",
+	                    parentId: parentId,
+	                    title: chrome.i18n.getMessage("speak_highlight_text"),
+	                    contexts: ["all"]
+	                });
 
-                // --
-                chrome.contextMenus.create({
-                    id: "sep2",
-                    parentId: parentId,
-                    type: "separator",
-                    contexts: ["all"]
-                });
+	                // --
+	                chrome.contextMenus.create({
+	                    id: "sep2",
+	                    parentId: parentId,
+	                    type: "separator",
+	                    contexts: ["all"]
+	                });
 
-                // Remove
-                chrome.contextMenus.create({
-                    id: "delete_highlight",
-                    parentId: parentId,
-                    title: chrome.i18n.getMessage("delete_highlight"),
-                    contexts: ["all"]
-                });
-            }
-        });
+	                // Remove
+	                chrome.contextMenus.create({
+	                    id: "delete_highlight",
+	                    parentId: parentId,
+	                    title: chrome.i18n.getMessage("delete_highlight"),
+	                    contexts: ["all"]
+	                });
+	            }
+				
+				resolve();
+	        });
+		});
+        
     },
 
 
@@ -187,33 +190,34 @@ var _contextMenus = {
             case "create_highlight":
                 if (info.editable) {
                     window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"));
-                    return;
+                    return Promise.reject();
                 }
 
                 // can't create highlight in frames that aren't top level frames, or in editable textareas
                 if (info.frameUrl && info.frameUrl !== tab.url){
                     window.alert(chrome.i18n.getMessage("alert_create_highlight_in_subframe"));
-                    return;
+                    return Promise.reject();
                 }
 
                 // get the selection range (_xpath) from content script
-                _tabs.sendGetSelectionRangeMessage(tab.id, function (xpathRange) {
-                    if (xpathRange && !xpathRange.collapsed) {
-                        // create new document for highlight, then update DOM
-                        _eventPage.createHighlight(tab.id,
-                            xpathRange, _database.buildMatchString(tab.url, info.frameUrl),
-                            info.selectionText, className);
-
-                        // remove selection?
-                        _storage.getUnselectAfterHighlight(function (unselectAfterHighlight) {
-                           if (unselectAfterHighlight) {
-                               // unselect all
-                              _eventPage.selectHighlightText(tab.id);
-                           }
-                        });
-                    }
+				return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
+					if (xpathRange.collapsed) {
+						return Promise.reject();
+					}
+					
+                    // create new document for highlight, then update DOM
+                    return _eventPage.createHighlight(tab.id,
+                        xpathRange, _database.buildMatchString(tab.url, info.frameUrl),
+                        info.selectionText, className);
+				}).then(function () {
+                    // remove selection?
+                    return _storage.getUnselectAfterHighlight_Promise();
+				}).then(function (unselect) {
+                   if (unselect) {
+                       // unselect all
+                      return _eventPage.selectHighlightText(tab.id);
+                   }
                 });
-                break;
 
             case "update_highlight":
                 if (_contextMenus.hoveredHighlightId) {
@@ -235,19 +239,19 @@ var _contextMenus = {
         switch (info.menuItemId) {
         case "select_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                _eventPage.selectHighlightText(tab.id, _contextMenus.hoveredHighlightId);
+                return _eventPage.selectHighlightText(tab.id, _contextMenus.hoveredHighlightId);
             }
             break;
 
         case "copy_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
+                return _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
             }
             break;
 
         case "speak_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                _eventPage.speakHighlightText(_contextMenus.hoveredHighlightId);
+                return _eventPage.speakHighlightText(_contextMenus.hoveredHighlightId);
             }
             break;
 
