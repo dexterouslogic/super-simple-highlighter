@@ -24,7 +24,7 @@
                 <span class="icon-bar"></span>
             </button>
 
-            <a class="navbar-brand" href="https://chrome.google.com/webstore/detail/super-simple-highlighter/hhlhjgianpocpoppaiihmlpgcoehlhio">
+            <a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
                 <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
 				{{manifest.name}}
                 <span style="font-size: small;">{{manifest.version}}</span>
@@ -34,7 +34,7 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="http://dexterouslogic.com">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
+                <li><a ng-href="{{'extension_author_url' | i18n }}">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
             </ul>
         </div>
     </div>
@@ -45,11 +45,11 @@
    <div class="page-header">
 	 <!-- Main Header -->
      <h2>
-		<a href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		 
+		<a ng-href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		 
 		 <!-- <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span> -->
 		 <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
 		  If the associated tab has been removed, user should navigate explicitly (via context menu) -->
-		 <a href="" ng-click="onClickPageUrl()">{{title}}</a>
+		 <a href="#" ng-click="onClickPageUrl()">{{title}}</a>
 		 <!-- <a href="" class="h6 glyphicon glyphicon-file">
 		 	({{'activate_originating_tab' | i18n}})
 		 </span> -->

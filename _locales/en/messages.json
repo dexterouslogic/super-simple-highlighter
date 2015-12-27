@@ -11,6 +11,12 @@
     "extension_author_url": {
         "message": "http://dexterouslogic.com"
     },
+    "extension_author_twitter": {
+        "message": "dexterouslogic"
+    },
+    "extension_author_twitter_url": {
+        "message": "https://twitter.com/dexterouslogic"
+    },
 	"extension_webstore_url": {
 		"message": "https://chrome.google.com/webstore/detail/hhlhjgianpocpoppaiihmlpgcoehlhio"
 	},
@@ -207,11 +213,11 @@
     },
 	
 	"copy_overview" : {
-		"message": "Copy As Markdown"
+		"message": "Copy"
 	},
 	
 	"save_overview": {
-		"message": "Save Markdown As..."
+		"message": "Download"
 	},
 	
 	"save_overview_file_name": {

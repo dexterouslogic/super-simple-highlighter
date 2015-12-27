@@ -12,23 +12,23 @@
 	<title>{{'options_page_title_prefix' | i18n}} - {{manifest.name}}</title>
 	
 	<script src="static/js/jquery-2.1.3.min.js"></script>
-  <script src="static/js/jquery.stylesheet.min.js"></script>
-  <script src="static/js/angular.min.js"></script>
-  <script src="static/js/bootstrap.min.js"></script>
-  <script src="static/js/angular.rangeSlider.min.js"></script>
-  <script src="static/js/memorystream.js"></script>
+	<script src="static/js/jquery.stylesheet.min.js"></script>
+	<script src="static/js/angular.min.js"></script>
+	<script src="static/js/bootstrap.min.js"></script>
+	<script src="static/js/angular.rangeSlider.min.js"></script>
+	<script src="static/js/memorystream.js"></script>
 
-  <script src="js/storage.js"></script>
-  <script src="js/stylesheet.js"></script>
-  <script src="js/string_utils.js"></script>
-  <!-- <script src="js/changelog.js"></script> -->
-  <script src="js/libraries.js"></script>
-  <script src="js/licenses.js"></script>
+	<script src="js/storage.js"></script>
+	<script src="js/stylesheet.js"></script>
+	<script src="js/string_utils.js"></script>
+	<!-- <script src="js/changelog.js"></script> -->
+	<script src="js/libraries.js"></script>
+	<script src="js/licenses.js"></script>
 
-  <script src="js/options/app.js"></script>
-  <script src="js/options/controllers.js"></script>
-  <script src="js/options/filters.js"></script>
-  <script src="js/i18n_filters.js"></script>
+	<script src="js/options/app.js"></script>
+	<script src="js/options/controllers.js"></script>
+	<script src="js/options/filters.js"></script>
+	<script src="js/i18n_filters.js"></script>
 
 </head>
 
@@ -45,7 +45,7 @@
                 <span class="icon-bar"></span>
             </button>
 
-            <a class="navbar-brand" href="https://chrome.google.com/webstore/detail/super-simple-highlighter/hhlhjgianpocpoppaiihmlpgcoehlhio">
+            <a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
                 <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
 				{{manifest.name}}
                 <span style="font-size: small;">{{manifest.version}}</span>
@@ -64,7 +64,7 @@
 	                    {{ 'support' | i18n}}
 	            </a></li>
 				<li><a target="_blank" href="faq.html">{{'faq_title' | i18n}}</a></li>
-                <li><a href="http://dexterouslogic.com">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
+                <li><a ng-href="{{'extension_author_url' | i18n}}">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
             </ul>
         </div>
     </div>
@@ -291,11 +291,13 @@
                 <h1>{{manifest.name}}</h1>
                 <h5>Version {{manifest.version}}</h5>
                 <p>
-					&copy;{{'copyright_year' | i18n}} <a href="http://dexterouslogic.com">{{ 'extension_author' | i18n }}</a>
+					&copy;{{'copyright_year' | i18n}} <a ng-href="{{'extension_author_url' | i18n}}">{{ 'extension_author' | i18n }}</a>
 				</p>
 
 				<p>
-					Twitter: <a href="https://twitter.com/dexterouslogic" class="twitter-follow-button" data-show-count="false">@dexterouslogic</a>
+					Twitter: <a ng-href="{{'extension_author_twitter_url' | i18n}}" class="twitter-follow-button" data-show-count="false">
+						@{{ 'extension_author_twitter' | i18n }}
+					</a>
 				</p>
 				<p>
 					<div>
