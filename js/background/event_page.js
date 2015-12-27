@@ -140,9 +140,7 @@ var _eventPage = {
 			
             return _tabs.replayDocuments_Promise(details.tabId, docs, function (errorDoc) {
                 // method only called if there's an error. called multiple times
-                console.log("Error in '" + errorDoc.verb + 
-					"' highlight in DOM for " +
-					 JSON.stringify(errorDoc.range) );
+                console.log("Error:" + JSON.stringify(errorDoc));
 
                 // update page action
                 if (errorDoc.verb === "create") {
@@ -251,6 +249,11 @@ var _eventPage = {
         "use strict";
 		// parse well-known command strings, but default to the formatted kind
 		switch(command) {
+		case "undo_last_create_highlight":
+			return _tabs.getActiveTab().then(function (tab) {
+				return _eventPage.undoLastHighlight(tab.id)
+			});
+			
 		case "copy_overview":
 			return _eventPage.getOverviewText("markdown").then(function(markdown) {
 				// copy to clipboard
@@ -493,6 +496,51 @@ var _eventPage = {
 			});
         });
     },
+
+	/**
+	 * Undo the last undoable document in the journal (by negating it)
+	 */
+	undoLastHighlight: function (tabId) {
+		return new Promise(function(resolve, reject) {
+			// get tab object from tab id
+			chrome.tabs.get(tabId, function (tab) {
+				resolve(tab);
+			});
+		}).then(function (tab) {
+			// build match using tab's url, and get the last document
+			var match = _database.buildMatchString(tab.url);
+			
+			return _database.getDocuments_Promise(match, true);
+		}).then(function (docs) {
+			// find last 'undoable' document that has not already been
+			// negated 
+			var deletedDocumentIds = [];
+			var lastCreateDoc;
+			
+			docs.some(function (doc) {
+				switch (doc.verb) {
+				case "delete":
+					deletedDocumentIds.push(doc.correspondingDocumentId);
+					return false;
+				case "create":
+					// is it already deleted?
+					if (deletedDocumentIds.find(function (id) { return id === doc._id; })) {
+						return false;
+					}
+					
+					lastCreateDoc = doc;
+					return true;
+				}
+			});
+			
+			if (lastCreateDoc === undefined) {
+				return Promise.reject("No create documents to undo.");
+			}
+			
+			// add a negating document
+			return _eventPage.deleteHighlight(tabId, lastCreateDoc._id);			
+		});
+	},
 
     /**
      * Select the text associated with a highlight

@@ -208,6 +208,10 @@
         "message": "more"
     },
 
+	"undo": {
+		"message": "Undo"
+	},
+
     "open_overview_in_new_tab": {
         "message": "Open"
     },

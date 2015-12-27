@@ -226,6 +226,21 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		doc.className = newDefinition.className;
     };
 
+	$scope.onClickUndoLastHighlight = function () {
+        return backgroundPage._eventPage.undoLastHighlight(activeTab.id).then(function (result) {
+            if (result.ok ) {
+                return updateDocs();
+			} else {
+				return Promise.reject();
+			}
+		}).then(function (docs) {
+            // close popup on last doc removed
+            if (docs.length === 0) {
+                window.close();
+            }
+        });
+	};
+
     /**
      * Clicked menu 'open overview' button. Opens a new tab, with the highlights fully displayed in it
      */

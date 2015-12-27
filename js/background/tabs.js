@@ -26,7 +26,7 @@ var _tabs = {
 				currentWindow: true 
 			}, function (tabs) {
 	            if (!tabs || tabs.length < 1) {
-					reject(new Error());
+					reject(new Error("No active tab"));
 				} else {
 					resolve(tabs[0]);
 				}

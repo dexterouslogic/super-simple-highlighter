@@ -45,10 +45,6 @@
         "persistent": false
     },
     "commands": {
-		"copy_overview": {
-			"description": "Copy Highlights as Markdown"
-		},
-		
         "apply_highlight.0": {
             "description": "Apply Highlight #1"
         },
@@ -78,7 +74,14 @@
         },
         "apply_highlight.9": {
             "description": "Apply Highlight #10"
-        }
+        },
+			
+		"copy_overview": {
+			"description": "Copy Highlights as Markdown"
+		},
+		"undo_last_create_highlight": {
+			"description": "Undo"
+		}		
     },
 
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",

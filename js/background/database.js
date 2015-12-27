@@ -259,18 +259,38 @@ var _database = {
      * @param {string} match
      * @param {function} [callback] function(err, docs)
      */
-	getDocuments_Promise: function (match) {
+	getDocuments_Promise: function (match, descending) {
+		descending = descending || false;
+		
+		var options = {
+            "startkey": !descending ? [match] : [match, {}],
+            "endkey": !descending ? [match, {}] : [match],
+            "descending": descending,
+            "include_docs": true
+        };
+		
+		// var o = options || {
+		//             descending: false,
+		//         };
+		//
+		// // defaults
+		// o.startkey = [match];
+		// o.endKey = [match, {}];
+		// o.include_docs = true;
+		//
+		// // promise version
+		// return _database.getDatabase().query("match_date_view", o).then(function(result) {
+		// 	return result.rows.map(function (row) {
+		//             	return row.doc;
+		//             });
+		//         })
+		
 		// promise version
-		return _database.getDatabase().query("match_date_view", {
-            startkey: [match],
-            endkey: [match, {}],
-            descending: false,
-            include_docs: true
-        }).then(function(result) {
+		return _database.getDatabase().query("match_date_view", options).then(function(result) {
 			return result.rows.map(function (row) {
             	return row.doc;
             });
-        })
+        });
 	},
 	
     /**
@@ -317,7 +337,8 @@ var _database = {
         return _database.getDatabase().query('sum_view', {
             key: match
         }).then(function(result) {
-            var sum = result.rows[0].value;
+            var sum = (result.rows.length === 0 ? 0 : result.rows[0].value);
+			
             if (sum < 0) {
                 console.log("WARNING: create/delete sum < 0");
             }

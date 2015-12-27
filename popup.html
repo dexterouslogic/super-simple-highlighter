@@ -38,10 +38,19 @@
                 <a href="" class="dropdown-toggle caret" id="dropdownMenu1" data-toggle="dropdown"></a>
 
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
+							<span class="glyphicon glyphicon-arrow-left"></span>
+                            {{'undo' | i18n}}
+                        </a>
+                    </li>
+					
+                    <li role="presentation" class="divider"></li>
+
 					<li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()">
-							<span class="glyphicon glyphicon-list"></span>
+							<span class="glyphicon glyphicon-list-alt"></span>
                             {{'open_overview_in_new_tab' | i18n}}
                         </a>
                     </li>
