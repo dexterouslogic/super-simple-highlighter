@@ -1,3 +1,7 @@
+3.8.2
+-----
+Support for undoing last created highlight
+
 3.8.1
 -----
 Internal restructuring

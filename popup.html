@@ -42,6 +42,11 @@
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
 							<span class="glyphicon glyphicon-arrow-left"></span>
                             {{'undo' | i18n}}
+							
+	                        <!--hotkey-->
+	                        <kbd ng-show="{{commands.undo_last_create_highlight.shortcut}}">
+	                            {{commands.undo_last_create_highlight.shortcut}}
+	                        </kbd>
                         </a>
                     </li>
 					
@@ -67,6 +72,10 @@
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview((docs | filter:search | filter:styleFilterPredicate))">
 							<span class="glyphicon glyphicon-copy"></span>
                             {{'copy_overview' | i18n}}
+	                        <!--hotkey-->
+	                        <kbd ng-show="{{commands.copy_overview.shortcut}}">
+	                            {{commands.copy_overview.shortcut}}
+	                        </kbd>
                         </a>
                     </li>
 

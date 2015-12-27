@@ -35,11 +35,14 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
     // models
     $scope.manifest = chrome.runtime.getManifest();
+	
 	// array of highlight definitions
     _storage.highlightDefinitions.getAll_Promise().then(function (items) {
         $scope.highlightDefinitions = items.highlightDefinitions;
     });
-
+	
+	$scope.commands = {};
+	
 	// current style filter. null for none
 	$scope.styleFilterHighlightDefinition = null;
 
@@ -80,9 +83,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
         });
     };
 	
-//    $scope.docs = [];
-//    $scope.match = "hello";
-
 	// starter
 	chrome.tabs.query({ 
 		active: true, 
@@ -126,7 +126,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
                 _storage.setFileAccessRequiredWarningDismissed_Promise(!newVal);
             });			
 			
-			// $scope.$apply();
 			
 	        // default to no clamp
 	//        chrome.storage.sync.get({
@@ -140,6 +139,17 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 	        $scope.title = activeTab.title;
 	        $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
+			
+	        // shortcut commands array
+	        chrome.commands.getAll(function (allCommands) {
+				// key commands by their name in the scope attribute
+				// can't identify specific commands in angular
+				$scope.$apply(function () {
+					allCommands.forEach(function (command) {
+						$scope.commands[command.name] = command;
+					});
+				});
+	        });
 
 	        updateDocs();
 	    });
