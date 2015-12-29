@@ -67,19 +67,33 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     var updateDocs = function () {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
-            $scope.docs = docs;
-            $scope.$apply();
-
-            // if the highlight cant be found in DOM, flag that
-            docs.forEach(function (doc) {
-                // default to undefined, implying it IS in the DOM
-                backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
-                    doc.isInDOM = isInDOM;
-                    $scope.$apply();
-                });
-            });
+			$scope.docs = docs;
 			
-			return docs;
+            // if the highlight cant be found in DOM, flag that
+			return Promise.all(docs.map(function (doc) {
+                return backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
+                    doc.isInDOM = isInDOM;
+					return Promise.resolve();
+                });
+			}));
+			//
+			//             $scope.$apply(function () {
+			//             	$scope.docs = docs;
+			// });
+			//
+			//              // if the highlight cant be found in DOM, flag that
+			//              docs.forEach(function (doc) {
+			//                  // default to undefined, implying it IS in the DOM
+			//                  backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
+			//                      $scope.$apply(function () {
+			//                      	doc.isInDOM = isInDOM;
+			//                      })
+			//                  });
+			//              });
+			//
+			//   			 return docs;
+        }).then(function () {
+        	return $scope.docs;
         });
     };
 	
@@ -151,7 +165,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				});
 	        });
 
-	        updateDocs();
+			updateDocs().then(function () {
+				$scope.$apply();
+			})
 	    });
 	});
 	
@@ -237,16 +253,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 
 	$scope.onClickUndoLastHighlight = function () {
+		// event.preventDefault();
+		// event.stopPropagation();
+
         return backgroundPage._eventPage.undoLastHighlight(activeTab.id).then(function (result) {
             if (result.ok ) {
-                return updateDocs();
+				return updateDocs();
 			} else {
 				return Promise.reject();
 			}
 		}).then(function (docs) {
-            // close popup on last doc removed
+			// console.log(docs)
+            // // close popup on last doc removed
             if (docs.length === 0) {
                 window.close();
+            } else {
+				$scope.$apply();
             }
         });
 	};
@@ -320,7 +342,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		
         backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
             if (result.ok ) {
-                return updateDocs();
+	            return updateDocs();
 			} else {
 				return Promise.reject();
 			}
@@ -328,6 +350,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
             // close popup on last doc removed
             if (docs.length === 0) {
                 window.close();
+            } else {
+				$scope.$apply();
             }
         });
     };

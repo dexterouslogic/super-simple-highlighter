@@ -428,7 +428,8 @@ var _eventPage = {
                 console.log("Highlight IS NOT in DOM. Directly removing 'create' doc");
 
                 return _database.getDocument_Promise(documentId).then(function (doc) {
-                    return _database.removeDocument_Promise(doc._id, doc._rev);//, _resultCallback);                	
+                    return _database.removeDocument_Promise(
+						doc._id, doc._rev);//, _resultCallback);                
                 });
             }
         }).then(function (response) {
@@ -451,6 +452,8 @@ var _eventPage = {
 
             console.log("reevaluating page action visibility");
 
+			var match;
+
             // check the number of 'create' and 'delete' documents. 
 			// if equal, there are no highlights for the page, 
 			// so the page action can be removed
@@ -459,13 +462,16 @@ var _eventPage = {
 					resolve(tab);
 				});
 			}).then(function (tab) {
-				var match = _database.buildMatchString(tab.url);
+				match = _database.buildMatchString(tab.url);
 
                 // sum of +create-delete verbs for a specific match
 				return _database.getMatchSum_Promise(match);
 			}).then(function (sum) {
-                if (sum <= 0) {
+                if (sum <= 0) {					
                     chrome.pageAction.hide(tabId);
+					
+					// can delete all documents
+					return _database.removeDocuments_Promise(match);
                 }
 			}).then(function () {
 				return response;
@@ -514,31 +520,48 @@ var _eventPage = {
 		}).then(function (docs) {
 			// find last 'undoable' document that has not already been
 			// negated 
-			var deletedDocumentIds = [];
-			var lastCreateDoc;
+			var deletedDocumentIds = new Set();
 			
-			docs.some(function (doc) {
+			var i, len = docs.length;
+			for (i=0; i<len; ++i) {
+				var doc = docs[i];
+				
 				switch (doc.verb) {
 				case "delete":
-					deletedDocumentIds.push(doc.correspondingDocumentId);
-					return false;
+					deletedDocumentIds.add(doc.correspondingDocumentId);
+					break;
+					
 				case "create":
 					// is it already deleted?
-					if (deletedDocumentIds.find(function (id) { return id === doc._id; })) {
-						return false;
+					if (deletedDocumentIds.has(doc._id) === false) {
+						// add a negating document
+						return _eventPage.deleteHighlight(tabId, doc._id);
 					}
-					
-					lastCreateDoc = doc;
-					return true;
 				}
-			});
-			
-			if (lastCreateDoc === undefined) {
-				return Promise.reject("No create documents to undo.");
 			}
+						
+			return Promise.reject("No create documents to undo.");
 			
-			// add a negating document
-			return _eventPage.deleteHighlight(tabId, lastCreateDoc._id);			
+			// THIS CRASHES CHROME
+			
+			// var latestCreateDoc = docs.find(function (doc) {
+			// 	switch (doc.verb) {
+			// 	case "delete":
+			// 		deletedDocumentIds.add(doc.correspondingDocumentId);
+			// 		return false;
+			//
+			// 	case "create":
+			// 		// is it already deleted?
+			// 		return deletedDocumentIds.has(doc._id) === false
+			// 	}
+			// });
+			//
+			// if (lastCreateDoc) {
+			// 	// add a negating document
+			// 	return _eventPage.deleteHighlight(tabId, lastCreateDoc._id);
+			// } else {
+			// 	return Promise.reject("No create documents to undo.");
+			// }
 		});
 	},
 
