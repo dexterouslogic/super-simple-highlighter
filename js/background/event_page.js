@@ -658,12 +658,53 @@ var _eventPage = {
     },
 	
 	/**
+	 * Sort documents IN PLACE by a promise that resolves to a comparable value
+	 */
+	sortDocumentsInPlace: function (docs, mapper) { 
+		var m = mapper || function (doc) {
+			return Promise.resolve(doc.date)
+		}
+
+		// object in which each attribute's value corresponds to the resolved
+		// promise result for it. If the promise rejected, no attribute is
+		// added. Every attribute's value must be of the same type
+		var results = {};
+		
+		return Promise.all(docs.map(function (doc) {
+			return m(doc).then(function (result) {
+				return result;// results[doc._id] = result
+			}).catch(function () {
+				// swallow and ignore
+				return undefined;
+			})
+		})).then(function (values) {
+			var i = 0;
+			
+			// if the promise rejects (returning undefined), just don't
+			// store a corresponding attribute for it			
+			docs.forEach(function (doc) {
+				results[doc._id] = values[i++]
+			});
+		}).then(function () {
+			docs.sort(function (doc1, doc2) {
+				var v1 = (typeof(results[doc1._id]) === 'undefined' ? 
+					true : results[doc1._id])
+				var v2 = (typeof(results[doc2._id]) === 'undefined' ? 
+					true : results[doc2._id])
+				
+				return v1 > v2	
+			})
+		})
+	},
+	
+	/**
 	 * Get an overiew of the highlights for the current page
 	 * @param {Object} tab one of the available tabs, or active tab if undefined
 	 * @param {string} format one of [markdown]
+	 * @param {string} [sortBy] "viewport_top"
 	 * @returns: {Promise} overview correctly formatted as a string
 	 */
-	getOverviewText: function(format, tab) {
+	getOverviewText: function(format, tab, sortBy) {
 		var titles = {};
 		var promise = (typeof(tab) === "undefined") ?
 			_tabs.getActiveTab() : Promise.resolve(tab);
@@ -684,6 +725,85 @@ var _eventPage = {
 			var match = _database.buildMatchString(tab.url);
 			return _database.getCreateDocuments_Promise(match);
 		}).then(function(docs) {
+			// a promise which resolves to a comparable property of the document
+			// If undefined, don't sort
+			var mapper;
+			
+			switch(sortBy) {
+			case "viewport_top":
+				// promise that maps the doc to its client bounding rect top
+				mapper = function (doc) {
+					return _tabs.sendIsHighlightInDOMMessage_Promise(tab.id, doc._id).then(function (inDOM) {
+						if (!inDOM) {
+							return Promise.reject();
+						}
+				
+						return _tabs.getHighlightBoundingClientRect(tab.id, doc._id)
+					}).then(function(rect) {
+						return rect.top;
+					})				
+				}
+			}
+			
+			// main promise
+			var promise = (mapper ? _eventPage
+				.sortDocumentsInPlace(docs, mapper) : Promise.resolve())
+			
+			return promise.then(function () {
+				switch(format) {
+				case "markdown":
+					var markdown = "#[" + tab.title + "](" +  tab.url + ")";
+					var currentClassName;
+
+					// iterate each highlight
+					docs.forEach(function(doc) {
+						// only add a new heading when the class of the header changes
+						if (doc.className != currentClassName) {
+							markdown += ("\n\n## " + titles[doc.className]);
+
+							currentClassName = doc.className;
+						} else {
+							// only seperate subsequent list items
+							markdown += "\n"
+						}
+
+						// each highlight is an unordered list item
+						markdown += ("\n* " + doc.text)
+					});
+
+					// footer
+					markdown += ("\n\n---\n" +
+						chrome.i18n.getMessage("overview_footer", [
+							chrome.i18n.getMessage("extension_name"),
+							chrome.i18n.getMessage("extension_webstore_url"),
+							chrome.i18n.getMessage("copyright_year"),
+							chrome.i18n.getMessage("extension_author"),
+							chrome.i18n.getMessage("extension_author_url")
+						])
+					);
+
+					return Promise.resolve(markdown);
+
+				default:
+					return Promise.reject(new Error());
+				}
+			})
+			
+			
+			// // Test
+			// var boundingClientRects = docs.map(function (doc) {
+			// 	var tabId = tab.id
+			// 	var docId = doc._id
+			//
+			// 	_tabs.sendIsHighlightInDOMMessage_Promise(tabId, docId).then(function (inDOM) {
+			//
+			// 	})
+			//
+			// 	_tabs.getHighlightBoundingClientRect(tab.id, "xxx" + doc._id).then(function(rect) {
+			// 		alert(JSON.stringify(rect))
+			// 	})
+			// })
+			
 			switch(format) {
 			case "markdown":
 				var markdown = "#[" + tab.title + "](" +  tab.url + ")";

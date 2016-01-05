@@ -233,7 +233,6 @@ var _tabs = {
      * Ask the DOM whether a highlight exists with this ID
      * @param {number} tabId
      * @param {string} documentId 'create' document id
-     * @param {function} [responseCallback] function(boolean)
      */
     sendIsHighlightInDOMMessage_Promise: function (tabId, documentId) {
         "use strict";
@@ -256,6 +255,21 @@ var _tabs = {
             fragment: documentId
         });
     },
+	
+	/**
+	 * Get the bounding client rect for the span covering the highlight.
+	 * If the highlight is split, it references only the first component,
+	 * so you shouldn't rely on right or bottom properties being correct
+     * @param {number} tabId
+     * @param {string} documentId 'create' document id
+	 */	
+	getHighlightBoundingClientRect: function (tabId, documentId) {
+        "use strict";
+		return _tabs.sendMessage_Promise(tabId, {
+			id: "get_bounding_client_rect",
+			highlightId: documentId
+		})
+	},
 
     /**
      * 'Play' an array of document's 'create' and 'delete' messages into the DOM

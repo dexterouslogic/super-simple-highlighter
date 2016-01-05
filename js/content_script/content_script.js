@@ -149,6 +149,11 @@ var _contentScript  = {
         "use strict";
         return $('#' + id).length === 1;
     },
+	
+	getBoundingClientRect: function (id) {
+		"use strict"
+		return $('#' + id)[0].getBoundingClientRect()
+	},
 
     /**
      * Update the class name for all the spans of a highlight
@@ -237,6 +242,21 @@ var _contentScript  = {
         case "scroll_to":
             response = _contentScript.scrollTo("#" + message.fragment);
             break;
+
+		case "get_bounding_client_rect":
+			var rect = _contentScript.getBoundingClientRect(message.highlightId);
+			
+			// ClientRect won't stringify
+			response = {
+				"top": rect.top,
+				"right": rect.right,
+				"bottom": rect.bottom,
+				"left": rect.left,
+				"width": rect.width,
+				"height": rect.height,
+			};
+			
+			break;
 
         default:
             throw "unhandled message: sender=" + sender + ", id=" + message.id;
