@@ -70,18 +70,18 @@
     },
 
     "placeholder_filter": {
-        "message": "Filter"
+        "message": "Search"
     },
 	
 	"sort_by_time": {
 		"message": "By Time"
 	},
 	"sort_by_location": {
-		"message": "By Location"
+		"message": "By Position"
 	},
 	
     "remove_all_highlights": {
-        "message": "Remove All"
+        "message": "Remove All Highlights"
     },
     "confirm_remove_all_highlights": {
         "message": "Are you sure you wish to remove all the highlights on this page?"
@@ -217,19 +217,19 @@
     },
 
 	"undo": {
-		"message": "Undo"
+		"message": "Remove Latest Highlight"
 	},
 
     "open_overview_in_new_tab": {
-        "message": "Open"
+        "message": "Open in New Tab"
     },
 	
 	"copy_overview" : {
-		"message": "Copy"
+		"message": "Copy Markdown"
 	},
 	
 	"save_overview": {
-		"message": "Download"
+		"message": "Save Markdown"
 	},
 	
 	"save_overview_file_name": {
@@ -303,7 +303,7 @@
 	},
 	
 	"visible_style": {
-		"message": "Filter by Style"
+		"message": "Style"
 	},
 	
 	"visible_stylename_all": {
