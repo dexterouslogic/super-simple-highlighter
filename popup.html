@@ -94,13 +94,14 @@
 			<div ng-hide="styleFilterHighlightDefinition == null && (search == null || search.text.length == 0)">
 				<small>{{filteredDocs.length}} / {{docs.length}}</small>
 			</div>
-        </div><div class="col-xs-3 vcenter" style="padding-right: 0px;">
+        </div><div class="col-xs-3 vcenter">
+			  <!-- <label for="sel1">Sort By</label> -->
 			  <select class="form-control input-sm" id="sel1"
 			  	 	ng-model="sort.value" ng-change="onChangeSelectSort()">
 			    <option value="time">{{'sort_by_time' | i18n}}</option>
 			    <option value="location">{{'sort_by_location' | i18n}}</option>
 			  </select>
-        </div><div class="col-xs-3 vcenter">
+        </div><div class="col-xs-3 vcenter" style="padding-left: 0px;">
             <input type="search" class="form-control input-sm search" ng-model="search.text"
                    placeholder="{{'placeholder_filter' | i18n}}">
         </div><div class="col-xs-1 vcenter">

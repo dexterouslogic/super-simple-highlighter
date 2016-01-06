@@ -1,3 +1,7 @@
+3.9.0
+-----
+Add sort by location
+
 3.8.2
 -----
 Support for undoing last created highlight

@@ -56,6 +56,15 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
         var match = backgroundPage._database.buildMatchString(url);
 
         return backgroundPage._database.getCreateDocuments_Promise(match).then(function (docs) {
+			// use the sort defined by the popup
+			return backgroundPage._storage.getValue("highlight_sort_by").then(function (value) {
+				return backgroundPage._tabs.getComparisonFunction(tabId, value);
+			}).then(function (compare) {
+				// main promise (default to native order)
+				return (compare && backgroundPage._database.sortDocuments(docs, compare)) ||
+					Promise.resolve(docs);
+			})
+		}).then(function (docs) {
             $scope.docs = docs;
 			
 			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things

@@ -255,9 +255,19 @@ var _eventPage = {
 			});
 			
 		case "copy_overview":
-			return _eventPage.getOverviewText("markdown").then(function(markdown) {
+			var tab;
+			
+			// use the sort defined by the popup
+			return _tabs.getActiveTab().then(function (_tab) {
+				tab = _tab;
+				return _storage.getValue("highlight_sort_by");
+			}).then(function (value) {
+				return _tabs.getComparisonFunction(tab.id, value);
+			}).then(function (compare) {
+				return _eventPage.getOverviewText("markdown", tab, compare);
+			}).then(function(text) {
 				// copy to clipboard
-				_eventPage.copyText(markdown);
+				_eventPage.copyText(text);
 			});
 			
 		default:
@@ -606,7 +616,7 @@ var _eventPage = {
 	    range.selectNode(pre);  
 
 		// make our node the sole selection
-		var selection = window.getSelection();
+		var selection = document.getSelection();
 		selection.removeAllRanges();
 		selection.addRange(range);  
 

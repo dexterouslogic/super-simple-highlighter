@@ -22,7 +22,7 @@
 	},
 	
     "copyright_year": {
-        "message": "2015"
+        "message": "2014-2016"
     },
     "select_highlight_text": {
         "message": "Select"
@@ -74,10 +74,10 @@
     },
 	
 	"sort_by_time": {
-		"message": "Time"
+		"message": "By Time"
 	},
 	"sort_by_location": {
-		"message": "Location"
+		"message": "By Location"
 	},
 	
     "remove_all_highlights": {
