@@ -307,8 +307,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	
 	$scope.onClickCopyOverview = function (docs) {
 		// format all highlights as a markdown document
-		return backgroundPage._eventPage.getOverviewText("markdown", activeTab)
-			.then(function (markdown) {
+		var comparisonFunction = backgroundPage._tabs
+			.getComparisonFunction(activeTab.id, "precedence")
+		
+		return backgroundPage._eventPage.getOverviewText(
+			"markdown", activeTab, comparisonFunction).then(function (markdown) {
 				// Create element to contain markdown
 				var pre = document.createElement('pre');
 				pre.innerText = markdown;

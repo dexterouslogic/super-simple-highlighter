@@ -458,8 +458,38 @@ var _database = {
 			// let caller handle error
 			throw err;
 		});
+	},
+	
+	/**
+	 * Sort documents using promise that resolves to a comparable value
+	 */
+	sortDocuments: function (docs, compareFunction) { 
+		var cf = compareFunction || function (doc) {
+			return Promise.resolve(doc.date)
+		}
+
+		// object in which each attribute's value corresponds to the resolved
+		// promise result for it. If the promise rejected, no attribute is
+		// added. Every attribute's value must be of the same type
+		var results = {};
+		
+		return Promise.all(docs.map(function (doc) {
+			return cf(doc).then(function (result) {
+				results[doc._id] = result
+			}).catch(function () {
+				// swallow and ignore
+			})
+		})).then(function () {
+			// sort a shallow copy, and return it
+			return docs.slice().sort(function (doc1, doc2) {
+				var v1 = (typeof(results[doc1._id]) === 'undefined' ? 
+					true : results[doc1._id])
+				var v2 = (typeof(results[doc2._id]) === 'undefined' ? 
+					true : results[doc2._id])
+				
+				return v1 > v2	
+			})
+		})
 	}
-	
-	
 };
 

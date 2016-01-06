@@ -315,7 +315,32 @@ var _tabs = {
 		})).then(function () {
 			return sum;
 		});
-    }
+    },
 
-
+	/**
+	 * Get a sort comparison function, which takes a document and returns a
+	 * promise that resolves to a comparable value
+	 * @param {number} tabId tab id upon which our resolution depends
+	 * @return {string} type a known type of comparison
+	 */
+	getComparisonFunction: function (tabId, type) {
+		switch(type) {
+		case "precedence":
+			// resolve to top of bounding client rect
+			return function (doc) {
+				return _tabs.sendIsHighlightInDOMMessage_Promise(tabId, doc._id).then(function (inDOM) {
+					if (!inDOM) {
+						return Promise.reject();
+					}
+			
+					return _tabs.getHighlightBoundingClientRect(tabId, doc._id)
+				}).then(function(rect) {
+					return rect.top;
+				})	
+			}
+			
+		default:
+			throw "Unknown type";
+		}
+	}
 };
