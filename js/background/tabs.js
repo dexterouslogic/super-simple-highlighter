@@ -325,7 +325,13 @@ var _tabs = {
 	 */
 	getComparisonFunction: function (tabId, type) {
 		switch(type) {
-		case "precedence":
+		case "time":
+			return function (doc) {
+				// simply order by creation time (which it probably already does)
+				return Promise.resolve(doc.time);
+			}
+			
+		case "location":
 			// resolve to top of bounding client rect
 			return function (doc) {
 				return _tabs.sendIsHighlightInDOMMessage_Promise(tabId, doc._id).then(function (inDOM) {
@@ -336,7 +342,7 @@ var _tabs = {
 					return _tabs.getHighlightBoundingClientRect(tabId, doc._id)
 				}).then(function(rect) {
 					return rect.top;
-				})	
+				});	
 			}
 			
 		default:

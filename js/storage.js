@@ -20,6 +20,65 @@
 
 var _storage = {
 	/**
+	  * Default values for storage key getter. Also index of legal keys
+	  */
+	_defaults: {
+		// identifier for comparator to use for highlight sorting
+		"highlight_sort_by": "time"
+	},
+	
+	/**
+	  * Generic value setter. TODO: replace all with this
+	  */
+	setValue: function(value, key) {
+		"use strict";
+		return new Promise(function (resolve, reject) {
+			// key must be known
+			if (!_storage._defaults.hasOwnProperty(key)) {
+				throw "Unknown key";
+			}
+			
+			// value to set
+ 			var items = {};
+			items[key] = value;
+			
+	        chrome.storage.sync.set(items, function () {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve();
+	        	}
+	        });
+		});
+	},
+	
+	/**
+	  * Generic value getter. TODO: replace all with this
+	  */
+	getValue: function(key) {
+		"use strict";
+		return new Promise(function (resolve, reject) {
+			// key must be known
+			if (!_storage._defaults.hasOwnProperty(key)) {
+				throw "Unknown key";
+			}
+			
+			// value to get, including default value
+ 			var items = {};
+			items[key] = _storage._defaults[key];
+			
+	        chrome.storage.sync.get(items, function (result) {
+	        	if (chrome.runtime.lastError) {
+	        		reject(chrome.runtime.lastError)
+	        	} else {
+	        		resolve(result[key]);
+	        	}
+	        });
+		});
+	},
+	
+	
+	/**
 	 * Setter for 'has user explictly dismissed the 'you must enabled file access'' warning
 	 * @param {Boolean} fileAccessRequiredWarningDismissed true if warning was dismissed
      * @param {function} callback standard storage setter callback

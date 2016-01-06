@@ -42,6 +42,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     });
 	
 	$scope.commands = {};
+	$scope.sort = {}
 	
 	// current style filter. null for none
 	$scope.styleFilterHighlightDefinition = null;
@@ -67,33 +68,31 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     var updateDocs = function () {
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
         return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
-			$scope.docs = docs;
-			
             // if the highlight cant be found in DOM, flag that
 			return Promise.all(docs.map(function (doc) {
                 return backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
                     doc.isInDOM = isInDOM;
-					return Promise.resolve();
-                });
+                }).catch(function () {
+                	// swallow
+					doc.isInDOM = false
+                }).then(function () {
+                	return doc;
+                })
 			}));
-			//
-			//             $scope.$apply(function () {
-			//             	$scope.docs = docs;
-			// });
-			//
-			//              // if the highlight cant be found in DOM, flag that
-			//              docs.forEach(function (doc) {
-			//                  // default to undefined, implying it IS in the DOM
-			//                  backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
-			//                      $scope.$apply(function () {
-			//                      	doc.isInDOM = isInDOM;
-			//                      })
-			//                  });
-			//              });
-			//
-			//   			 return docs;
-        }).then(function () {
-        	return $scope.docs;
+
+        }).then(function (docs) {
+			// sort the docs using the sort value
+			var compare = (backgroundPage._tabs.getComparisonFunction(
+				activeTab.id, $scope.sort.value)) || null;
+			
+			// var compare = backgroundPage._tabs.getComparisonFunction(
+			// 	activeTab.id, "location")
+			
+			return (compare && 
+				backgroundPage._database.sortDocuments(docs, compare)) ||
+				Promise.resolve(docs)
+        }).then(function (docs) {
+        	$scope.docs = docs
         });
     };
 	
@@ -165,7 +164,12 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				});
 	        });
 
-			updateDocs().then(function () {
+			// get the values needed before first updateDocs can happen
+			_storage.getValue("highlight_sort_by").then(function (value) {
+				$scope.sort.value = value
+			}).then(function () {
+				return updateDocs();				
+			}).then(function () {
 				$scope.$apply();
 			})
 	    });
@@ -180,8 +184,17 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		$scope.styleFilterHighlightDefinition = definition;
 		// $scope.$apply();
     };
-
 	
+	$scope.onChangeSelectSort = function () {
+		// update the stored sort value
+	    return _storage.setValue($scope.sort.value, "highlight_sort_by").then(function () {
+			// update the docs array, taking into account the current sort value
+			return updateDocs()
+		}).then(function () {
+			// reflect in DOM
+			$scope.$apply()
+		})
+	};
 
 	/**
 	 * Show the remaining hidden text for a specific highlight
@@ -311,10 +324,10 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			.getComparisonFunction(activeTab.id, "precedence")
 		
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown", activeTab, comparisonFunction).then(function (markdown) {
+			"markdown", activeTab, comparisonFunction).then(function (text) {
 				// Create element to contain markdown
 				var pre = document.createElement('pre');
-				pre.innerText = markdown;
+				pre.innerText = text;
 		
 				document.body.appendChild(pre);
 

@@ -28,10 +28,10 @@
     <!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
     <!--Header-->
     <div class="row">
-        <div class="col-xs-7 vcenter" style="margin: 10px 0">
-            <h5 class="title">
+        <div class="col-xs-5 vcenter" style="margin: 10px 0">
+            <h6 class="title">
                 {{manifest.name}}
-			</h5>
+			</h6>
 			
 			<!-- <span class="badge">{{docs.length}}</span> -->
             <div class="dropdown" style="display: inline">
@@ -94,13 +94,16 @@
 			<div ng-hide="styleFilterHighlightDefinition == null && (search == null || search.text.length == 0)">
 				<small>{{filteredDocs.length}} / {{docs.length}}</small>
 			</div>
-			
-        </div><!-- Search
-        --><div class="col-xs-4 vcenter">
+        </div><div class="col-xs-3 vcenter" style="padding-right: 0px;">
+			  <select class="form-control input-sm" id="sel1"
+			  	 	ng-model="sort.value" ng-change="onChangeSelectSort()">
+			    <option value="time">{{'sort_by_time' | i18n}}</option>
+			    <option value="location">{{'sort_by_location' | i18n}}</option>
+			  </select>
+        </div><div class="col-xs-3 vcenter">
             <input type="search" class="form-control input-sm search" ng-model="search.text"
                    placeholder="{{'placeholder_filter' | i18n}}">
-        </div><!-- Filter by style
-        --><div class="col-xs-1 vcenter">
+        </div><div class="col-xs-1 vcenter">
 			<div class="dropdown pull-right" style="display: inline">
 			   <button class="btn btn-sm btn-default" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-expanded="true"
 			   		ng-class="styleFilterHighlightDefinition.className"

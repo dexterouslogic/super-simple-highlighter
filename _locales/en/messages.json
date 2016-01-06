@@ -70,8 +70,16 @@
     },
 
     "placeholder_filter": {
-        "message": "Filter by Content"
+        "message": "Filter"
     },
+	
+	"sort_by_time": {
+		"message": "Time"
+	},
+	"sort_by_location": {
+		"message": "Location"
+	},
+	
     "remove_all_highlights": {
         "message": "Remove All"
     },

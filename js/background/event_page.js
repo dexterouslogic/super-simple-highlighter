@@ -665,7 +665,7 @@ var _eventPage = {
 	 *	that resolves to a comparible value
 	 * @returns: {Promise} overview correctly formatted as a string
 	 */
-	getOverviewText: function(format, tab, comparisonFunction) {
+	getOverviewText: function(format, tab, compare) {
 		var titles = {};
 		var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
 
@@ -688,12 +688,9 @@ var _eventPage = {
 			return _database.getCreateDocuments_Promise(match);
 		}).then(function(docs) {
 			// main promise (default to native order)
-			return (comparisonFunction && 
-				_database.sortDocuments(docs, comparisonFunction)) ||
+			return (compare && _database.sortDocuments(docs, compare)) ||
 				Promise.resolve(docs);
 		}).then(function (docs) {
-			alert(JSON.stringify(docs));
-			
 			switch(format) {
 			case "markdown":
 				var markdown = "#[" + tab.title + "](" +  tab.url + ")";
