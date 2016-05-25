@@ -473,7 +473,10 @@ var _storage = {
         removeAll_Promise: function () {
             "use strict";
 			return new Promise(function(resolve, reject) {
-                chrome.storage.sync.remove(_storage.highlightDefinitions._keyNames.sharedHighlightStyle, function () {
+				var key = _storage.highlightDefinitions._keyNames.highlightDefinitions;
+
+				// remove any customized styles from storage (keep sharedHighlightStyle)
+				chrome.storage.sync.remove(key, function () {
 					if (chrome.runtime.lastError) {
 						reject(chrome.runtime.lastError);
 					} else {
