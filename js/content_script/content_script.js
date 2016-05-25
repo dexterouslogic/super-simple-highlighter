@@ -340,43 +340,54 @@ var _contentScript  = {
             // corresponding storage.StorageChange for that item.
 			
 			// this applies to all styles
-			_storage.isHighlightBoxShadowEnabled_Promise().then(function (enabled){
+			_storage.isHighlightBoxShadowEnabled_Promise().then(function (enableBoxShadow){
 	            // default FIRST
 	            if (changes.sharedHighlightStyle) {
 	                var c1 = changes.sharedHighlightStyle;
 
 	                if (c1.oldValue) {
-	                    _stylesheet.clearHighlightStyle(_contentScript.highlightClassName);
+					   _stylesheet.clearHighlightStyle(_contentScript.highlightClassName).then(function() {
+						   _stylesheet.updateInnerTextForHighlightStyleElement(); 
+					   });
+
 	                }
 
 	                if (c1.newValue) {
 	                    _stylesheet.setHighlightStyle({
 	                        className: _contentScript.highlightClassName,
 	                        style: c1.newValue,
-							disableBoxShadow: !enabled,
-	                    });
+							disableBoxShadow: !enableBoxShadow,
+					   }).then(function() {
+						   _stylesheet.updateInnerTextForHighlightStyleElement(); 
+					   });
 	                }
 	            }
 
 	            // specific last
 	            if (changes.highlightDefinitions) {
 	                var c2 = changes.highlightDefinitions;
-
+					var promises = [];
+					
 	//                // Remove all event handlers in the ".hotkeys" namespace
 	//                $(document).off('keypress.hotkeys');
 
 	                if (c2.oldValue) {
-	                    c2.oldValue.forEach( function (h) {
-	                        _stylesheet.clearHighlightStyle(h.className);
-	                    });
+	                	c2.oldValue.forEach( function (h) {
+	                		_stylesheet.clearHighlightStyle(h.className);
+	                	});
+	                	
+	                	_stylesheet.updateInnerTextForHighlightStyleElement();
 	                }
 
 	                if (c2.newValue) {
-	                    c2.newValue.forEach( function (h) {
-							h.disableBoxShadow = !enabled;
-						
-	                        _stylesheet.setHighlightStyle(h);
-	                    });
+	                	var promises = c2.newValue.map( function(h) {
+	                		h.disableBoxShadow = !enableBoxShadow;
+	                		return _stylesheet.setHighlightStyle(h);
+	                	});
+	                
+	                	Promise.all(promises).then(function() {
+	                		_stylesheet.updateInnerTextForHighlightStyleElement();
+	                	});
 	                }
 	            }
 
