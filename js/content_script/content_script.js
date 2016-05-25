@@ -175,9 +175,20 @@ var _contentScript  = {
         "use strict";
         var $elm = $(selector);
         if ($elm) {
-            $('body').animate({
-                'scrollTop': $elm.offset().top
-            }, 'slow');
+			var elmOffset = $elm.offset().top;
+			var elmHeight = $elm.height();
+			var windowHeight = window.innerHeight;// $(window).height();
+			var offset;
+
+			if (elmHeight < windowHeight) {
+				   offset = elmOffset - ((windowHeight / 2) - (elmHeight / 2));
+			} else {
+				   offset = elmOffset;
+			}
+
+			$('body').animate({
+				'scrollTop': offset
+			}, 'slow');        
         }
 
         return $elm !== null;
