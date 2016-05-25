@@ -170,7 +170,7 @@
                         <!--title-->
                         <span>{{d.title}}</span>
                         <!--hotkey-->
-                        <kbd class="shortcut" ng-show="{{$index < commands.length && commands[$index].shortcut}}">
+                        <kbd class="shortcut" ng-show="{{$index < commands.length && commands[$index].shortcut.length > 0}}">
                             {{commands[$index].shortcut}}
                         </kbd>
 
