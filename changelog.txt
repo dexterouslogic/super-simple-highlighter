@@ -1,3 +1,9 @@
+3.9.1
+-----
+fix 'reset all styles' button
+scroll highlight to midpoint of page, not top
+allow highlights to be saved along with web page
+
 3.9.0
 -----
 Add sort by location

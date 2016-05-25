@@ -1,5 +1,5 @@
 # Super Simple Highlighter
-Copyright 2014-2015 [Dexterous Logic](http://dexterouslogic.com)
+Copyright 2014-2016 [Dexterous Logic](http://dexterouslogic.com)
 
 ##What is it?
 A Chrome extension for highlighting text, and automatically attempt to restore highlight on each page revisit.
@@ -14,7 +14,7 @@ Donations can be made with [Paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s
 [Exclamation Icon](https://www.iconfinder.com/icons/32453/alert_attention_danger_error_exclamation_hanger_message_problem_warning_icon) by [Aha-soft](http://www.aha-soft.com/) is licensed under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/)
 
     Super Simple Highlighter
-    Copyright (C) 2014-2015 Dexterous Logic
+    Copyright (C) 2014-2016 Dexterous Logic
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
