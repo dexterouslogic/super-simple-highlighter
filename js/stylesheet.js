@@ -30,14 +30,24 @@ var _stylesheet = {
     getStyleElementId: function () {
        if (_stylesheet.styleElementId == null) {
 		   // Create the <style> tag
-		   var styleElement = document.createElement("style");
-	   
-		   styleElement.id = _stringUtils.createUUID({ beginWithLetter: true });
-	   
-		   // Add the <style> element to the page
-		   document.head.appendChild(styleElement);
+            var style = document.createElement("style");
 
-		   _stylesheet.styleElementId = styleElement.id;
+            style.type = "text/css";
+            style.id = _stringUtils.createUUID({ 
+                beginWithLetter: true 
+            });
+
+            var text = "@keyframes fontbulger {" +
+                "0% { transform: scale(1); }" + //box-shadow: inherit; }" +
+                "100% { transform: scale(1.2); }" + //box-shadow: rgba(0,0,0, 0.3) 2px 2px 2px; }" +
+            "}";
+
+            style.appendChild(document.createTextNode(text));
+
+           // Add the <style> element to the page
+           document.head.appendChild(style);
+
+		   _stylesheet.styleElementId = style.id;
 	   }
                
 	   return _stylesheet.styleElementId;

@@ -375,7 +375,7 @@ var _storage = {
 				keys[this._keyNames.sharedHighlightStyle] = {
 	                "border-radius": "0.2em",
 	                //"padding": "0.2em",
-	                "transition-property": "color, background-color, box-shadow",
+	                "transition-property": "color, background-color",
 	                "transition-duration": "0.5s",
 	                "transition-timing-function": "ease-in-out",
 
@@ -384,10 +384,10 @@ var _storage = {
 	                "color": "#AAAAAA",
 	                "background-color": "#EEEEEE",
 	//                        "box-shadow": "0 0 8px #D3D3D3",
-	                "font": "inherit"
+	                "font": "inherit",
 
 	                // "display": "inline-block",
-	                // "transform": "scale(2)",
+	                "animation": "fontbulger 0.2s ease-in-out 0s 2 alternate"
 	            };
 			}
 				

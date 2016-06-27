@@ -63,6 +63,9 @@ body {
 
 .doc .highlight {
 	border-radius: 5px;
+
+    display: block;
+    animation: initial;
 }
 
 .actions {

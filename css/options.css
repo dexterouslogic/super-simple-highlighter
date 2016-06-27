@@ -20,6 +20,8 @@ input[type="color"] {
  /*   padding: 10px 0 10px 0.3em !important;*/
     cursor: pointer;
 	border-radius: 0.5em !important;
+
+      display: inline-block;
 }
 
 /*
