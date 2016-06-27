@@ -633,14 +633,23 @@ var _eventPage = {
      * @param {string} documentId
      * @param {object} [options] if not supplied, use the storage value
      */
-    speakHighlightText: function (documentId, options) {
+    speakHighlightText: function(tabId, documentId, options) {
         "use strict";
-        return _database.getDocument_Promise(documentId).then(function (doc) {
-            if (doc.text) {
+        options = options || {};
+
+        return _tabs.sendGetDocumentElementAttributeNodeValue_Promise(tabId, "lang").then( function(lang) {
+            // navigator.language seems to produce weird-sounding results
+            //options.lang = lang || navigator.language;
+            
+            if (typeof lang === "string") {
+                options.lang = lang;
+            }
+
+            return _database.getDocument_Promise(documentId);
+        }).then(function (doc) {
+            if (typeof doc.text === "string") {
                 // workaround for Google Deutsch becoming the default voice, for some reason
-                chrome.tts.speak(doc.text, {
-                    lang: navigator.language
-				})
+                chrome.tts.speak(doc.text, options);
             }
         });
     },

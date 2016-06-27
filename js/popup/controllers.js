@@ -245,7 +245,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      * @param documentId
      */
     $scope.onClickSpeak = function (documentId) {
-        backgroundPage._eventPage.speakHighlightText(documentId);
+        backgroundPage._eventPage.speakHighlightText(activeTab.id, documentId);
     };
 
     /**

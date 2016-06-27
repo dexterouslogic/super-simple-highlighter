@@ -252,7 +252,7 @@ var _contextMenus = {
         case "speak_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
                 return _eventPage.speakHighlightText(
-					_contextMenus.hoveredHighlightId);
+					tab.id, _contextMenus.hoveredHighlightId);
             }
             break;
 

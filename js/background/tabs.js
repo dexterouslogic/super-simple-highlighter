@@ -255,6 +255,22 @@ var _tabs = {
             fragment: documentId
         });
     },
+
+    /**
+     * Get the nodeValue property of an attribute of the document element (tag name HTML)
+     *
+     * @param {number} tabId The tab identifier
+     * @param {string} attributeName The attribute name
+     * @return {object} { value of attribute node }
+     */
+    sendGetDocumentElementAttributeNodeValue_Promise: function (tabId, attributeName) {
+        "use strict";
+
+        return _tabs.sendMessage_Promise(tabId, {
+            id: "get_document_element_attribute_node_value",
+            attribute_name: attributeName
+        });
+    },
 	
 	/**
 	 * Get the bounding client rect for the span covering the highlight.

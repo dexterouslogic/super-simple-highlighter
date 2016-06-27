@@ -269,6 +269,12 @@ var _contentScript  = {
 			
 			break;
 
+        case "get_document_element_attribute_node_value":
+            var attribute = document.documentElement.attributes[message.attribute_name];
+            response = (attribute && attribute.nodeValue) || undefined;
+            // response = document.documentElement.attributes[message.attribute_name];
+            break;
+
         default:
             throw "unhandled message: sender=" + sender + ", id=" + message.id;
         }

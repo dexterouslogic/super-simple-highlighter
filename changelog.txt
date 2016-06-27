@@ -1,6 +1,7 @@
-3.9.2
------
-Explicitly inherit font in highlight style
+# 3.9.2
+
+* Explicitly inherit font in highlight style.
+* Supply document language in text-to-speech methods, when available.
 
 3.9.1
 -----
