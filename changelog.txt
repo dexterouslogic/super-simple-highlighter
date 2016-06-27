@@ -1,3 +1,7 @@
+3.9.2
+-----
+Explicitly inherit font in highlight style
+
 3.9.1
 -----
 fix 'reset all styles' button

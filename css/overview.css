@@ -9,6 +9,7 @@ body {
 	display: inline;	
     cursor: pointer;
 	margin-right: 0.2em;
+	font-size: 1.5em !important;
 }
 
 .text {

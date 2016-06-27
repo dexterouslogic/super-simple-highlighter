@@ -16,7 +16,7 @@ input[type="color"] {
 
 .token {
     margin: 0 0 8px 12px;
-    font-size: 24pt;
+    font-size: 24pt !important;
  /*   padding: 10px 0 10px 0.3em !important;*/
     cursor: pointer;
 	border-radius: 0.5em !important;

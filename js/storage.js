@@ -292,7 +292,7 @@ var _storage = {
                     "color": textColor,
 
                     // must override the shared style
-                    "font-style": "inherit"
+                    // "font-style": "inherit"
                 }
             };
         },
@@ -376,15 +376,18 @@ var _storage = {
 	                "border-radius": "0.2em",
 	                //"padding": "0.2em",
 	                "transition-property": "color, background-color, box-shadow",
-	                "transition-duration": "0.1s, 0.1s, 0.1s",
-	                "transition-timing-function": "linear, linear, linear",
+	                "transition-duration": "0.5s",
+	                "transition-timing-function": "ease-in-out",
 
 	                // color & font-style when highlight is defined by a class which no longer exists
 	                // each specific style must override these, or inherit default
-	                "color": "#BBBBBB",
+	                "color": "#AAAAAA",
 	                "background-color": "#EEEEEE",
 	//                        "box-shadow": "0 0 8px #D3D3D3",
-	                "font-style": "italic"
+	                "font": "inherit"
+
+	                // "display": "inline-block",
+	                // "transform": "scale(2)",
 	            };
 			}
 				
