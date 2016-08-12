@@ -76,8 +76,6 @@ var _highlighter = {
 //            record.lastSpan.nextElement = record; //connect linked list back to record
 //        }
 
-        record.firstSpan.setAttribute("tabindex", "0");
-
         return record.firstSpan;
     },
 

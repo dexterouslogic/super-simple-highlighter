@@ -35,6 +35,9 @@ var _contentScript  = {
         // create a random class name
         _contentScript.highlightClassName = _stringUtils.createUUID({beginWithLetter: true});
 
+        // the rules for the close button, which must be a child of this class
+        _stylesheet.setCloseButtonStyle(_contentScript.highlightClassName);
+
 //        document.body.style.backgroundColor = "#ffd";
 
         // listen for changes to styles
@@ -49,12 +52,45 @@ var _contentScript  = {
         // because .on() expects the element to be in the DOM, use defered events
         // http://stackoverflow.com/questions/9827095/is-it-possible-to-use-jquery-on-and-hover
 
-		// OLD ROUTINE
+        $(document).on({
+            mouseenter: function () {
+                //stuff to do on mouse enter
+                $(this).find('.close').animate({
+                    opacity: 1
+                }, 50);
+            },
+            mouseleave: function () {
+                //stuff to do on mouse leave
+                $(this).find('.close').animate({
+                    opacity: 0
+                }, 50);
+            }
+        }, "." + _contentScript.highlightClassName + ".closeable"); 
+
+        $(document).on({
+            click: function () {
+                // parent should be a span with an id corresponding the the document id of the highlight
+                var firstSpan = this.parentElement;
+                var highlightId = _contentScript._getHighlightId(firstSpan);
+
+                if (highlightId) {
+                    // tell event page to delete the highlight
+                    chrome.runtime.sendMessage({
+                        id: "on_click_delete_highlight",
+                        highlightId: highlightId
+                    });
+                }
+            }
+        }, "." + _contentScript.highlightClassName + ".closeable .close"); 
+
+		// OLD ROUTINE (not used because we don't want to wake event page')
         // $(document).on({
         //     mouseenter: _contentScript.onMouseEnterHighlight,
         //     mouseleave: _contentScript.onMouseLeaveHighlight,
         // }, "span." + _contentScript.highlightClassName);
     },
+
+
 
     isSelectionCollapsed: function () {
         "use strict";
@@ -106,10 +142,23 @@ var _contentScript  = {
         }
 
         // create span(s), with 2 class names
-        return _highlighter.create(range, id, [
+        var highlightElement = _highlighter.create(range, id, [
             _contentScript.highlightClassName,
             className
         ]);
+
+        // enable tabbing
+        highlightElement.setAttribute("tabindex", "0");
+
+        // 1 - only the first of the chain of spans should get the closeable class
+        highlightElement.classList.add("closeable");
+
+        // 2 - add 'close' span to the element
+        var closeElement = document.createElement("SPAN");
+        
+        closeElement.className = "close";
+
+        highlightElement.appendChild(closeElement);
     },
 
     /**

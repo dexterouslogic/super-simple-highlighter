@@ -193,6 +193,13 @@ var _eventPage = {
         "use strict";
 
         switch (message.id) {
+        case "on_click_delete_highlight":
+            // message.highlightId is the document id to be deleted
+            _tabs.getActiveTab().then(function(tab) {
+                _eventPage.deleteHighlight(tab.id, message.highlightId);
+            });
+            break;
+
         case "on_mouse_enter_highlight":
             _contextMenus.setHoveredHighlightId(message.highlightId);
             break;

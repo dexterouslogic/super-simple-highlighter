@@ -217,7 +217,7 @@
     },
 
 	"undo": {
-		"message": "Undo Last Highlight"
+		"message": "Remove Last Highlight"
 	},
 
     "open_overview_in_new_tab": {
