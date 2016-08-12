@@ -33,6 +33,7 @@ var _highlighter = {
 
         // highlights are wrapped in one or more spans
         var span = document.createElement("SPAN");
+        
         span.className = (className instanceof Array ? className.join(" ") : className);
 
         // each node has a .nextElement property, for following the linked list
@@ -74,6 +75,8 @@ var _highlighter = {
 //        if (record.firstSpan) {
 //            record.lastSpan.nextElement = record; //connect linked list back to record
 //        }
+
+        record.firstSpan.setAttribute("tabindex", "0");
 
         return record.firstSpan;
     },
