@@ -725,6 +725,7 @@ var _eventPage = {
 		}).then(function (docs) {
 			switch(format) {
 			case "markdown":
+            case "markdown-no-footer":
 				var markdown = "#[" + tab.title + "](" +  tab.url + ")";
 				var currentClassName;
 
@@ -745,15 +746,17 @@ var _eventPage = {
 				});
 
 				// footer
-				markdown += ("\n\n---\n" +
-					chrome.i18n.getMessage("overview_footer", [
-						chrome.i18n.getMessage("extension_name"),
-						chrome.i18n.getMessage("extension_webstore_url"),
-						chrome.i18n.getMessage("copyright_year"),
-						chrome.i18n.getMessage("extension_author"),
-						chrome.i18n.getMessage("extension_author_url")
-					])
-				);
+                if (format !== "markdown-no-footer") {
+                    markdown += ("\n\n---\n" +
+                        chrome.i18n.getMessage("overview_footer", [
+                            chrome.i18n.getMessage("extension_name"),
+                            chrome.i18n.getMessage("extension_webstore_url"),
+                            chrome.i18n.getMessage("copyright_year"),
+                            chrome.i18n.getMessage("extension_author"),
+                            chrome.i18n.getMessage("extension_author_url")
+                        ])
+                    );
+                } 
 
 				return Promise.resolve(markdown);
 

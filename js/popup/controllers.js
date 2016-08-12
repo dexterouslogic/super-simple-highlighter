@@ -329,7 +329,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			activeTab.id, $scope.sort.value);
 		
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown", activeTab, compare).then(function (text) {
+			"markdown-no-footer", activeTab, compare).then(function (text) {
 				// Create element to contain markdown
 				var pre = document.createElement('pre');
 				pre.innerText = text;
