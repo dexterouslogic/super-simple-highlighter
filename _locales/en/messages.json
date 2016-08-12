@@ -217,7 +217,7 @@
     },
 
 	"undo": {
-		"message": "Remove Latest Highlight"
+		"message": "Undo Last Highlight"
 	},
 
     "open_overview_in_new_tab": {
@@ -225,11 +225,11 @@
     },
 	
 	"copy_overview" : {
-		"message": "Copy Markdown"
+		"message": "Copy as Markdown"
 	},
 	
 	"save_overview": {
-		"message": "Save Markdown"
+		"message": "Save as Markdown"
 	},
 	
 	"save_overview_file_name": {

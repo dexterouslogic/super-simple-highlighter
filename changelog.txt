@@ -1,3 +1,10 @@
+# 3.9.3
+
+* Fix formatting of saved files
+* Add 'delete highlight under cursor' keyboard shortcut
+* Remove promo from footer of copied markdown
+* Add tab key navigation to each highlight 
+
 # 3.9.2
 
 * Explicitly inherit font in highlight style.
