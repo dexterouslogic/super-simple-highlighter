@@ -91,7 +91,7 @@ var _stylesheet = {
 		var styleElement = document.getElementById(id);
 
 		if (styleElement) {
-			   styleElement.innerText = _stylesheet.getCSSTextForStyleElement();
+			   styleElement.innerHTML = _stylesheet.getCSSTextForStyleElement();
 		}
 	},
     
