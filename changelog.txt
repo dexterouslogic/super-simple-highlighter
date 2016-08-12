@@ -1,4 +1,4 @@
-# 3.9.3
+# 3.10.0
 
 * Fix formatting of saved files
 * Add 'delete highlight under cursor' keyboard shortcut

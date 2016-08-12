@@ -2,7 +2,7 @@
     "manifest_version": 2,
 
     "name": "__MSG_extension_name__",
-    "version": "3.9.3",
+    "version": "3.10.0",
 
     "default_locale": "en",
     "description": "__MSG_extension_description__",
@@ -76,14 +76,11 @@
             "description": "Apply Highlight #10"
         },
 			
-		"copy_overview": {
-			"description": "Copy Highlights as Markdown"
-		},
 		"undo_last_create_highlight": {
 			"description": "Undo"
 		}, 
         "delete_hovered_highlight": {
-            "description": "Delete highlight under mouse cursor"
+            "description": "Remove highlight under cursor"
         }		
     },
 

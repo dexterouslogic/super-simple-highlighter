@@ -54,29 +54,51 @@ var _contentScript  = {
 
         $(document).on({
             mouseenter: function () {
+                console.log("entre");
+
                 // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
                 // have the 'closeable' class)
                 var firstSpan = $(this).prop('firstSpan');
                 // var bg = $(firstSpan).css('background-color');
 
+                // remove hysteresis timer from the first span
+                if (firstSpan.mouseLeaveHysteresisTimeoutID != null) {
+                    // cancel scheduled out transition
+                    clearTimeout(firstSpan.mouseLeaveHysteresisTimeoutID);
+
+                    firstSpan.mouseLeaveHysteresisTimeoutID = null;
+                }
+
+                // transition in
                 $(firstSpan).find('.close').css({
-                    // 'border-color': bg,
                     'opacity': 1,
                     'transform': 'scale(1.0)'
                 });
             },
+
             mouseleave: function () {
-                var firstSpan = $(this).prop('firstSpan');
+                console.log("quitter")
                 
-                $(firstSpan).find('.close').css({
-                    'opacity': 0,
-                    'transform': 'scale(0.3)'
-                });
+                var firstSpan = $(this).prop('firstSpan');
+                var $close = $(firstSpan).find('.close');
+
+                // add a timeout once we leave the element. If we return we cancel the transition out
+                firstSpan.mouseLeaveHysteresisTimeoutID = setTimeout(function() {
+                    // transition out wasn't cancelled, so do it
+                    firstSpan.mouseLeaveHysteresisTimeoutID = null;
+
+                    $close.css({
+                        'opacity': 0,
+                        'transform': 'scale(0.6)'
+                    });
+                }, 1000);
             }
         }, "." + _contentScript.highlightClassName); 
 
         $(document).on({
-            click: function () {
+            click: function (event) {
+                event.preventDefault();
+
                 // parent should be a span with an id corresponding the the document id of the highlight
                 var firstSpan = this.parentElement;
                 var highlightId = _contentScript._getHighlightId(firstSpan);
