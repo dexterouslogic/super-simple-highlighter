@@ -90,9 +90,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			
 			return (compare && 
 				backgroundPage._database.sortDocuments(docs, compare)) ||
-				Promise.resolve(docs)
+				Promise.resolve(docs);
         }).then(function (docs) {
         	$scope.docs = docs
+			
+			return docs;
         });
     };
 	
@@ -359,22 +361,49 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
      */
     $scope.onClickRemoveHighlight = function (event, documentId) {
 		// event.preventDefault();
-		event.stopPropagation();
+		// event.stopPropagation();
 		
-        backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
-            if (result.ok ) {
-	            return updateDocs();
-			} else {
-				return Promise.reject();
+		 $(event.currentTarget).css({
+			'opacity': 0,
+			'transform': 'scale(5)'
+		});
+		
+		 // wait until button disappears before sending message to remove highlight
+		event.currentTarget.addEventListener("transitionend", function(event) {
+			if (event.propertyName !== "opacity") {
+				return;
 			}
-		}).then(function (docs) {
-            // close popup on last doc removed
-            if (docs.length === 0) {
-                window.close();
-            } else {
-				$scope.$apply();
-            }
-        });
+
+			backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
+				if (result.ok ) {
+					return updateDocs();
+				} else {
+					return Promise.reject();
+				}
+			}).then(function (docs) {
+				// close popup on last doc removed
+				if (docs.length === 0) {
+					window.close();
+				} else {
+					$scope.$apply();
+				}
+			});
+		}, false);
+
+        // backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
+        //     if (result.ok ) {
+	    //         return updateDocs();
+		// 	} else {
+		// 		return Promise.reject();
+		// 	}
+		// }).then(function (docs) {
+        //     // close popup on last doc removed
+        //     if (docs.length === 0) {
+        //         window.close();
+        //     } else {
+		// 		$scope.$apply();
+        //     }
+        // });
     };
 
     /**

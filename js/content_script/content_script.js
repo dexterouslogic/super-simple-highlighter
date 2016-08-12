@@ -57,10 +57,10 @@ var _contentScript  = {
                 // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
                 // have the 'closeable' class)
                 var firstSpan = $(this).prop('firstSpan');
-                var bg = $(firstSpan).css('background-color');
+                // var bg = $(firstSpan).css('background-color');
 
                 $(firstSpan).find('.close').css({
-                    'border-color': bg,
+                    // 'border-color': bg,
                     'opacity': 1,
                     'transform': 'scale(1.0)'
                 });

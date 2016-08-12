@@ -45,6 +45,8 @@ body {
 .highlight .close {
 	margin-top: -6px;
 	margin-right: -6px;
+
+    transition: opacity 220ms, transform 200ms;
 }
 
 .pointer {
