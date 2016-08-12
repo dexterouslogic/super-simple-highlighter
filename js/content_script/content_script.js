@@ -49,23 +49,29 @@ var _contentScript  = {
         // listen for messages from event page
         chrome.runtime.onMessage.addListener(_contentScript.onRuntimeMessage);
 
-        // because .on() expects the element to be in the DOM, use defered events
+        // because .on() expects the element to be in the DOM, use delegated events
         // http://stackoverflow.com/questions/9827095/is-it-possible-to-use-jquery-on-and-hover
 
         $(document).on({
             mouseenter: function () {
-                //stuff to do on mouse enter
-                $(this).find('.close').animate({
-                    opacity: 1
-                }, 50);
+                // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
+                // have the 'closeable' class)
+                var firstSpan = $(this).prop('firstSpan');
+                
+                $(firstSpan).find('.close').css({
+                    'opacity': 1,
+                    'transform': 'scale(1.0)'
+                });
             },
             mouseleave: function () {
-                //stuff to do on mouse leave
-                $(this).find('.close').animate({
-                    opacity: 0
-                }, 50);
+                var firstSpan = $(this).prop('firstSpan');
+                
+                $(firstSpan).find('.close').css({
+                    'opacity': 0,
+                    'transform': 'scale(0.3)'
+                });
             }
-        }, "." + _contentScript.highlightClassName + ".closeable"); 
+        }, "." + _contentScript.highlightClassName); 
 
         $(document).on({
             click: function () {
@@ -73,13 +79,28 @@ var _contentScript  = {
                 var firstSpan = this.parentElement;
                 var highlightId = _contentScript._getHighlightId(firstSpan);
 
-                if (highlightId) {
+                if (!highlightId) {
+                    return
+                }
+
+                // wait until button disappears before sending message to remove highlight
+                this.addEventListener("transitionend", function(event) {
+                    if (event.propertyName !== "opacity") {
+                        return;
+                    }
+
                     // tell event page to delete the highlight
                     chrome.runtime.sendMessage({
                         id: "on_click_delete_highlight",
                         highlightId: highlightId
                     });
-                }
+                }, false);
+
+                // transition out
+                $(this).css({
+                    'opacity': 0,
+                    'transform': 'scale(5)'
+                })
             }
         }, "." + _contentScript.highlightClassName + ".closeable .close"); 
 
