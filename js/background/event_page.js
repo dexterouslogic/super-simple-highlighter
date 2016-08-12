@@ -249,6 +249,19 @@ var _eventPage = {
         "use strict";
 		// parse well-known command strings, but default to the formatted kind
 		switch(command) {
+        case "delete_hovered_highlight":
+            var _tab;
+
+            return _tabs.getActiveTab().then(function (tab) {
+                _tab = tab;
+
+                return _tabs.getHoveredHighlightID(tab.id);
+			}).then(function(documentId) {
+                if (documentId) {
+                    _eventPage.deleteHighlight(_tab.id, documentId);
+                }
+            });
+
 		case "undo_last_create_highlight":
 			return _tabs.getActiveTab().then(function (tab) {
 				return _eventPage.undoLastHighlight(tab.id)

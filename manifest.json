@@ -81,7 +81,10 @@
 		},
 		"undo_last_create_highlight": {
 			"description": "Undo"
-		}		
+		}, 
+        "delete_hovered_highlight": {
+            "description": "Delete highlight under mouse cursor"
+        }		
     },
 
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",

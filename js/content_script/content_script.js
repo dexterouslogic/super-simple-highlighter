@@ -275,6 +275,10 @@ var _contentScript  = {
             // response = document.documentElement.attributes[message.attribute_name];
             break;
 
+        case "get_hovered_highlight_id":
+            response = _contentScript.getHoveredHighlightID();
+            break;
+
         default:
             throw "unhandled message: sender=" + sender + ", id=" + message.id;
         }
@@ -300,7 +304,6 @@ var _contentScript  = {
 
     /**
      * Mouse entered one of the highlight's spans
-     * NOT CALLED, DUE TO CONTEXT MENU CHANGES IN M41
      */
     onMouseEnterHighlight: function () {
         "use strict";
@@ -324,7 +327,6 @@ var _contentScript  = {
 
     /**
      * Mouse left one of the highlight's spans
-     * NOT CALLED, DUE TO CONTEXT MENU CHANGES IN M41
 	 */
     onMouseLeaveHighlight: function () {
         "use strict";
@@ -332,6 +334,26 @@ var _contentScript  = {
 		chrome.runtime.sendMessage({
             id: "on_mouse_leave_highlight",
         });
+    },
+
+    /**
+     * Get the ID of the highlight currently being hovered over
+     */
+    getHoveredHighlightID: function() {
+        // undefined if no element
+        var lastHoveredElement = (function() {
+            // highlight classes that are hovered
+            var selector = "." + _contentScript.highlightClassName + ":hover"; 
+            var q = document.querySelectorAll(selector);
+
+            return q[q.length-1];
+        })()
+
+        if (!lastHoveredElement) {
+            return;
+        }
+
+        return _contentScript._getHighlightId(lastHoveredElement);
     },
 
     /**

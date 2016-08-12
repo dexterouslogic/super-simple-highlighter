@@ -284,8 +284,20 @@ var _tabs = {
 		return _tabs.sendMessage_Promise(tabId, {
 			id: "get_bounding_client_rect",
 			highlightId: documentId
-		})
+		});
 	},
+
+    /**
+     * Get the document id of the highlight that is currently being hovered over
+     * @param {number} tabId
+     */
+    getHoveredHighlightID: function (tabId) {
+        "use strict";
+
+        return _tabs.sendMessage_Promise(tabId, {
+            id: "get_hovered_highlight_id"
+        });
+    },
 
     /**
      * 'Play' an array of document's 'create' and 'delete' messages into the DOM
@@ -332,6 +344,7 @@ var _tabs = {
 			return sum;
 		});
     },
+
 
 	/**
 	 * Get a sort comparison function, which takes a document and returns a
