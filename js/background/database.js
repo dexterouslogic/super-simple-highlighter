@@ -490,6 +490,6 @@ var _database = {
 				return v1 > v2	
 			})
 		})
-	}
+	},
 };
 

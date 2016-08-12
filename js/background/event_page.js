@@ -700,11 +700,12 @@ var _eventPage = {
 	 * Get an overiew of the highlights for the current page
 	 * @param {Object} tab one of the available tabs, or active tab if undefined
 	 * @param {string} format one of [markdown]
-	 * @param {Function} [comparisonFunction] function that returns a promise
+	 * @param {Function} [comparisonPredicate] function that returns a promise
 	 *	that resolves to a comparible value
+     * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
 	 * @returns: {Promise} overview correctly formatted as a string
 	 */
-	getOverviewText: function(format, tab, compare) {
+	getOverviewText: function(format, tab, comparisonPredicate, filterPredicate) {
 		var titles = {};
 		var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
 
@@ -725,9 +726,12 @@ var _eventPage = {
 			var match = _database.buildMatchString(tab.url);
 			
 			return _database.getCreateDocuments_Promise(match);
+        }).then(function(docs) {
+            // filter
+            return (filterPredicate && docs.filter(filterPredicate)) || docs; 
 		}).then(function(docs) {
-			// main promise (default to native order)
-			return (compare && _database.sortDocuments(docs, compare)) ||
+			// sort - main promise (default to native order)
+			return (comparisonPredicate && _database.sortDocuments(docs, comparisonPredicate)) ||
 				Promise.resolve(docs);
 		}).then(function (docs) {
 			switch(format) {

@@ -300,17 +300,17 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
     };
 	
 	$scope.onClickSaveOverview = function (docs) {
-		var compare = backgroundPage._tabs.getComparisonFunction(
+		var comparisonPredicate = backgroundPage._tabs.getComparisonFunction(
 			activeTab.id, $scope.sort.value);
 		
 		// format all highlights as a markdown document
-		return backgroundPage._eventPage.getOverviewText("markdown", activeTab, compare)
-			.then(function (markdown) {
+		return backgroundPage._eventPage.getOverviewText(
+			"markdown", activeTab, comparisonPredicate, $scope.styleFilterPredicate).then(function (text) {
 				// create a temporary anchor to navigate to data uri
 				var a = document.createElement("a");
 
 				a.download = chrome.i18n.getMessage("save_overview_file_name");
-				a.href = "data:text;base64," + utf8_to_b64(markdown);
+				a.href = "data:text;base64," + utf8_to_b64(text);
 
 				// create & dispatch mouse event to hidden anchor
 				var mEvent = document.createEvent("MouseEvent");
@@ -325,11 +325,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// format all highlights as a markdown document
 
 		// sort the docs using the sort value
-		var compare = backgroundPage._tabs.getComparisonFunction(
+		var comparisonPredicate = backgroundPage._tabs.getComparisonFunction(
 			activeTab.id, $scope.sort.value);
 		
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown-no-footer", activeTab, compare).then(function (text) {
+			"markdown-no-footer", activeTab, comparisonPredicate, $scope.styleFilterPredicate).then(function (text) {
 				// Create element to contain markdown
 				var pre = document.createElement('pre');
 				pre.innerText = text;

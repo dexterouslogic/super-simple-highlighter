@@ -3,7 +3,9 @@
 * Fix formatting of saved files
 * Add 'delete highlight under cursor' keyboard shortcut
 * Remove promo from footer of copied markdown
-* Add tab key navigation to each highlight 
+* Add tab key navigation to each highlight
+* Add close button on highlight hover
+* Filter copied/saved highlights with the current filter 
 
 # 3.9.2
 
