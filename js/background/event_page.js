@@ -200,13 +200,13 @@ var _eventPage = {
             });
             break;
 
-        case "on_mouse_enter_highlight":
-            _contextMenus.setHoveredHighlightId(message.highlightId);
-            break;
+        // case "on_mouse_enter_highlight":
+        //     _contextMenus.setHoveredHighlightId(message.highlightId);
+        //     break;
 
-        case "on_mouse_leave_highlight":
-            _contextMenus.setHoveredHighlightId(null);
-            break;
+        // case "on_mouse_leave_highlight":
+        //     _contextMenus.setHoveredHighlightId(null);
+        //     break;
 
 //        case "create_highlight":
 //            // create new document for highlight, then update DOM
@@ -231,7 +231,7 @@ var _eventPage = {
         console.log("onTabActivated");
 
         // default to not being over a highlight
-        _contextMenus.setHoveredHighlightId(null);
+        // _contextMenus.setHoveredHighlightId(null);
     },
 
     /**
@@ -259,7 +259,7 @@ var _eventPage = {
         case "delete_hovered_highlight":
             var _tab;
 
-            return _tabs.getActiveTab().then(function (tab) {
+            return _tabs.getActiveTab().then(function(tab) {
                 _tab = tab;
 
                 return _tabs.getHoveredHighlightID(tab.id);
@@ -270,15 +270,15 @@ var _eventPage = {
             });
 
 		case "undo_last_create_highlight":
-			return _tabs.getActiveTab().then(function (tab) {
-				return _eventPage.undoLastHighlight(tab.id)
+			return _tabs.getActiveTab().then(function(tab) {
+				return _eventPage.undoLastHighlight(tab.id);
 			});
 			
 		case "copy_overview":
 			var tab;
 			
 			// use the sort defined by the popup
-			return _tabs.getActiveTab().then(function (_tab) {
+			return _tabs.getActiveTab().then(function(_tab) {
 				tab = _tab;
 				return _storage.getValue("highlight_sort_by");
 			}).then(function (value) {
@@ -310,6 +310,7 @@ var _eventPage = {
 	            }
 
 	            hd = items.highlightDefinitions[index];
+
 				return _tabs.getActiveTab();
 			}).then(function(activeTab) {
                 var match = _database.buildMatchString(activeTab.url);
@@ -318,7 +319,7 @@ var _eventPage = {
 				}
 
 				return _tabs.sendGetSelectionRangeMessage_Promise(activeTab.id).then(function (xpathRange) {
-					if (!xpathRange) { 
+					if (!xpathRange) {
 						return Promise.reject(new Error());
 					}
 					
@@ -326,8 +327,8 @@ var _eventPage = {
                     if (!xpathRange.collapsed) {
                         // requires selection text
                         return _tabs.sendGetRangeTextMessage_Promise(activeTab.id, xpathRange).then(function (selectionText) {
-                            if (!selectionText) { 
-								return reject(new Error());
+                            if (!selectionText) {
+								return Promise.reject(new Error());
 							}
 							
                             // create new document for highlight,
@@ -335,7 +336,7 @@ var _eventPage = {
                             return _eventPage.createHighlight(activeTab.id,
                                 xpathRange, _database.buildMatchString(activeTab.url),
                                 selectionText, hd.className);
-						}).then(function () {
+						}).then(function() {
                             // remove selection?
                             return _storage.getUnselectAfterHighlight_Promise().then(function (unselectAfterHighlight) {
                                 if (unselectAfterHighlight) {
@@ -347,14 +348,48 @@ var _eventPage = {
 					} else {
                         // collapsed selection range means update 
 						// the hovered highlight (if possible)
-                        var documentId = _contextMenus.getHoveredHighlightId();
-						
-                        if (documentId) {
-                            _eventPage.updateHighlight(activeTab.id,
-                                documentId, hd.className);
-                        }
-						
-						return Promise.resolve();
+                        return _tabs.getHoveredHighlightID(activeTab.id).then(function(documentId) {
+                            if (!documentId) {
+                                return Promise.resolve();
+                            }
+
+                            // if the hovered highlight has a different style to the shortcut request, update
+                            // it. If not, remove the highlight.
+
+                            /// get doc associated with highlight, identified by id
+                            return _database.getDocument_Promise(documentId).then(function(doc) {
+                                if (doc.className !== hd.className) {
+                                    // different class. update.
+                                    return _eventPage.updateHighlight(activeTab.id, documentId, hd.className);
+                                } else {
+                                    // return _storage.getValue("remove_highlight_if_shortcut_highlight_definition_equals_hovered").then(function(value) {
+                                    //     if (!value) {
+                                    //         return Promise.resolve();
+                                    //     }
+
+                                    //     // remove the highlight
+                                    //     return _eventPage.deleteHighlight(activeTab.id, documentId).then(function() {
+                                    //         // then select the text it spanned
+                                    //         return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
+                                    //     });
+                                    // });
+
+                                    // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
+                                    // Otherwise it's too easy to make multiple highlights over the same range.
+                                    return _storage.getUnselectAfterHighlight_Promise().then(function(unselectAfterHighlight) {
+                                        if (!unselectAfterHighlight) {
+                                            return Promise.resolve();
+                                        }
+
+                                        // remove the highlight
+                                        return _eventPage.deleteHighlight(activeTab.id, documentId).then(function() {
+                                            // then select the text it spanned
+                                            return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
+                                        });
+                                    });
+                                }
+                            })
+                        });
 					}
 				});
 			});

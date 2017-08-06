@@ -24,7 +24,7 @@ var _storage = {
 	  */
 	_defaults: {
 		// identifier for comparator to use for highlight sorting
-		"highlight_sort_by": "time"
+		"highlight_sort_by": "time",
 	},
 	
 	/**
@@ -40,11 +40,12 @@ var _storage = {
 			
 			// value to set
  			var items = {};
+			 
 			items[key] = value;
 			
-	        chrome.storage.sync.set(items, function () {
+	        chrome.storage.sync.set(items, function() {
 	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
+	        		reject(chrome.runtime.lastError);
 	        	} else {
 	        		resolve();
 	        	}

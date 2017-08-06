@@ -54,8 +54,6 @@ var _contentScript  = {
 
         $(document).on({
             mouseenter: function () {
-                console.log("entre");
-
                 // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
                 // have the 'closeable' class)
                 var firstSpan = $(this).prop('firstSpan');
@@ -77,8 +75,6 @@ var _contentScript  = {
             },
 
             mouseleave: function () {
-                console.log("quitter")
-                
                 var firstSpan = $(this).prop('firstSpan');
                 var $close = $(firstSpan).find('.close');
 
@@ -91,7 +87,7 @@ var _contentScript  = {
                         'opacity': 0,
                         'transform': 'scale(0.6)'
                     });
-                }, 1000);
+                }, 500);
             }
         }, "." + _contentScript.highlightClassName); 
 
@@ -235,6 +231,20 @@ var _contentScript  = {
     },
 
     /**
+     * Select the text within a defined range
+     * @param {Range} [range] range to select. if undefined, all selections are removed
+     */
+    selectRange: function (range) {
+        var selection = window.getSelection();
+
+        selection.removeAllRanges();
+
+        if (range) {
+            selection.addRange(range);
+        }
+    },
+
+    /**
      * Check whether a highlight with this id is on the page
      * @param {string} id
      * @return {boolean} true if on page
@@ -321,7 +331,7 @@ var _contentScript  = {
 
         case "select_highlight":
             // if highlightId is null, selection is cleared (no result)
-            range = _contentScript.selectHighlight(message.highlightId);
+            var range = _contentScript.selectHighlight(message.highlightId);
 
             // else response undefined
             if (message.highlightId) {
@@ -329,6 +339,15 @@ var _contentScript  = {
             }
 //            response = _xpath.createXPathRangeFromRange(
 //                _contentScript.selectHighlight(message.highlightId));
+            break;
+
+        case "select_range":
+            // if range is null, selection is cleared
+            var range = message.range && _xpath.createRangeFromXPathRange(message.range);
+
+            _contentScript.selectRange(range);
+
+            response = range && _xpath.createXPathRangeFromRange(range);
             break;
 
         case "is_highlight_in_dom":

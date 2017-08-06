@@ -230,6 +230,25 @@ var _tabs = {
     },
 
     /**
+     * Ask the content script to select a range of text
+     * @param {number} tabId
+     * @param {Object} [xpathRange] if undefined, remove selection
+     * @param {function} [responseCallback] function(xpathRange)
+     */	
+    sendSelectRangeMessage_Promise: function (tabId, xpathRange) {
+        "use strict";
+        var message = {
+            id: "select_range"
+        };
+
+        if (xpathRange) {
+            message.range = xpathRange;
+        }
+
+        return _tabs.sendMessage_Promise(tabId, message);
+    },
+
+    /**
      * Ask the DOM whether a highlight exists with this ID
      * @param {number} tabId
      * @param {string} documentId 'create' document id
