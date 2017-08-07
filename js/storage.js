@@ -25,6 +25,7 @@ var _storage = {
 	_defaults: {
 		// identifier for comparator to use for highlight sorting
 		"highlight_sort_by": "time",
+		"highlight_invert_sort": false,
 	},
 	
 	/**

@@ -463,7 +463,7 @@ var _database = {
 	/**
 	 * Sort documents using promise that resolves to a comparable value
 	 */
-	sortDocuments: function (docs, compareFunction) { 
+	sortDocuments: function (docs, compareFunction, invert) { 
 		var cf = compareFunction || function (doc) {
 			return Promise.resolve(doc.date)
 		}
@@ -482,12 +482,12 @@ var _database = {
 		})).then(function () {
 			// sort a shallow copy, and return it
 			return docs.slice().sort(function (doc1, doc2) {
-				var v1 = (typeof(results[doc1._id]) === 'undefined' ? 
-					true : results[doc1._id])
-				var v2 = (typeof(results[doc2._id]) === 'undefined' ? 
-					true : results[doc2._id])
-				
-				return v1 > v2	
+				var v1 = (typeof(results[doc1._id]) === 'undefined' ? true : results[doc1._id])
+				var v2 = (typeof(results[doc2._id]) === 'undefined' ? true : results[doc2._id])
+                
+                var direction = v1 > v2
+                
+                return invert ? !direction : direction;
 			})
 		})
 	},

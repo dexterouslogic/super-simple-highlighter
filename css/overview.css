@@ -4,19 +4,69 @@ body {
 }
 
 .number {
-    padding: 0 0.4em;
+    padding: 0.2em 0.5em;
     border-radius: 1em !important;
 	display: inline;	
     cursor: pointer;
 	margin-right: 0.2em;
-	font-size: 1.5em !important;
+    font-size: 1.5em !important;
+    
+    box-shadow: initial !important;
 }
 
 .text {
-	display: inline;
+	 display: inline-block; 
     cursor: pointer;
+    padding: 0.5rem;
+    box-shadow: inherit !important;
+    animation: none !important;
+    margin-bottom: 0.6rem;
 }
 
-.pointer {
-	cursor: pointer;
+.group-header {
+    background-color: white;
+    padding: 1rem;
+    color: black;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    opacity: 0.9;
+     border-bottom: 2px solid grey; 
+}
+
+.infobar {
+    margin-top: 0;
+    margin-left: 0.6rem;
+    /* margin-left: 3rem; */
+}
+
+.date {
+    color: #bbb;
+}
+/*  
+.highlights {
+    counter-reset: my-counter;
+}
+
+.highlights li ol li:before {
+	counter-increment: my-counter;
+	content: counter(my-counter);
+}  */
+
+.number-of-highlights::before {
+    content: "- ";
+}
+
+/* hide automatic url after anchor */
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+}
+
+footer {
+  padding-top: 9px;
+  margin: 40px 0 20px;
+  border-top: 1px solid #eee;
+  text-align: right;
 }

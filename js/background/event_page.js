@@ -275,16 +275,21 @@ var _eventPage = {
 			});
 			
 		case "copy_overview":
-			var tab;
+			var tab, sortby, invert;
 			
 			// use the sort defined by the popup
 			return _tabs.getActiveTab().then(function(_tab) {
 				tab = _tab;
 				return _storage.getValue("highlight_sort_by");
 			}).then(function (value) {
-				return _tabs.getComparisonFunction(tab.id, value);
+                sortby = value;
+                return _storage.getValue("highlight_invert_sort");
+			}).then(function (value) {
+                invert = value;
+				return _tabs.getComparisonFunction(tab.id, sortby);
 			}).then(function (compare) {
-				return _eventPage.getOverviewText("markdown", tab, compare);
+                return _eventPage.getOverviewText("markdown", tab,
+                    compare, undefined, invert);
 			}).then(function(text) {
 				// copy to clipboard
 				_eventPage.copyText(text);
@@ -738,9 +743,10 @@ var _eventPage = {
 	 * @param {Function} [comparisonPredicate] function that returns a promise
 	 *	that resolves to a comparible value
      * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
+     * @param {Boolean} [invert] invert the document order
 	 * @returns: {Promise} overview correctly formatted as a string
 	 */
-	getOverviewText: function(format, tab, comparisonPredicate, filterPredicate) {
+	getOverviewText: function(format, tab, comparisonPredicate, filterPredicate, invert) {
 		var titles = {};
 		var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
 
@@ -766,13 +772,13 @@ var _eventPage = {
             return (filterPredicate && docs.filter(filterPredicate)) || docs; 
 		}).then(function(docs) {
 			// sort - main promise (default to native order)
-			return (comparisonPredicate && _database.sortDocuments(docs, comparisonPredicate)) ||
+			return (comparisonPredicate && _database.sortDocuments(docs, comparisonPredicate, invert)) ||
 				Promise.resolve(docs);
 		}).then(function (docs) {
 			switch(format) {
 			case "markdown":
             case "markdown-no-footer":
-				var markdown = "#[" + tab.title + "](" +  tab.url + ")";
+				var markdown = "# [" + tab.title + "](" +  tab.url + ")";
 				var currentClassName;
 
 				// iterate each highlight

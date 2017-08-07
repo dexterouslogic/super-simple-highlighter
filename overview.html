@@ -28,7 +28,7 @@
             <a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
                 <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
 				{{manifest.name}}
-                <span style="font-size: small;">{{manifest.version}}</span>
+                <span class="small">{{manifest.version}}</span>
             </a>
         </div>
 
@@ -43,31 +43,49 @@
 	
 	
 <div class="container">
-   <div class="page-header">
-	 <!-- Main Header -->
-     <h2>
-		<a ng-href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		 
-		 <!-- <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span> -->
-		 <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
-		  If the associated tab has been removed, user should navigate explicitly (via context menu) -->
-		 <a href="#" ng-click="onClickPageUrl()">{{title}}</a>
-		 <!-- <a href="" class="h6 glyphicon glyphicon-file">
-		 	({{'activate_originating_tab' | i18n}})
-		 </span> -->
-	 </h2>
+   <header class="page-header">
+	     <!-- Main Header -->
+        <h1>
+            <!-- <a ng-href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		  -->
+            <!-- <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span> -->
+            <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
+            If the associated tab has been removed, user should navigate explicitly (via context menu) -->
+            <a ng-href="{{url}}" alt="Page Title">{{title}}</a>
+            <!-- <a href="" class="h6 glyphicon glyphicon-file">
+                ({{'activate_originating_tab' | i18n}})
+            </span> -->
+            <small class="number-of-highlights text-muted">{{docsCount}}</small>
+        </h1>
+	</header>
 
-	 <span class="h5 disabled">{{docsCount}}</span>
-	</div>
+    <!-- Highlights List -->
+    <section>
+        <ol class="list-unstyled highlights">
+            <li ng-repeat="group in groupedDocs">
+                <h4 class="group-header" ng-show="sortby === 'time'">
+                    {{ group.representativeDate | date:'fullDate' }}
+                </h4>
 
-	<!-- Highlights List -->
-    <ul class="list-unstyled">
-        <li ng-repeat="doc in docs" id="{{doc._id}}" class="well-sm" ng-class="{'not-in-dom': doc.isInDOM === false}">
-            <!--Number (index+1)-->
-            <h2 class="number highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{$index + 1}}</h2>
-            <!--title-->
-            <h5 class="text" ng-click="onClickHighlight(doc)">{{doc.text}}</h5>
-        </li>
-    </ul>
+                <ol class="list-unstyled">
+                    <li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm" ng-class="{'not-in-dom': doc.isInDOM === false}">
+                        <!--Number (index+1)-->
+                        <!-- <h2 class="number highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{$index + 1}}</h2> -->
+                        <!--title-->
+                        <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{doc.text}}</p>
+
+                        <!-- info -->
+                        <div class="infobar">
+                            <small class="date">{{ doc.date | date:'mediumTime' }}</small>
+                        </div>
+                    </li>
+                </ol>
+            </li>
+        </ol>
+    </section>
+
+    <footer class="visible-print-block">
+        <a class="small" ng-href="{{url}}">{{url}}</a>
+    </footer>
 </div>
 
 <script src="static/js/jquery-2.1.3.min.js"></script>

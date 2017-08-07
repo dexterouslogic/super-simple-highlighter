@@ -1,3 +1,7 @@
+# 3.11
+* Highlight Grouping & Invert options
+* Various bug fixes
+
 # 3.10.1
 * Keyboard shortcut updates style of highlight under cursor
 * Keyboard shortcut removes highlight if the style is the same (i.e. it toggles, but only if 'unselect text after highlighting' is checked in options)

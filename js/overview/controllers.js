@@ -40,31 +40,51 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
      * @param {string} url tab url
      * @param {string} [title] optional tab title
      * @param {object} bgPage
+	 * @param {string} sortby
+	 * @param {boolean} invert
      */
-    function onInit(tabId, url, title, bgPage){
+    function onInit(tabId, url, title, bgPage, sortby, invert){
 		$scope.tabId = tabId;
 		$scope.url = url;
 
 		// share title with that of the source page
-        $scope.title = title;
+		$scope.title = title;
+		$scope.sortby = sortby;
 		// document.title = chrome.i18n.getMessage("overview_document_title", [title]);
 
 		// used to scroll tab's page to the clicked highlight
 		backgroundPage = bgPage;
 
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        var match = backgroundPage._database.buildMatchString(url);
+		var match = backgroundPage._database.buildMatchString(url);
+		var compare = backgroundPage._tabs.getComparisonFunction(tabId, sortby);
 
         return backgroundPage._database.getCreateDocuments_Promise(match).then(function (docs) {
-			// use the sort defined by the popup
-			return backgroundPage._storage.getValue("highlight_sort_by").then(function (value) {
-				return backgroundPage._tabs.getComparisonFunction(tabId, value);
-			}).then(function (compare) {
-				// main promise (default to native order)
-				return (compare && backgroundPage._database.sortDocuments(docs, compare)) ||
-					Promise.resolve(docs);
-			})
+			// main promise (default to native order)
+			return (compare && backgroundPage._database.sortDocuments(docs, compare, invert)) 
+				|| Promise.resolve(docs);
 		}).then(function (docs) {
+			// group by days since epoch
+			var groupedDocs = []
+
+			docs.map((doc) => {
+				var date = new Date(doc.date)
+				var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+				// first, or different days since epoch of last group
+				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
+					// each group defines its days since epoch and an ordered array of docs
+					groupedDocs.push({
+						daysSinceEpoch: daysSinceEpoch,
+						representativeDate: date,
+						docs: []
+					})
+				}
+
+				groupedDocs[groupedDocs.length-1].docs.push(doc)
+			})
+			
+			$scope.groupedDocs = groupedDocs
             $scope.docs = docs;
 			
 			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
@@ -101,13 +121,13 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
      * Makes corresponding tab active
 	 * @type function
 	 */
-	$scope.onClickPageUrl = function () {
-		// make the tab which was associated with the popup that launched us the active tab.
-		// If it has been closed nothing will happen (but the user can open explicitly from the anchor instead)
-		chrome.tabs.update($scope.tabId, {
-			active: true
-		});
-	}
+	// $scope.onClickPageUrl = function () {
+	// 	// make the tab which was associated with the popup that launched us the active tab.
+	// 	// If it has been closed nothing will happen (but the user can open explicitly from the anchor instead)
+	// 	chrome.tabs.update($scope.tabId, {
+	// 		active: true
+	// 	});
+	// }
 
 	/**
 	 * Clicked a highlight. Make the associated tab active, and scroll it to its position
@@ -134,11 +154,15 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 	 * parse href (supplied by popup's controller) to find url, which is used to find match string
 	 */
     var u = purl(location.href),
-        id = u.param('id'), url = u.param('url'), title = u.param('title');
+		id = u.param('id'), 
+		url = u.param('url'),
+		title = u.param('title'),
+		sortby = u.param('sortby'),
+		invert = Boolean(u.param('invert'));
 
     if (url !== undefined) {
         chrome.runtime.getBackgroundPage(function (backgroundPage) {
-            onInit(parseInt(id), url, title, backgroundPage);
+            onInit(parseInt(id), url, title, backgroundPage, sortby, invert);
         });
     }
 

@@ -89,9 +89,30 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			// 	activeTab.id, "location")
 			
 			return (compare && 
-				backgroundPage._database.sortDocuments(docs, compare)) ||
+				backgroundPage._database.sortDocuments(docs, compare, $scope.sort.invert)) ||
 				Promise.resolve(docs);
         }).then(function (docs) {
+			// group by days since epoch
+			var groupedDocs = []
+
+			docs.map((doc) => {
+				var date = new Date(doc.date)
+				var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+				// first, or different days since epoch of last group
+				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
+					// each group defines its days since epoch and an ordered array of docs
+					groupedDocs.push({
+						daysSinceEpoch: daysSinceEpoch,
+						representativeDate: date,
+						docs: []
+					})
+				}
+
+				groupedDocs[groupedDocs.length-1].docs.push(doc)
+			})
+			
+			$scope.groupedDocs = groupedDocs
         	$scope.docs = docs
 			
 			return docs;
@@ -169,10 +190,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			// get the values needed before first updateDocs can happen
 			_storage.getValue("highlight_sort_by").then(function (value) {
 				$scope.sort.value = value
-			}).then(function () {
+
+				return _storage.getValue("highlight_invert_sort")
+			}).then(function (value) {
+				$scope.sort.invert = value
+				
 				return updateDocs();				
 			}).then(function () {
-				$scope.$apply();
+				// this bullshit is done because if it finishes too quick the popup is the wrong height
+				setTimeout(() => {
+					$scope.$apply()
+					// presumably the autofocus attribute effect gets overridden, so do it manually.
+					$('#input-search').focus()
+
+					// if we set this too early the first value would be animated
+					$('#btn-sort-invert').addClass('button-animate-transition')
+				}, 50)
 			})
 	    });
 	});
@@ -191,6 +224,21 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// update the stored sort value
 	    return _storage.setValue($scope.sort.value, "highlight_sort_by").then(function () {
 			// update the docs array, taking into account the current sort value
+			return updateDocs()
+		}).then(function () {
+			// reflect in DOM
+			$scope.$apply()
+		})
+	};
+
+	$scope.onClickToggleInvertSort = function () {
+		var inverted = !$scope.sort.invert
+
+		// update the stored invert value
+	    return _storage.setValue(inverted, "highlight_invert_sort").then(function () {
+			// update the docs array, taking into account the current sort value
+			$scope.sort.invert = inverted
+
 			return updateDocs()
 		}).then(function () {
 			// reflect in DOM
@@ -297,7 +345,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
             url: "overview.html?" +
                 "id=" + activeTab.id + "&" +
                 "url=" + encodeURIComponent(activeTab.url) + "&" +
-                "title=" + encodeURIComponent($scope.title)
+				"title=" + encodeURIComponent($scope.title) + "&" +
+				"sortby=" + encodeURIComponent($scope.sort.value) + "&" +
+				"invert=" + ($scope.sort.invert === true ? "1" : "")
         });
     };
 	
@@ -307,7 +357,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		
 		// format all highlights as a markdown document
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown", activeTab, comparisonPredicate, $scope.styleFilterPredicate).then(function (text) {
+			"markdown", activeTab, comparisonPredicate, 
+			$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
 				// create a temporary anchor to navigate to data uri
 				var a = document.createElement("a");
 
@@ -331,7 +382,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			activeTab.id, $scope.sort.value);
 		
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown-no-footer", activeTab, comparisonPredicate, $scope.styleFilterPredicate).then(function (text) {
+			"markdown-no-footer", activeTab, comparisonPredicate, 
+				$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
 				// Create element to contain markdown
 				var pre = document.createElement('pre');
 				pre.innerText = text;

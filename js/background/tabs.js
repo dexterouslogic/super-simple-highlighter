@@ -324,7 +324,7 @@ var _tabs = {
      * @param {Array} docs
      * @param {function} [errorCallback] function(doc): only called (multiple times) when the DOM reports
      *  it can't create highlight for this doc
-     * @return {number} sum of create/delete documents, where create is +1, delete is -1. If zero, no highlights!
+     * @return {Promise<number>} sum of create/delete documents, where create is +1, delete is -1. If zero, no highlights!
      */
     replayDocuments_Promise: function (tabId, docs, errorCallback) {
         // final callback after all scripts injected
@@ -369,10 +369,10 @@ var _tabs = {
 	 * Get a sort comparison function, which takes a document and returns a
 	 * promise that resolves to a comparable value
 	 * @param {number} tabId tab id upon which our resolution depends
-	 * @return {string} type a known type of comparison
+	 * @return {Function} type a known type of comparison
 	 */
-	getComparisonFunction: function (tabId, type) {
-		switch(type) {
+	getComparisonFunction: function (tabId, sortby) {
+		switch(sortby) {
 		case "time":
 			return function (doc) {
 				// simply order by creation time (which it probably already does)
