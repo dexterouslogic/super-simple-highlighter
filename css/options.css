@@ -104,7 +104,12 @@ input[type="color"] {
   cursor: inherit;
   display: block;
 }
+
 input[readonly] {
   background-color: white !important;
   cursor: text !important;
+}
+
+#page-container {
+    max-width: 1170px;
 }
