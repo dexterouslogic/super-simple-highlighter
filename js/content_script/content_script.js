@@ -18,9 +18,9 @@
  */
 
 // disable console log
-console.log = function() {}
+console.log = function () { }
 
-var _contentScript  = {
+var _contentScript = {
     /**
      * A random string applied as an additional class name to all highlights,
      * allowing .on() event handling, and shared style
@@ -33,12 +33,12 @@ var _contentScript  = {
     init: function () {
         "use strict";
         // create a random class name
-        _contentScript.highlightClassName = _stringUtils.createUUID({beginWithLetter: true});
+        _contentScript.highlightClassName = _stringUtils.createUUID({ beginWithLetter: true });
 
         // the rules for the close button, which must be a child of this class
         _stylesheet.setCloseButtonStyle(_contentScript.highlightClassName);
 
-//        document.body.style.backgroundColor = "#ffd";
+        //        document.body.style.backgroundColor = "#ffd";
 
         // listen for changes to styles
         chrome.storage.onChanged.addListener(_contentScript.onStorageChanged);
@@ -52,79 +52,94 @@ var _contentScript  = {
         // because .on() expects the element to be in the DOM, use delegated events
         // http://stackoverflow.com/questions/9827095/is-it-possible-to-use-jquery-on-and-hover
 
-        $(document).on({
-            mouseenter: function () {
-                // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
-                // have the 'closeable' class)
-                var firstSpan = $(this).prop('firstSpan');
-                // var bg = $(firstSpan).css('background-color');
+        function isHighlightElement(e) {
+            return e.classList && e.classList.contains(_contentScript.highlightClassName)
+        }
 
-                // remove hysteresis timer from the first span
-                if (firstSpan.mouseLeaveHysteresisTimeoutID != null) {
-                    // cancel scheduled out transition
-                    clearTimeout(firstSpan.mouseLeaveHysteresisTimeoutID);
+        // shared options
+        const passiveCaptureEventOptions = { capture: true, passive: true }
 
-                    firstSpan.mouseLeaveHysteresisTimeoutID = null;
+        document.addEventListener('mouseenter', function (event) {
+            // ignore events where the target of the captured event isn't a highlight
+            const target = event.target
+            if (!isHighlightElement(target)) { return }
+
+            // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
+            // have the 'closeable' class)
+            const span = target.firstSpan;// $(this).prop('firstSpan');
+
+            // remove hysteresis timer from the first span
+            if (span.mouseLeaveHysteresisTimeoutID != null) {
+                // cancel scheduled out transition
+                clearTimeout(span.mouseLeaveHysteresisTimeoutID);
+                span.mouseLeaveHysteresisTimeoutID = null;
+            }
+
+            const style = span.querySelector('.close').style;
+
+            // transition in
+            style.setProperty('opacity', '1')
+            style.setProperty('transform', 'scale(1.0)')
+        }, passiveCaptureEventOptions)
+
+        document.addEventListener('mouseleave', function (event) {
+            // ignore events where the target of the captured event isn't a highlight
+            const target = event.target
+            if (!isHighlightElement(target)) { return }
+
+            const span = target.firstSpan;     // var firstSpan = $(this).prop('firstSpan');
+            const style = span.querySelector('.close').style;
+
+            // add a timeout once we leave the element. If we return we cancel the transition out
+            span.mouseLeaveHysteresisTimeoutID = setTimeout(function () {
+                // transition out wasn't cancelled, so do it
+                span.mouseLeaveHysteresisTimeoutID = null;
+
+                style.setProperty('opacity', '0')
+                style.setProperty('transform', 'scale(0.6)')
+            }, 500);
+        }, passiveCaptureEventOptions)
+
+        // non-passive captured event
+        document.addEventListener('click', function (event) {
+            // ignore events where the target of the captured event isn't the close button
+            const target = event.target
+            
+            if (!(target.classList.contains('close') &&
+                target.parentElement &&
+                target.parentElement.classList.contains('closeable') &&
+                target.parentElement.classList.contains(`${_contentScript.highlightClassName}`)))
+                { return }
+            
+            event.preventDefault();
+
+            // parent should be a span with an id corresponding the the document id of the highlight
+            const highlightId = _contentScript._getHighlightId(target.parentElement);
+
+            if (!highlightId) {
+                return
+            }
+
+            // wait until button disappears before sending message to remove highlight
+            target.addEventListener("transitionend", function (event) {
+                // ignore the transform animation
+                if (event.propertyName !== "opacity") {
+                    return;
                 }
 
-                // transition in
-                $(firstSpan).find('.close').css({
-                    'opacity': 1,
-                    'transform': 'scale(1.0)'
+                // tell event page to delete the highlight
+                chrome.runtime.sendMessage({
+                    id: "on_click_delete_highlight",
+                    highlightId: highlightId
                 });
-            },
+            }, { capture: false, passive: true});
 
-            mouseleave: function () {
-                var firstSpan = $(this).prop('firstSpan');
-                var $close = $(firstSpan).find('.close');
+            // transition out
+            target.style.setProperty('opacity', '0')
+            target.style.setProperty('transform', 'scale(5)')
+        }, { capture: true, passive: false })
 
-                // add a timeout once we leave the element. If we return we cancel the transition out
-                firstSpan.mouseLeaveHysteresisTimeoutID = setTimeout(function() {
-                    // transition out wasn't cancelled, so do it
-                    firstSpan.mouseLeaveHysteresisTimeoutID = null;
-
-                    $close.css({
-                        'opacity': 0,
-                        'transform': 'scale(0.6)'
-                    });
-                }, 500);
-            }
-        }, "." + _contentScript.highlightClassName); 
-
-        $(document).on({
-            click: function (event) {
-                event.preventDefault();
-
-                // parent should be a span with an id corresponding the the document id of the highlight
-                var firstSpan = this.parentElement;
-                var highlightId = _contentScript._getHighlightId(firstSpan);
-
-                if (!highlightId) {
-                    return
-                }
-
-                // wait until button disappears before sending message to remove highlight
-                this.addEventListener("transitionend", function(event) {
-                    if (event.propertyName !== "opacity") {
-                        return;
-                    }
-
-                    // tell event page to delete the highlight
-                    chrome.runtime.sendMessage({
-                        id: "on_click_delete_highlight",
-                        highlightId: highlightId
-                    });
-                }, false);
-
-                // transition out
-                $(this).css({
-                    'opacity': 0,
-                    'transform': 'scale(5)'
-                })
-            }
-        }, "." + _contentScript.highlightClassName + ".closeable .close"); 
-
-		// OLD ROUTINE (not used because we don't want to wake event page')
+        // OLD ROUTINE (not used because we don't want to wake event page')
         // $(document).on({
         //     mouseenter: _contentScript.onMouseEnterHighlight,
         //     mouseleave: _contentScript.onMouseLeaveHighlight,
@@ -196,7 +211,7 @@ var _contentScript  = {
 
         // 2 - add 'close' span to the element
         var closeElement = document.createElement("SPAN");
-        
+
         closeElement.className = "close";
 
         highlightElement.appendChild(closeElement);
@@ -251,13 +266,16 @@ var _contentScript  = {
      */
     isHighlightInDOM: function (id) {
         "use strict";
-        return $('#' + id).length === 1;
+
+        return document.querySelector(`#${id}`) != null
+        // return $('#' + id).length === 1;
     },
-	
-	getBoundingClientRect: function (id) {
-		"use strict"
-		return $('#' + id)[0].getBoundingClientRect()
-	},
+
+    getBoundingClientRect: function (id) {
+        "use strict"
+
+        return document.querySelector(`#${id}`).getBoundingClientRect()
+    },
 
     /**
      * Update the class name for all the spans of a highlight
@@ -277,25 +295,44 @@ var _contentScript  = {
      */
     scrollTo: function (selector) {
         "use strict";
-        var $elm = $(selector);
-        if ($elm) {
-			var elmOffset = $elm.offset().top;
-			var elmHeight = $elm.height();
-			var windowHeight = window.innerHeight;// $(window).height();
-			var offset;
+        const elm = document.querySelector(selector)
 
-			if (elmHeight < windowHeight) {
-				   offset = elmOffset - ((windowHeight / 2) - (elmHeight / 2));
-			} else {
-				   offset = elmOffset;
-			}
-
-			$('body').animate({
-				'scrollTop': offset
-			}, 'slow');        
+        if (elm) {
+            elm.scrollIntoView()
         }
 
-        return $elm !== null;
+        // if (elm) {
+        //     const top = elm.offsetTop
+        //     const height = elm.offsetHeight;
+        //     const windowHeight = window.innerHeight;
+
+        //     document.body.scrollTop = (height < windowHeight) ?
+        //         top - ((windowHeight / 2) - (height / 2)) :
+        //         top
+        // }
+
+        return elm != null
+
+        // var $elm = $(selector);
+        // if ($elm) {
+        // 	var elmOffset = $elm.offset().top;
+        // 	var elmHeight = $elm.height();
+        // 	var windowHeight = window.innerHeight;// $(window).height();
+        // 	var offset;
+
+        // 	if (elmHeight < windowHeight) {
+        // 		   offset = elmOffset - ((windowHeight / 2) - (elmHeight / 2));
+        // 	} else {
+        // 		   offset = elmOffset;
+        // 	}
+
+        //     document.body.style.setProperty()
+        // 	$('body').animate({
+        // 		'scrollTop': offset
+        // 	}, 'slow');        
+        // }
+
+        // return $elm !== null;
     },
 
     /**
@@ -313,87 +350,87 @@ var _contentScript  = {
         var response;
 
         switch (message.id) {
-        case "create_highlight":
-            // the caller specifies the id to use for the first span of the highlight,
-            // so it can identify it to remove it later
-            response = _contentScript.createHighlight(message.range,
-                message.highlightId, message.className) !== null;
-            break;
+            case "create_highlight":
+                // the caller specifies the id to use for the first span of the highlight,
+                // so it can identify it to remove it later
+                response = _contentScript.createHighlight(message.range,
+                    message.highlightId, message.className) !== null;
+                break;
 
-        case "update_highlight":
-            response = _contentScript.updateHighlight(message.highlightId, message.className);
-            break;
+            case "update_highlight":
+                response = _contentScript.updateHighlight(message.highlightId, message.className);
+                break;
 
-        case "delete_highlight":
-            // returns boolean true on success, false on error
-            response = _contentScript.deleteHighlight(message.highlightId);
-            break;
+            case "delete_highlight":
+                // returns boolean true on success, false on error
+                response = _contentScript.deleteHighlight(message.highlightId);
+                break;
 
-        case "select_highlight":
-            // if highlightId is null, selection is cleared (no result)
-            var range = _contentScript.selectHighlight(message.highlightId);
+            case "select_highlight":
+                // if highlightId is null, selection is cleared (no result)
+                var range = _contentScript.selectHighlight(message.highlightId);
 
-            // else response undefined
-            if (message.highlightId) {
-                response = _xpath.createXPathRangeFromRange(range);
-            }
-//            response = _xpath.createXPathRangeFromRange(
-//                _contentScript.selectHighlight(message.highlightId));
-            break;
+                // else response undefined
+                if (message.highlightId) {
+                    response = _xpath.createXPathRangeFromRange(range);
+                }
+                //            response = _xpath.createXPathRangeFromRange(
+                //                _contentScript.selectHighlight(message.highlightId));
+                break;
 
-        case "select_range":
-            // if range is null, selection is cleared
-            var range = message.range && _xpath.createRangeFromXPathRange(message.range);
+            case "select_range":
+                // if range is null, selection is cleared
+                var range = message.range && _xpath.createRangeFromXPathRange(message.range);
 
-            _contentScript.selectRange(range);
+                _contentScript.selectRange(range);
 
-            response = range && _xpath.createXPathRangeFromRange(range);
-            break;
+                response = range && _xpath.createXPathRangeFromRange(range);
+                break;
 
-        case "is_highlight_in_dom":
-            response = _contentScript.isHighlightInDOM(message.highlightId);
-            break;
+            case "is_highlight_in_dom":
+                response = _contentScript.isHighlightInDOM(message.highlightId);
+                break;
 
-        case "get_selection_range":
-            response = _xpath.createXPathRangeFromRange(_contentScript.getSelectionRange());
-            break;
+            case "get_selection_range":
+                response = _xpath.createXPathRangeFromRange(_contentScript.getSelectionRange());
+                break;
 
-        case "get_range_text":
-            var range = _xpath.createRangeFromXPathRange(message.range);
-            response = range ? range.toString() : null;
-            break;
+            case "get_range_text":
+                var range = _xpath.createRangeFromXPathRange(message.range);
+                response = range ? range.toString() : null;
+                break;
 
-        case "scroll_to":
-            response = _contentScript.scrollTo("#" + message.fragment);
-            break;
+            case "scroll_to":
+                response = _contentScript.scrollTo("#" + message.fragment);
+                break;
 
-		case "get_bounding_client_rect":
-			var rect = _contentScript.getBoundingClientRect(message.highlightId);
-			
-			// ClientRect won't stringify
-			response = {
-				"top": rect.top,
-				"right": rect.right,
-				"bottom": rect.bottom,
-				"left": rect.left,
-				"width": rect.width,
-				"height": rect.height,
-			};
-			
-			break;
+            case "get_bounding_client_rect":
+                var rect = _contentScript.getBoundingClientRect(message.highlightId);
 
-        case "get_document_element_attribute_node_value":
-            var attribute = document.documentElement.attributes[message.attribute_name];
-            response = (attribute && attribute.nodeValue) || undefined;
-            // response = document.documentElement.attributes[message.attribute_name];
-            break;
+                // ClientRect won't stringify
+                response = {
+                    "top": rect.top,
+                    "right": rect.right,
+                    "bottom": rect.bottom,
+                    "left": rect.left,
+                    "width": rect.width,
+                    "height": rect.height,
+                };
 
-        case "get_hovered_highlight_id":
-            response = _contentScript.getHoveredHighlightID();
-            break;
+                break;
 
-        default:
-            throw "unhandled message: sender=" + sender + ", id=" + message.id;
+            case "get_document_element_attribute_node_value":
+                var attribute = document.documentElement.attributes[message.attribute_name];
+                response = (attribute && attribute.nodeValue) || undefined;
+                // response = document.documentElement.attributes[message.attribute_name];
+                break;
+
+            case "get_hovered_highlight_id":
+                response = _contentScript.getHoveredHighlightID();
+                break;
+
+            default:
+                throw "unhandled message: sender=" + sender + ", id=" + message.id;
         }
 
         sendResponse(response);
@@ -444,7 +481,7 @@ var _contentScript  = {
     onMouseLeaveHighlight: function () {
         "use strict";
         // tell event page that this is the current highlight
-		chrome.runtime.sendMessage({
+        chrome.runtime.sendMessage({
             id: "on_mouse_leave_highlight",
         });
     },
@@ -452,14 +489,14 @@ var _contentScript  = {
     /**
      * Get the ID of the highlight currently being hovered over
      */
-    getHoveredHighlightID: function() {
+    getHoveredHighlightID: function () {
         // undefined if no element
-        var lastHoveredElement = (function() {
+        var lastHoveredElement = (function () {
             // highlight classes that are hovered
-            var selector = "." + _contentScript.highlightClassName + ":hover"; 
+            var selector = "." + _contentScript.highlightClassName + ":hover";
             var q = document.querySelectorAll(selector);
 
-            return q[q.length-1];
+            return q[q.length - 1];
         })()
 
         if (!lastHoveredElement) {
@@ -479,64 +516,64 @@ var _contentScript  = {
         if (namespace === "sync") {
             // changes is an Object mapping each key that changed to its
             // corresponding storage.StorageChange for that item.
-			
-			// this applies to all styles
-			_storage.isHighlightBoxShadowEnabled_Promise().then(function (enableBoxShadow){
-	            // default FIRST
-	            if (changes.sharedHighlightStyle) {
-	                var c1 = changes.sharedHighlightStyle;
 
-	                if (c1.oldValue) {
-					   _stylesheet.clearHighlightStyle(_contentScript.highlightClassName).then(function() {
-						   _stylesheet.updateInnerTextForHighlightStyleElement(); 
-					   });
+            // this applies to all styles
+            _storage.isHighlightBoxShadowEnabled_Promise().then(function (enableBoxShadow) {
+                // default FIRST
+                if (changes.sharedHighlightStyle) {
+                    var c1 = changes.sharedHighlightStyle;
 
-	                }
+                    if (c1.oldValue) {
+                        _stylesheet.clearHighlightStyle(_contentScript.highlightClassName).then(function () {
+                            _stylesheet.updateInnerTextForHighlightStyleElement();
+                        });
 
-	                if (c1.newValue) {
-	                    _stylesheet.setHighlightStyle({
-	                        className: _contentScript.highlightClassName,
-	                        style: c1.newValue,
-							disableBoxShadow: !enableBoxShadow,
-					   }).then(function() {
-						   _stylesheet.updateInnerTextForHighlightStyleElement(); 
-					   });
-	                }
-	            }
+                    }
 
-	            // specific last
-	            if (changes.highlightDefinitions) {
-	                var c2 = changes.highlightDefinitions;
-					var promises = [];
-					
-	//                // Remove all event handlers in the ".hotkeys" namespace
-	//                $(document).off('keypress.hotkeys');
+                    if (c1.newValue) {
+                        _stylesheet.setHighlightStyle({
+                            className: _contentScript.highlightClassName,
+                            style: c1.newValue,
+                            disableBoxShadow: !enableBoxShadow,
+                        }).then(function () {
+                            _stylesheet.updateInnerTextForHighlightStyleElement();
+                        });
+                    }
+                }
 
-	                if (c2.oldValue) {
-	                	c2.oldValue.forEach( function (h) {
-	                		_stylesheet.clearHighlightStyle(h.className);
-	                	});
-	                	
-	                	_stylesheet.updateInnerTextForHighlightStyleElement();
-	                }
+                // specific last
+                if (changes.highlightDefinitions) {
+                    var c2 = changes.highlightDefinitions;
+                    var promises = [];
 
-	                if (c2.newValue) {
-	                	var promises = c2.newValue.map( function(h) {
-	                		h.disableBoxShadow = !enableBoxShadow;
-	                		return _stylesheet.setHighlightStyle(h);
-	                	});
-	                
-	                	Promise.all(promises).then(function() {
-	                		_stylesheet.updateInnerTextForHighlightStyleElement();
-	                	});
-	                }
-	            }
+                    //                // Remove all event handlers in the ".hotkeys" namespace
+                    //                $(document).off('keypress.hotkeys');
 
-	            // alpha
-	            if (changes.highlightBackgroundAlpha) {
-	                _contentScript.resetStylesheetHighlightStyle();
-	            }
-			});
+                    if (c2.oldValue) {
+                        c2.oldValue.forEach(function (h) {
+                            _stylesheet.clearHighlightStyle(h.className);
+                        });
+
+                        _stylesheet.updateInnerTextForHighlightStyleElement();
+                    }
+
+                    if (c2.newValue) {
+                        var promises = c2.newValue.map(function (h) {
+                            h.disableBoxShadow = !enableBoxShadow;
+                            return _stylesheet.setHighlightStyle(h);
+                        });
+
+                        Promise.all(promises).then(function () {
+                            _stylesheet.updateInnerTextForHighlightStyleElement();
+                        });
+                    }
+                }
+
+                // alpha
+                if (changes.highlightBackgroundAlpha) {
+                    _contentScript.resetStylesheetHighlightStyle();
+                }
+            });
         }
     },
 
@@ -565,11 +602,14 @@ var _contentScript  = {
 /**
  * Listener for change events in storage
  */
-//_contentScript.init();
 
-$().ready(function () {
-    "use strict";
-	_contentScript.init();
+// script is run at 'document_idle' (see manifest), which is some time between
+// 'DOMContentLoaded' and immediately after 'load'
+_contentScript.init();
 
-    //_contentScript.onReady();
-});
+// $().ready(function () {
+//     "use strict";
+// 	_contentScript.init();
+
+//     //_contentScript.onReady();
+// });
