@@ -32,8 +32,8 @@ var optionsControllers = angular.module('optionsControllers', []);
 optionsControllers.controller('StylesController', ["$scope", "$timeout", function ($scope, $timeout) {
     'use strict';
 
-    // cache modal dialog
-    var $modal;
+    // modal dialog div
+    var modalElement;
 
     // model
     // $scope.unselectAfterHighlight = true;
@@ -43,7 +43,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 
     function onInit () {
         // cache
-        $modal = $('#myModal');
+        modalElement = document.getElementById('myModal')
 
         // 1 - get storage value, and set up a watch on it
         _storage.getUnselectAfterHighlight_Promise().then(function (unselect) {
@@ -132,7 +132,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     }
 
     $scope.onClickModalSave = function () {
-        $modal.modal('hide');
+        $(modalElement).modal('hide');
 
         // set contents of selectedDefintion into storage
         if ($scope.modalDefinition) {
@@ -154,7 +154,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 //        $scope.$apply();
 
         // activate the 'edit' model
-        $modal.modal();
+        $(modalElement).modal();
     };
 
     /**
@@ -180,7 +180,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         $scope.modalDefinition = angular.copy($scope.definitions[index]);//   _highlightDefinitions.copy($scope.definitions[index]);
 
         // activate the 'edit' model
-        $modal.modal();
+        $(modalElement).modal();
     };
 
     /**

@@ -18,7 +18,7 @@
  */
 
 // disable console log
-console.log = function() {}
+console.log = function () { }
 
 /**
  * Controllers module
@@ -29,69 +29,69 @@ var popupControllers = angular.module('popupControllers', []);
 
 // array this is something to do with minification
 popupControllers.controller('DocumentsController', ["$scope", function ($scope) {
-    'use strict';
-    var backgroundPage;
-    var activeTab;
+	'use strict';
+	var backgroundPage;
+	var activeTab;
 
-    // models
-    $scope.manifest = chrome.runtime.getManifest();
-	
+	// models
+	$scope.manifest = chrome.runtime.getManifest();
+
 	// array of highlight definitions
-    _storage.highlightDefinitions.getAll_Promise().then(function (items) {
-        $scope.highlightDefinitions = items.highlightDefinitions;
-    });
-	
+	_storage.highlightDefinitions.getAll_Promise().then(function (items) {
+		$scope.highlightDefinitions = items.highlightDefinitions;
+	});
+
 	$scope.commands = {};
 	$scope.sort = {}
-	
+
 	// current style filter. null for none
 	$scope.styleFilterHighlightDefinition = null;
 
 	// predicate for filter by style
-	$scope.styleFilterPredicate = function(doc, index) {
+	$scope.styleFilterPredicate = function (doc, index) {
 		if (!$scope.styleFilterHighlightDefinition) {
 			return true;
 		}
-		
+
 		return doc.className === $scope.styleFilterHighlightDefinition.className;
 	};
 
-	var utf8_to_b64 = function(str) {
-	    return window.btoa(unescape(encodeURIComponent(str)));
+	var utf8_to_b64 = function (str) {
+		return window.btoa(unescape(encodeURIComponent(str)));
 	};
 
-    /**
-     * Clear and fill the 'docs' model
-     * @param {function} [callback] function(err, docs)
-     * @private
-     */
-    var updateDocs = function () {
-        // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
-            // if the highlight cant be found in DOM, flag that
+	/**
+	 * Clear and fill the 'docs' model
+	 * @param {function} [callback] function(err, docs)
+	 * @private
+	 */
+	var updateDocs = function () {
+		// get all the documents (create & delete) associated with the match, then filter the deleted ones
+		return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
+			// if the highlight cant be found in DOM, flag that
 			return Promise.all(docs.map(function (doc) {
-                return backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
-                    doc.isInDOM = isInDOM;
-                }).catch(function () {
-                	// swallow
+				return backgroundPage._eventPage.isHighlightInDOM(activeTab.id, doc._id).then(function (isInDOM) {
+					doc.isInDOM = isInDOM;
+				}).catch(function () {
+					// swallow
 					doc.isInDOM = false
-                }).then(function () {
-                	return doc;
-                })
+				}).then(function () {
+					return doc;
+				})
 			}));
 
-        }).then(function (docs) {
+		}).then(function (docs) {
 			// sort the docs using the sort value
 			var compare = (backgroundPage._tabs.getComparisonFunction(
 				activeTab.id, $scope.sort.value)) || null;
-			
+
 			// var compare = backgroundPage._tabs.getComparisonFunction(
 			// 	activeTab.id, "location")
-			
-			return (compare && 
+
+			return (compare &&
 				backgroundPage._database.sortDocuments(docs, compare, $scope.sort.invert)) ||
 				Promise.resolve(docs);
-        }).then(function (docs) {
+		}).then(function (docs) {
 			// group by days since epoch
 			var groupedDocs = []
 
@@ -100,7 +100,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
 
 				// first, or different days since epoch of last group
-				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
+				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length - 1].daysSinceEpoch) {
 					// each group defines its days since epoch and an ordered array of docs
 					groupedDocs.push({
 						daysSinceEpoch: daysSinceEpoch,
@@ -109,75 +109,75 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 					})
 				}
 
-				groupedDocs[groupedDocs.length-1].docs.push(doc)
+				groupedDocs[groupedDocs.length - 1].docs.push(doc)
 			})
-			
+
 			$scope.groupedDocs = groupedDocs
-        	$scope.docs = docs
-			
+			$scope.docs = docs
+
 			return docs;
-        });
-    };
-	
+		});
+	};
+
 	// starter
-	chrome.tabs.query({ 
-		active: true, 
-		currentWindow: true 
+	chrome.tabs.query({
+		active: true,
+		currentWindow: true
 	}, function (result) {
-	    chrome.runtime.getBackgroundPage(function (bgPage) {
-	        // onInit(result[0], backgroundPage);
-	        activeTab = result[0];
-	        backgroundPage = bgPage;
+		chrome.runtime.getBackgroundPage(function (bgPage) {
+			// onInit(result[0], backgroundPage);
+			activeTab = result[0];
+			backgroundPage = bgPage;
 
 			// initialize controller variables
-	        _storage.getPopupHighlightTextMaxLength_Promise().then(function (max) {
-	            if (max) {
-	                $scope.popupHighlightTextMaxLength = max;
-	            }
-	        });
-			
+			_storage.getPopupHighlightTextMaxLength_Promise().then(function (max) {
+				if (max) {
+					$scope.popupHighlightTextMaxLength = max;
+				}
+			});
+
 			// if the url protocol is file based, and the
 			// user hasn't been warned to enable
 			// file access for the extension, set a flag now. 
 			// The view will set the warning's
 			// visibility based on its value.
-			_storage.getFileAccessRequiredWarningDismissed_Promise().then(function(dismissed) {
+			_storage.getFileAccessRequiredWarningDismissed_Promise().then(function (dismissed) {
 				// if its already been dismissed before, no need to check
 				if (!dismissed) {
 					// it not being a file protocol url is the same as invisible (dismissed)
 					var u = purl(activeTab.url);
 					dismissed = ('file' !== u.attr('protocol'));
 				}
-				
+
 				$scope.fileAccessRequiredWarningVisible = !dismissed;
 			});
-			
+
 			// listener for variable change. syncs value to storage
-            $scope.$watch('fileAccessRequiredWarningVisible', function (newVal, oldVal) {
-                if (newVal === oldVal) {
+			$scope.$watch('fileAccessRequiredWarningVisible', function (newVal, oldVal) {
+				if (newVal === oldVal) {
 					return;
 				}
-				
-                console.log(newVal);
-                _storage.setFileAccessRequiredWarningDismissed_Promise(!newVal);
-            });			
-			
-			
-	        // default to no clamp
-	//        chrome.storage.sync.get({
-	//            "highlightTextLineClamp": null
-	//        }, function (result) {
-	//            if (result) {
-	//                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
-	//                    result.highlightTextLineClamp.toString() : null);
-	//            }
-	//        });
 
-	        $scope.title = activeTab.title;
-	        $scope.match = backgroundPage._database.buildMatchString(activeTab.url);
-			
-	        // shortcut commands array
-	        chrome.commands.getAll(function (allCommands) {
+				console.log(newVal);
+				_storage.setFileAccessRequiredWarningDismissed_Promise(!newVal);
+			});
+
+
+			// default to no clamp
+			//        chrome.storage.sync.get({
+			//            "highlightTextLineClamp": null
+			//        }, function (result) {
+			//            if (result) {
+			//                $scope.webkitLineClamp = (result.highlightTextLineClamp ?
+			//                    result.highlightTextLineClamp.toString() : null);
+			//            }
+			//        });
+
+			$scope.title = activeTab.title;
+			$scope.match = backgroundPage._database.buildMatchString(activeTab.url);
+
+			// shortcut commands array
+			chrome.commands.getAll(function (allCommands) {
 				// key commands by their name in the scope attribute
 				// can't identify specific commands in angular
 				$scope.$apply(function () {
@@ -185,7 +185,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 						$scope.commands[command.name] = command;
 					});
 				});
-	        });
+			});
 
 			// get the values needed before first updateDocs can happen
 			_storage.getValue("highlight_sort_by").then(function (value) {
@@ -194,8 +194,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				return _storage.getValue("highlight_invert_sort")
 			}).then(function (value) {
 				$scope.sort.invert = value
-				
-				return updateDocs();				
+
+				return updateDocs();
 			}).then(function () {
 				// this bullshit is done because if it finishes too quick the popup is the wrong height
 				setTimeout(() => {
@@ -207,22 +207,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 					$('#btn-sort-invert').addClass('button-animate-transition')
 				}, 50)
 			})
-	    });
+		});
 	});
-	
-    /**
-     * Clicked an existing definition
-     */
-    $scope.onClickStyleFilter = function (event, definition) {
+
+	/**
+	 * Clicked an existing definition
+	 */
+	$scope.onClickStyleFilter = function (event, definition) {
 		event.stopPropagation();
-		
+
 		$scope.styleFilterHighlightDefinition = definition;
 		// $scope.$apply();
-    };
-	
+	};
+
 	$scope.onChangeSelectSort = function () {
 		// update the stored sort value
-	    return _storage.setValue($scope.sort.value, "highlight_sort_by").then(function () {
+		return _storage.setValue($scope.sort.value, "highlight_sort_by").then(function () {
 			// update the docs array, taking into account the current sort value
 			return updateDocs()
 		}).then(function () {
@@ -235,7 +235,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		var inverted = !$scope.sort.invert
 
 		// update the stored invert value
-	    return _storage.setValue(inverted, "highlight_invert_sort").then(function () {
+		return _storage.setValue(inverted, "highlight_invert_sort").then(function () {
 			// update the docs array, taking into account the current sort value
 			$scope.sort.invert = inverted
 
@@ -250,114 +250,114 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * Show the remaining hidden text for a specific highlight
 	 * @param {Object} doc document for the specific highlight
 	 */
-    $scope.onClickMore = function (event, doc) {
-		event.preventDefault(); 
+	$scope.onClickMore = function (event, doc) {
+		event.preventDefault();
 		event.stopPropagation()
 
-        // TODO: shouldn't really be in the controller...
-        $("#" + doc._id + " .highlight-text").text(doc.text);
-    };
+		// TODO: shouldn't really be in the controller...
+		$("#" + doc._id + " .highlight-text").text(doc.text);
+	};
 
-    /**
-     * Click a highlight. Scroll to it in DOM
-     * @param {object} doc
-     */
-    $scope.onClickHighlight = function (doc) {
-        if (!doc.isInDOM) {
+	/**
+	 * Click a highlight. Scroll to it in DOM
+	 * @param {object} doc
+	 */
+	$scope.onClickHighlight = function (doc) {
+		if (!doc.isInDOM) {
 			return Promise.reject();
 		}
-		
+
 		return backgroundPage._eventPage.scrollTo(activeTab.id, doc._id);
-    };
+	};
 
-    /**
-     * Clicked 'select' button
-     * @param {object} doc
-     */
-    $scope.onClickSelect = function (doc) {
-        if (doc.isInDOM) {
-            backgroundPage._eventPage.selectHighlightText(activeTab.id, doc._id);
-            window.close();
-        }
-    };
+	/**
+	 * Clicked 'select' button
+	 * @param {object} doc
+	 */
+	$scope.onClickSelect = function (doc) {
+		if (doc.isInDOM) {
+			backgroundPage._eventPage.selectHighlightText(activeTab.id, doc._id);
+			window.close();
+		}
+	};
 
-    /**
-     * Clicked 'copy' button for a highlight
-     * @param documentId
-     */
-    $scope.onClickCopy = function (documentId) {
-        backgroundPage._eventPage.copyHighlightText(documentId);
-        window.close();
-    };
+	/**
+	 * Clicked 'copy' button for a highlight
+	 * @param documentId
+	 */
+	$scope.onClickCopy = function (documentId) {
+		backgroundPage._eventPage.copyHighlightText(documentId);
+		window.close();
+	};
 
-    /**
-     * Clicked 'speak' button for a highlight
-     * @param documentId
-     */
-    $scope.onClickSpeak = function (documentId) {
-        backgroundPage._eventPage.speakHighlightText(activeTab.id, documentId);
-    };
+	/**
+	 * Clicked 'speak' button for a highlight
+	 * @param documentId
+	 */
+	$scope.onClickSpeak = function (documentId) {
+		backgroundPage._eventPage.speakHighlightText(activeTab.id, documentId);
+	};
 
-    /**
-     * Clicked an existing definition
-     * @param {number} index index of definition in local array
-     */
-    $scope.onClickRedefinition = function (event, doc, index) {
+	/**
+	 * Clicked an existing definition
+	 * @param {number} index index of definition in local array
+	 */
+	$scope.onClickRedefinition = function (event, doc, index) {
 		event.stopPropagation()
 
 		// get classname of new definition
 		var newDefinition = $scope.highlightDefinitions[index];
 
-		backgroundPage._eventPage.updateHighlight(activeTab.id, 
+		backgroundPage._eventPage.updateHighlight(activeTab.id,
 			doc._id, newDefinition.className);
-			
+
 		// update local classname, which will update class in dom
 		doc.className = newDefinition.className;
-    };
+	};
 
 	$scope.onClickUndoLastHighlight = function () {
 		// event.preventDefault();
 		// event.stopPropagation();
 
-        return backgroundPage._eventPage.undoLastHighlight(activeTab.id).then(function (result) {
-            if (result.ok ) {
+		return backgroundPage._eventPage.undoLastHighlight(activeTab.id).then(function (result) {
+			if (result.ok) {
 				return updateDocs();
 			} else {
 				return Promise.reject();
 			}
 		}).then(function (docs) {
 			// console.log(docs)
-            // // close popup on last doc removed
-            if (docs.length === 0) {
-                window.close();
-            } else {
+			// // close popup on last doc removed
+			if (docs.length === 0) {
+				window.close();
+			} else {
 				$scope.$apply();
-            }
-        });
+			}
+		});
 	};
 
-    /**
-     * Clicked menu 'open overview' button. Opens a new tab, with the highlights fully displayed in it
-     */
-    $scope.onClickOpenOverviewInNewTab = function () {
-        // get the full uri for the tab. the summary page will get the match for it
-        chrome.tabs.create({
-            url: "overview.html?" +
-                "id=" + activeTab.id + "&" +
-                "url=" + encodeURIComponent(activeTab.url) + "&" +
-				"title=" + encodeURIComponent($scope.title) + "&" +
-				"sortby=" + encodeURIComponent($scope.sort.value) + "&" +
-				"invert=" + ($scope.sort.invert === true ? "1" : "")
-        });
-    };
-	
+	/**
+	 * Clicked menu 'open overview' button. Opens a new tab, with the highlights fully displayed in it
+	 */
+	$scope.onClickOpenOverviewInNewTab = function () {
+		// get the full uri for the tab. the summary page will get the match for it
+		chrome.tabs.create({
+			url: "overview.html?" +
+			"id=" + activeTab.id + "&" +
+			"url=" + encodeURIComponent(activeTab.url) + "&" +
+			"title=" + encodeURIComponent($scope.title) + "&" +
+			"sortby=" + encodeURIComponent($scope.sort.value) + "&" +
+			"invert=" + ($scope.sort.invert === true ? "1" : "")
+		});
+	};
+
 	$scope.onClickSaveOverview = function (docs) {
 		var comparisonPredicate = backgroundPage._tabs.getComparisonFunction(
 			activeTab.id, $scope.sort.value);
-		
+
 		// format all highlights as a markdown document
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown", activeTab, comparisonPredicate, 
+			"markdown", activeTab, comparisonPredicate,
 			$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
 				// create a temporary anchor to navigate to data uri
 				var a = document.createElement("a");
@@ -373,26 +373,26 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				a.dispatchEvent(mEvent);
 			});
 	};
-	
+
 	$scope.onClickCopyOverview = function (docs) {
 		// format all highlights as a markdown document
 
 		// sort the docs using the sort value
 		var comparisonPredicate = backgroundPage._tabs.getComparisonFunction(
 			activeTab.id, $scope.sort.value);
-		
+
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown-no-footer", activeTab, comparisonPredicate, 
-				$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
+			"markdown-no-footer", activeTab, comparisonPredicate,
+			$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
 				// Create element to contain markdown
 				var pre = document.createElement('pre');
 				pre.innerText = text;
-		
+
 				document.body.appendChild(pre);
 
 				var range = document.createRange();
-			    range.selectNode(pre);
-		
+				range.selectNode(pre);
+
 				// make our node the sole selection
 				var selection = document.getSelection();
 				selection.removeAllRanges();
@@ -401,33 +401,29 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				document.execCommand('copy');
 
 				selection.removeAllRanges();
-		        document.body.removeChild(pre);
+				document.body.removeChild(pre);
 
 				window.close();
 			});
 	};
 
-    /**
-     * Clicked 'remove' button for a highlight
-     * @param {string} documentId highlight id
-     */
-    $scope.onClickRemoveHighlight = function (event, documentId) {
+	/**
+	 * Clicked 'remove' button for a highlight
+	 * @param {string} documentId highlight id
+	 */
+	$scope.onClickRemoveHighlight = function (event, documentId) {
 		// event.preventDefault();
 		// event.stopPropagation();
-		
-		 $(event.currentTarget).css({
-			'opacity': 0,
-			'transform': 'scale(5)'
-		});
-		
-		 // wait until button disappears before sending message to remove highlight
-		event.currentTarget.addEventListener("transitionend", function(event) {
+		const elm = event.currentTarget
+
+		// wait until button disappears before sending message to remove highlight
+		elm.addEventListener("transitionend", function (event) {
 			if (event.propertyName !== "opacity") {
 				return;
 			}
 
 			backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
-				if (result.ok ) {
+				if (result.ok) {
 					return updateDocs();
 				} else {
 					return Promise.reject();
@@ -442,37 +438,42 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			});
 		}, false);
 
-        // backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
-        //     if (result.ok ) {
-	    //         return updateDocs();
+		const style = elm.style
+
+		style.setProperty('opacity', 0)
+		style.setProperty('transform', 'scale(5)')
+
+		// backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
+		//     if (result.ok ) {
+		//         return updateDocs();
 		// 	} else {
 		// 		return Promise.reject();
 		// 	}
 		// }).then(function (docs) {
-        //     // close popup on last doc removed
-        //     if (docs.length === 0) {
-        //         window.close();
-        //     } else {
+		//     // close popup on last doc removed
+		//     if (docs.length === 0) {
+		//         window.close();
+		//     } else {
 		// 		$scope.$apply();
-        //     }
-        // });
-    };
+		//     }
+		// });
+	};
 
-    /**
-     * Clicked 'remove all' button
-     */
-    $scope.onClickRemoveAllHighlights = function () {
-        // if (window.confirm(chrome.extension.getMessage("confirm_remove_all_highlights"))) {
-	    return backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match).then(function(){
-	    	window.close();
-	    });
-            
-        // }
-    };
-	
+	/**
+	 * Clicked 'remove all' button
+	 */
+	$scope.onClickRemoveAllHighlights = function () {
+		// if (window.confirm(chrome.extension.getMessage("confirm_remove_all_highlights"))) {
+		return backgroundPage._eventPage.deleteHighlights(activeTab.id, $scope.match).then(function () {
+			window.close();
+		});
+
+		// }
+	};
+
 	/**
 	 * Clicked 'ok got it' button for the offline (file protocol) warning
-	 */	
+	 */
 	$scope.onClickDismissFileAccessRequiredWarning = function () {
 		// a listener created in the initializer will set the value to the storage
 		$scope.fileAccessRequiredWarningVisible = false;
