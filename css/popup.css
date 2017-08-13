@@ -59,7 +59,7 @@ body {
 
 .doc {
     margin-bottom: 10px;
-    box-shadow: 0 4px 6px 1px rgba(50,50,50,0.14);
+    box-shadow: 0 2px 6px 0px rgba(50,50,50,0.14);
     padding: 10px;
 }
 
@@ -93,7 +93,10 @@ body {
 }
 
 .not-in-dom {
-    border: 1px dashed #c66;
+    /* border: 1px dashed #c66; */
+    text-decoration: line-through;
+    box-shadow: inset 0px 2px 6px 0px rgba(50,50,50,0.14);
+    background-color: #f7f7f7;
 }
 
 .not-in-dom .highlight {
@@ -126,10 +129,12 @@ body {
     margin: 1rem -1.5rem;
     padding: 0.5rem 1.5rem;
     background: #f5f5f5;
+    color: black;
     z-index: 1;
     opacity: 0.9;
     font-weight: 500;
-    box-shadow: -1px 3px 10px 0px #ccc;
+    /* box-shadow: -1px 3px 10px 0px #bbb; */
+    border-bottom: 2px solid black;
 }
 
 /* header */
