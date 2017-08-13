@@ -1,3 +1,7 @@
+# 3.12
+* Group pages (now renamed bookmarks) in options page
+* Optimisations, reductions, and so on
+
 # 3.11
 * Highlight Grouping & Invert options
 * Various bug fixes
