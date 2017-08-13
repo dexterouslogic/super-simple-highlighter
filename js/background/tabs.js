@@ -382,7 +382,7 @@ var _tabs = {
 			return function (doc) {
 				return _tabs.sendIsHighlightInDOMMessage_Promise(tabId, doc._id).then(function (inDOM) {
 					if (!inDOM) {
-						return Promise.reject();
+						return Promise.reject(new Error());
 					}
 			
 					return _tabs.getHighlightBoundingClientRect(tabId, doc._id)

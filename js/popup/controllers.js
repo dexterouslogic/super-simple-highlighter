@@ -264,7 +264,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 */
 	$scope.onClickHighlight = function (doc) {
 		if (!doc.isInDOM) {
-			return Promise.reject();
+			return Promise.reject(new Error());
 		}
 
 		return backgroundPage._eventPage.scrollTo(activeTab.id, doc._id);
@@ -323,7 +323,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			if (result.ok) {
 				return updateDocs();
 			} else {
-				return Promise.reject();
+				return Promise.reject(new Error());
 			}
 		}).then(function (docs) {
 			// console.log(docs)
@@ -426,7 +426,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				if (result.ok) {
 					return updateDocs();
 				} else {
-					return Promise.reject();
+					return Promise.reject(new Error());
 				}
 			}).then(function (docs) {
 				// close popup on last doc removed
@@ -447,7 +447,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		//     if (result.ok ) {
 		//         return updateDocs();
 		// 	} else {
-		// 		return Promise.reject();
+		// 		return Promise.reject(new Error());
 		// 	}
 		// }).then(function (docs) {
 		//     // close popup on last doc removed

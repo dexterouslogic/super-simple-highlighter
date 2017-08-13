@@ -139,7 +139,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         if ($scope.modalDefinition) {
             return _storage.highlightDefinitions.set_Promise($scope.modalDefinition);
         } else {
-        	return Promise.reject();
+        	return Promise.reject(new Error());
         }
     };
 
@@ -393,7 +393,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 $scope.$apply();
             });
         } else {
-        	return Promise.reject();
+        	return Promise.reject(new Error());
         }
     };
 }]);

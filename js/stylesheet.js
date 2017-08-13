@@ -151,7 +151,7 @@ var _stylesheet = {
             });
         } else {
             console.log("highlight style background colour not in #RRGGBB format");
-            return Promise.reject();
+            return Promise.reject(new Error());
         }
     },
 

@@ -467,7 +467,7 @@ var _eventPage = {
                                 console.log("Error creating highlight in DOM - Removing associated document");
 
                                 return _database.removeDocument_Promise(response.id, response.rev).then(function () {
-                                    return Promise.reject();
+                                    return Promise.reject(new Error());
                                 });
                             }
                         });
@@ -475,7 +475,7 @@ var _eventPage = {
                     console.log("Exception creating highlight in DOM - Removing associated document");
 
                     _database.removeDocument_Promise(response.id, response.rev).then(function () {
-                        return Promise.reject();
+                        return Promise.reject(new Error());
                     });
                 }
             });
@@ -692,7 +692,7 @@ var _eventPage = {
         return _database.getDocument_Promise(documentId).then(function (doc) {
             if (doc.text) {
 				if (!_eventPage.copyText(doc.text)) {
-					return Promise.reject();
+					return Promise.reject(new Error());
 				}
             }
         });
