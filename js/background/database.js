@@ -260,9 +260,10 @@ var _database = {
     /**
      * Get all documents for a match, in ascending date order.
      * @param {string} match
-     * @param {function} [callback] function(err, docs)
+     * @param {boolean} [descending] if true, return documents from latest to earliest
+     * @param {number} [limit] max number of documents to return
      */
-	getDocuments_Promise: function (match, descending) {
+	getDocuments_Promise: function (match, descending, limit) {
 		descending = descending || false;
 		
 		var options = {
@@ -270,7 +271,12 @@ var _database = {
             "endkey": !descending ? [match, {}] : [match],
             "descending": descending,
             "include_docs": true
-        };
+        }
+
+        // optional
+        if (typeof limit === 'number') {
+            options.limit = limit;
+        }
 		
 		// var o = options || {
 		//             descending: false,

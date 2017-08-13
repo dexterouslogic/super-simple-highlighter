@@ -21,7 +21,7 @@ input[type="color"] {
     cursor: pointer;
 	border-radius: 0.5em !important;
 
-      display: inline-block;
+    display: block;
 }
 
 /*
@@ -52,19 +52,49 @@ input[type="color"] {
 
 
 
-.pages {
+.pane-pages {
     margin-top: 10px;
 }
 
-.pages_empty {
+.pages-no-groups {
     color: #ddd
 }
 
+.page-group-header {
+    background-color: lightgray;
+    padding: 0.4rem 1rem;
+    color: black;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    opacity: 0.9;
+}
+
+.page {
+    background-color: #f7f7f7;
+    margin-bottom: 8px;
+}
+
+.page cite {
+    font-style: normal;
+}
+
+.page-title {
+    /* display: block; */
+    font-size: 130%;
+}
+
+.page-link {
+    /* font-size: 0.9em; */
+    color: #006621;
+    display: block;
+}
+/* 
 .page > .close {
     float: none;
     margin-left: 4px;
     vertical-align: middle;
-}
+} */
 
 .row-buttons {
     margin-top: 2em;

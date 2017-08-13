@@ -67,7 +67,7 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 			// group by days since epoch
 			var groupedDocs = []
 
-			docs.map((doc) => {
+			docs.forEach((doc) => {
 				var date = new Date(doc.date)
 				var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
 

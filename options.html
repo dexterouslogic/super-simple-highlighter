@@ -223,7 +223,58 @@
 
             <!--Pages Pane-->
             <div class="tab-pane fade" id="pages" ng-controller="PagesController">
-                <h4>{{ 'options_tab_page_header_pages' | i18n }}</h4>
+                <h4 class="lead">{{ 'options_tab_page_header_pages' | i18n }}</h4>
+
+                <!-- Only show if no items -->
+                <h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
+                    {{ 'pages_empty' | i18n }}
+                </h2>
+
+                <ol class="list-unstyled pane-pages">
+                    <li ng-repeat="group in groupedDocs">
+                        <h4 class="page-group-header text-capitalize">
+                            {{ group.title }}
+                        </h4>
+        
+                        <ol class="list-unstyled">
+                            <li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm page">
+                                <!-- button to remove all highlights on this page -->
+                                <button type="button" class="close" ng-click="onClickRemoveAllHighlights(group, $index)"
+                                    title="{{ 'remove_all_highlights' | i18n }}">
+                                    <span aria-hidden="true">&times;</span>
+                                    <span class="sr-only">{{ 'close' | i18n }}</span>
+                                </button>
+
+                                <a href="{{doc.match}}">
+                                    <p class="page-title" ng-show="doc.title">{{doc.title}}</p>
+
+                                    <cite class="small page-link">{{doc.match}}</cite>
+                                </a>
+<!-- 
+                                <a class="page-title" ng-show="typeof doc.title === 'string'" href="{{doc.match}}">{{doc.title}}</a>
+                                <a class="page-link" href="{{doc.match}}">{{doc.match}}</a> -->
+                                <!-- <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{doc.text}}</p>
+                                <div class="infobar">
+                                    <small class="date">{{ doc.date | date:'mediumTime' }}</small>
+                                </div> -->
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
                 <ol class="pages">
                     <li ng-repeat="row in rows" class="page">
                         <a href="{{row.key}}" target="_blank">{{row.key}}</a>
@@ -236,8 +287,7 @@
                     </li>
                 </ol>
 
-                <h4 class="pages_empty" ng-show="rows.length === 0">{{ 'pages_empty' | i18n }}</h4>
-
+                <!-- row of buttons below list of pages -->
                 <div class="row row-buttons">
                     <button type="button" class="btn btn-danger"
                             ng-class="{'disabled': rows.length === 0}"
