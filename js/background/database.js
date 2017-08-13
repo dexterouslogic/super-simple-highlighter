@@ -158,16 +158,14 @@ var _database = {
      * @param range
      * @param className
      * @param text
+     * @param {string} [title]
      * @param callback function(err, res)
      */
-    postCreateDocument_Promise: function (match, range, className, text) {
+    postCreateDocument_Promise: function (match, range, className, text, title) {
         "use strict";
-        var docId = _stringUtils.createUUID({
-            beginWithLetter: true
-        });
-
+        // required
         var doc = {
-            _id: docId,
+            _id: _stringUtils.createUUID({ beginWithLetter: true }),
             // _rev: undefined,
 
             match: match,
@@ -178,6 +176,11 @@ var _database = {
             className: className,
             text: text
         };
+
+        // optionals
+        if (typeof title === 'string') {
+            doc.title = title
+        }
 
         // var options = {};
         return _database.getDatabase().put(doc);

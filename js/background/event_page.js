@@ -415,36 +415,54 @@ var _eventPage = {
             return Promise.reject(new Error("Ignoring collapsed range"));
         }
 
-        // not being collapsed is implicit
-        delete xpathRange.collapsed;
-
-        return _database.postCreateDocument_Promise(match, xpathRange, className, selectionText).then(function (response) {
-            // use the new document's id for the element id of the (first) highlight element
-            try {
-                return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, response.id)
-					.then(function (is_created) {
-                        // a false response means something went wrong.
-						// Delete document from db
-                        if (is_created) {
-                            // (re) show page action on success
-                            chrome.pageAction.show(tabId);
-							return Promise.resolve();
-                        } else {
-                            console.log("Error creating highlight in DOM - Removing associated document");
-
-                            return _database.removeDocument_Promise(response.id, response.rev).then(function () {
-								return Promise.reject();
-							});
-                        }
-                    });
-            }catch (e){
-                console.log("Exception creating highlight in DOM - Removing associated document");
-
-                _database.removeDocument_Promise(response.id, response.rev).then(function () {
-					return Promise.reject();
-				});
+        // if this is the first create document to be posted, we want the title too
+        return _database.getMatchSum_Promise(match).then(sum => {
+            if (sum != 0) {
+                // resolve to undefined title
+                return Promise.resolve()
             }
-        });
+            
+            return new Promise(resolve => {
+                // resolve to tab's title
+                chrome.tab.get(tabId, tab => { resolve(tab.title) })
+            })
+        }).then(title => {
+            // not being collapsed is implicit
+            delete xpathRange.collapsed;
+
+            // ignore undefined or empty titles
+            title = (typeof title === 'string' && title.length > 0 && title) || null
+
+            return _database.postCreateDocument_Promise(match, xpathRange, className, selectionText, title).then(response => {
+                // use the new document's id for the element id of the (first) highlight element
+                try {
+                    return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, response.id)
+                        .then(function (is_created) {
+                            // a false response means something went wrong.
+                            // Delete document from db
+                            if (is_created) {
+                                // (re) show page action on success
+                                chrome.pageAction.show(tabId);
+                                return Promise.resolve();
+                            } else {
+                                console.log("Error creating highlight in DOM - Removing associated document");
+
+                                return _database.removeDocument_Promise(response.id, response.rev).then(function () {
+                                    return Promise.reject();
+                                });
+                            }
+                        });
+                }catch (e){
+                    console.log("Exception creating highlight in DOM - Removing associated document");
+
+                    _database.removeDocument_Promise(response.id, response.rev).then(function () {
+                        return Promise.reject();
+                    });
+                }
+            });
+        })
+
+        
     },
 
     /**
