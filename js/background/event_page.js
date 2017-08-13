@@ -33,8 +33,12 @@ var _eventPage = {
         chrome.runtime.onStartup.addListener(_eventPage.onRuntimeStartup);
         chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
 
-        chrome.webNavigation.onCompleted.addListener(_eventPage.onWebNavigationCompleted);
-
+        chrome.webNavigation.onDOMContentLoaded.addListener(_eventPage.onDOMContentLoaded, {
+            url: [{ 
+                schemes: ['http', 'https', 'file']
+            }]
+        })
+            
 		// DISABLED UNTIL MOUSE EVENT BUG IS FIXED
         // chrome.tabs.onActivated.addListener(_eventPage.onActivated);
 
@@ -98,9 +102,9 @@ var _eventPage = {
      * Fired when a document, including the resources it refers to, is completely loaded and initialized.
      * @param details
      */
-    onWebNavigationCompleted: function (details) {
+    onDOMContentLoaded: function (details) {
         "use strict";
-        console.log("onWebNavigationCompleted");
+        console.log("onDOMContentLoaded");
 //        console.log(details);
 
         // 0 indicates the navigation happens in the tab content window
@@ -439,7 +443,7 @@ var _eventPage = {
             
             return new Promise(resolve => {
                 // resolve to tab's title
-                chrome.tab.get(tabId, tab => { resolve(tab.title) })
+                chrome.tabs.get(tabId, tab => { resolve(tab.title) })
             })
         }).then(title => {
             // not being collapsed is implicit
