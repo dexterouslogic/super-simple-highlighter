@@ -218,32 +218,63 @@ var _database = {
      * @param className new class name
      * @param callback function(err, doc)
      */
-    updateCreateDocument_Promise: function (documentId, className) {
-        "use strict";
-        return _database.getDocument_Promise(documentId).then(function (doc) {
+    updateCreateDocument_Promise: function (documentId, options) {
+        "use strict"
+        return _database.getDocument_Promise(documentId).then(doc => {
             // can only update 'create' documents
             if (doc.verb !== 'create') {
-				return Promise.reject(
-					new Error('Attempted to update document with unhandled verb: ' + doc.verb));
+                return Promise.reject(
+                    new Error('Attempted to update document with unhandled verb: ' + doc.verb));
             }
 
-            // don't update if the class name is already the same
-            if (doc.className === className) {
+            options.className = options.className || doc.className
+            options.title = options.title || doc.title
+
+            // change required?
+            if (doc.className === options.className &&
+                doc.title === options.title)
+            {
                 // no change
 				return Promise.resolve({
 					'ok': true,
 					'id': doc._id,
 					'rev': doc._rev
-				});
+				})
             }
 
-            // update the property of the document
-            doc.className = className;
+            // put new revision
+            doc.className = options.className || doc.className
+            doc.title = options.title || doc.title
 
-            // var options = {};
             return _database.getDatabase().put(doc);
-        });
+        })
     },
+    // updateCreateDocument_Promise: function (documentId, className) {
+    //     "use strict";
+    //     return _database.getDocument_Promise(documentId).then(function (doc) {
+    //         // can only update 'create' documents
+    //         if (doc.verb !== 'create') {
+	// 			return Promise.reject(
+	// 				new Error('Attempted to update document with unhandled verb: ' + doc.verb));
+    //         }
+
+    //         // don't update if the class name is already the same
+    //         if (doc.className === className) {
+    //             // no change
+	// 			return Promise.resolve({
+	// 				'ok': true,
+	// 				'id': doc._id,
+	// 				'rev': doc._rev
+	// 			});
+    //         }
+
+    //         // update the property of the document
+    //         doc.className = className;
+
+    //         // var options = {};
+    //         return _database.getDatabase().put(doc);
+    //     });
+    // },
 
     /**
      * Get document (of any verb). Always latest revision

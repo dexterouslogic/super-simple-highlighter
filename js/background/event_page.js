@@ -124,7 +124,10 @@ var _eventPage = {
 		var docs;
 
 		return _database.getDocuments_Promise(match).then(function (d) {
-			docs = d;
+            docs = d;
+            
+            // if the first document is a 'create' document without a title, update it now
+
 			
             // configure and show page action
             console.log("Matched " + docs.length + " document(s) with '" + match + "'");
@@ -473,9 +476,9 @@ var _eventPage = {
      */
     updateHighlight: function (tabId, documentId, className) {
         "use strict";
-        return _database.updateCreateDocument_Promise(documentId, className).then(function (response) {
+        return _database.updateCreateDocument_Promise(documentId, {className: className}).then(response => {
         	if (!response.ok) {
-        		return Promise.reject();
+        		return Promise.reject(new Error("Response not OK"));
         	}
 			
             // document updated - now update DOM
