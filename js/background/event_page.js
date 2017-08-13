@@ -126,19 +126,31 @@ var _eventPage = {
 		return _database.getDocuments_Promise(match).then(function (d) {
             docs = d;
             
-            // if the first document is a 'create' document without a title, update it now
-
-			
             // configure and show page action
             console.log("Matched " + docs.length + " document(s) with '" + match + "'");
             if (docs.length === 0) {
                 return;
             }
-			
+
+            const firstDoc = docs[0]
+            
+            // if the first document is a 'create' document without a title, update it now
+            if (firstDoc.verb === 'create' && typeof firstDoc.title === 'undefined') {
+                // promise resolves when tab title obtained
+                return new Promise((resolve) => {
+                    chrome.tabs.get(details.tabId, tab => {
+                        _database.updateCreateDocument_Promise(firstDoc._id, {
+                            title: tab.title
+                        }).then(() => resolve())
+                    })
+                })
+            } else {
+                return Promise.resolve()
+            }
+        }).then(() => {
 			console.log("Injecting scripts into top level frames...");
-			
 			return _tabs.executeAllScripts_Promise(details.tabId, false);
-		}).then(function () {
+        }).then(() => {
 			console.log("Replaying documents into DOM");
 			
             return _tabs.replayDocuments_Promise(details.tabId, docs, function (errorDoc) {
@@ -149,8 +161,8 @@ var _eventPage = {
                 if (errorDoc.verb === "create") {
                     _eventPage.setPageActionStatus(details.tabId, true);
                 }
-            });
-		}).then(function (sum) {
+            })
+		}).then((sum) => {
             console.log("Create/Delete document sum is " + sum);
 
             if (sum > 0) {

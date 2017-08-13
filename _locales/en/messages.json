@@ -170,9 +170,6 @@
    "options_page_title_prefix": {
       "message": "Options"
    },
-   "options_tab_page_header_pages": {
-      "message": "The following web pages contain highlights."
-   },
    "options_tab_page_header_sites": {
       "message": "Click on a highlight definition to change its style."
    },
@@ -232,7 +229,7 @@
       "message": "Style"
    },
    "remove_all_highlights": {
-      "message": "Remove All Highlights"
+      "message": "Remove Highlights"
    },
    "required_highlight_title": {
       "message": "Every style requires a title"
@@ -305,5 +302,8 @@
    },
    "title_sort_direction": {
      "message": "Sort Direction"
+   },
+   "untitled_page_group": {
+     "message": "Untitled"
    }
 }

@@ -243,8 +243,8 @@ var _database = {
             }
 
             // put new revision
-            doc.className = options.className || doc.className
-            doc.title = options.title || doc.title
+            doc.className = options.className 
+            doc.title = options.title
 
             return _database.getDatabase().put(doc);
         })

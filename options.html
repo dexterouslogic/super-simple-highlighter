@@ -160,7 +160,7 @@
 
                 <!--Definitions-->
                 <!--<h4>Predefined Highlight Styles</h4>-->
-                <h4>{{ 'options_tab_page_header_sites' | i18n }}</h4>
+                <h4 class="lead">{{ 'options_tab_page_header_sites' | i18n }}</h4>
                 <ul class="list-unstyled">
                     <li ng-repeat="d in definitions"
                         class="token well-sm {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
@@ -223,33 +223,34 @@
 
             <!--Pages Pane-->
             <div class="tab-pane fade" id="pages" ng-controller="PagesController">
-                <h4 class="lead">{{ 'options_tab_page_header_pages' | i18n }}</h4>
-
                 <!-- Only show if no items -->
                 <h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
                     {{ 'pages_empty' | i18n }}
                 </h2>
 
                 <ol class="list-unstyled pane-pages">
-                    <li ng-repeat="group in groupedDocs">
+                    <li ng-repeat="group in groupedDocs" class="page-group-list-item">
                         <h4 class="page-group-header text-capitalize">
                             {{ group.title }}
                         </h4>
         
                         <ol class="list-unstyled">
-                            <li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm page">
+                            <li ng-repeat="doc in group.docs | orderBy:'title'" id="{{doc._id}}" class="well-sm page"
+                                ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
                                 <!-- button to remove all highlights on this page -->
-                                <button type="button" class="close" ng-click="onClickRemoveAllHighlights(group, $index)"
-                                    title="{{ 'remove_all_highlights' | i18n }}">
+                                <button type="button" class="close" 
+                                    ng-click="onClickRemoveAllHighlights(doc, group)"
+                                    title="{{ 'remove_all_highlights' | i18n }}"
+                                    ng-class="{'sr-only sr-only-focusable': !doc.hover}">
                                     <span aria-hidden="true">&times;</span>
                                     <span class="sr-only">{{ 'close' | i18n }}</span>
                                 </button>
 
-                                <a href="{{doc.match}}">
-                                    <p class="page-title" ng-show="doc.title">{{doc.title}}</p>
+                                <h5 class="page-title">
+                                    <a href="{{doc.match}}" target="_blank"  ng-show="doc.title">{{doc.title}}</a>
+                                </h5>
+                                <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
 
-                                    <cite class="small page-link">{{doc.match}}</cite>
-                                </a>
 <!-- 
                                 <a class="page-title" ng-show="typeof doc.title === 'string'" href="{{doc.match}}">{{doc.title}}</a>
                                 <a class="page-link" href="{{doc.match}}">{{doc.match}}</a> -->
@@ -262,35 +263,10 @@
                     </li>
                 </ol>
 
-
-
-
-
-
-
-
-
-
-
-
-
-                
-                <ol class="pages">
-                    <li ng-repeat="row in rows" class="page">
-                        <a href="{{row.key}}" target="_blank">{{row.key}}</a>
-
-                        <button type="button" class="close" ng-click="onClickRemoveAllHighlights($index)"
-                                title="{{ 'remove_all_highlights' | i18n }}">
-                            <span aria-hidden="true">&times;</span>
-                            <span class="sr-only">{{ 'close' | i18n }}</span>
-                        </button>
-                    </li>
-                </ol>
-
                 <!-- row of buttons below list of pages -->
                 <div class="row row-buttons">
                     <button type="button" class="btn btn-danger"
-                            ng-class="{'disabled': rows.length === 0}"
+                            ng-class="{'disabled': groupedDocs.length === 0}"
                             data-ng-click="onClickRemoveAllPages()">
                         {{ 'text_remove_all_pages' | i18n }}
                     </button>
@@ -299,7 +275,7 @@
 			
             <!--Experimental Pane-->
             <div class="tab-pane fade" id="experimental" ng-controller="ExperimentalController">
-				<h4>{{ 'experimental_header' | i18n }}</h4>
+				<h4 class="lead">{{ 'experimental_header' | i18n }}</h4>
 
 				<div class="panel panel-default">
 				  <!-- Default panel contents -->

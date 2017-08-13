@@ -285,18 +285,13 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage
     
-    // first 'create' documents of each page. Used to create groupedDocuments scope variable
-    var ungroupedDocs
-    
     // starter
     chrome.runtime.getBackgroundPage(bp => {
         backgroundPage = bp;
 
-        // $scope.groupedDocs = []
-        
         // get an array of each unique match, and the number of associated documents (which is of no use)
         backgroundPage._database.getMatchSums_Promise().then(rows => {
-            $scope.rows = rows.filter(row => row.value > 0)
+            // $scope.rows = rows.filter(row => row.value > 0)
             // $scope.$apply();
     
             // the key for each row (item in the array) is the 'match' for each document, 
@@ -306,12 +301,12 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 .map(row => backgroundPage._database.getDocuments_Promise(row.key, false, 1)))
         }).then(a => {
             // each entry in docs array is an array containing at most one doc
-            ungroupedDocs = a.filter(a => a.length === 1).map(a => a[0])
+            var docs = a.filter(a => a.length === 1).map(a => a[0])
             // first doc should always be a 'create'
-            console.assert(ungroupedDocs.every(doc => doc.verb === 'create'))
+            console.assert(docs.every(doc => doc.verb === 'create'))
 
-            // group the documents by their title (if possible)
-            $scope.groupedDocs = groupDocuments(ungroupedDocs, 'date')
+            // group the documents by their title (if possible), and get a sorted array
+            $scope.groupedDocs = groupDocuments(docs, 'date')
             // $scope.rows = []//rows.filter(row => row.value > 0)
 
             $scope.$apply()
@@ -322,50 +317,69 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
      * Group an array of documents by a common property
      * 
      * @param {[{object}]} docs array of 'create' documents for the first of its matches 
-     * @param {string} [groupBy] type of grouping 
+     * @param {string} [groupBy] type of grouping (currently ignored)
      * @returns [{object}] array of groups
      */
     function groupDocuments(docs, groupBy) {
-        // group by days since epoch
-        var groups = []
+        // grouped by property name (section title)
+        var groups = {},
+            untitledGroup = {
+                title: chrome.i18n.getMessage('untitled_page_group'),
+                docs: []
+            }
             
         docs.forEach(doc => {
             // section to group document in (title)
-            const sectionTitle = typeof doc.title === 'string' && doc.title.length >= 1 && doc.title[0].toUpperCase() || "#"
+            const title = typeof doc.title === 'string' && doc.title.length >= 1 && doc.title[0].toLowerCase() || ""
+            const group = (title.length === 0 ? untitledGroup : function () {
+                // if groups doesn't have a section with this title, add it
+                if (!groups.hasOwnProperty(title)) {
+                    groups[title] = {
+                        title: title,
+                        docs: []
+                    }
+                }
+                
+                return groups[title]
+            }())
 
-            // first, or different days since epoch of last group
-            if (groups.length === 0 || sectionTitle !== groups[groups.length - 1].title) {
-                // each group defines its days since epoch and an ordered array of docs
-                groups.push({
-                    title: sectionTitle,
-                    docs: []
-                })
-            }
-
-            groups[groups.length - 1].docs.push(doc)
+            group.docs.push(doc)
         })
 
-        groups.sort((a, b) => a.localeCompare(b))
+        // convert to array
+        let sortedGroups = Object.getOwnPropertyNames(groups)
+            .sort()
+            .map(title => groups[title])
 
-        return groups
+        if (untitledGroup.docs.length > 0) {
+            sortedGroups.push(untitledGroup)
+        }
+        // groups.sort((a, b) => b.title.localeCompare(a.title))
+
+        return sortedGroups
         // $scope.apply()
     }
 
     /**
      * Clicked 'remove all highlights for this site' button (x)
-     * @param {number} index
      */
-    $scope.onClickRemoveAllHighlights = function (index){
-        if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
-            var match = $scope.rows[index].key;
-
-            return backgroundPage._database.removeDocuments_Promise(match).then(function(result) {
-                $scope.rows.splice(index, 1);
-                $scope.$apply();
-            });
-        } else {
-        	return Promise.reject();
+    $scope.onClickRemoveAllHighlights = function (doc, group){
+        if (!window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
+            return Promise.resolve()
         }
+
+        // var match = $scope.rows[index].key;
+
+        return backgroundPage._database.removeDocuments_Promise(doc.match).then(result => {
+            // remove the corresponding doc from our '$scope.groupedDocs' via the handy reference
+            const index = group.docs.indexOf(doc)
+            if (index === -1) {
+                return Promise.reject(new Error("document not found"))
+            }
+
+            group.docs.splice(index, 1)
+            $scope.$apply()
+        })
     };
 
     /**
@@ -375,7 +389,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
             // destroy and re-create the database
             return backgroundPage._database.reset().then(function() {
-                $scope.rows = [];
+                $scope.groupedDocs = [];
                 $scope.$apply();
             });
         } else {
