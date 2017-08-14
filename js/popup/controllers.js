@@ -130,7 +130,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			backgroundPage = bgPage;
 
 			// initialize controller variables
-			_storage.getPopupHighlightTextMaxLength_Promise().then(function (max) {
+			_storage.getValue("popupHighlightTextMaxLength").then(max => {
 				if (max) {
 					$scope.popupHighlightTextMaxLength = max;
 				}
@@ -141,7 +141,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			// file access for the extension, set a flag now. 
 			// The view will set the warning's
 			// visibility based on its value.
-			_storage.getFileAccessRequiredWarningDismissed_Promise().then(function (dismissed) {
+			_storage.getValue("fileAccessRequiredWarningDismissed").then(dismissed => {
 				// if its already been dismissed before, no need to check
 				if (!dismissed) {
 					// it not being a file protocol url is the same as invisible (dismissed)
@@ -159,7 +159,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				}
 
 				console.log(newVal);
-				_storage.setFileAccessRequiredWarningDismissed_Promise(!newVal);
+				_storage.setValue(!newVal, "fileAccessRequiredWarningDismissed")
 			});
 
 

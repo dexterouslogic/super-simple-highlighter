@@ -368,7 +368,7 @@ var _eventPage = {
                                 selectionText, hd.className);
 						}).then(function() {
                             // remove selection?
-                            return _storage.getUnselectAfterHighlight_Promise().then(function (unselectAfterHighlight) {
+                            return _storage.getValue("unselectAfterHighlight").then(function (unselectAfterHighlight) {
                                 if (unselectAfterHighlight) {
                                     // unselect all
                                     _eventPage.selectHighlightText(activeTab.id);
@@ -406,7 +406,7 @@ var _eventPage = {
 
                                     // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
                                     // Otherwise it's too easy to make multiple highlights over the same range.
-                                    return _storage.getUnselectAfterHighlight_Promise().then(function(unselectAfterHighlight) {
+                                    return _storage.getValue("unselectAfterHighlight").then(function(unselectAfterHighlight) {
                                         if (!unselectAfterHighlight) {
                                             return Promise.resolve();
                                         }

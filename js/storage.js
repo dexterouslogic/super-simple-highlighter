@@ -29,6 +29,11 @@ var _storage = {
 		"options_bookmarks_group_by": "title",
 		"options_bookmarks_ascending_order": true,
 		"options_bookmarks_show_page_text": false,
+		"enableHighlightBoxShadow": false,
+		"highlightBackgroundAlpha": 0.8,
+		"fileAccessRequiredWarningDismissed": false,
+		"unselectAfterHighlight": false,
+		"popupHighlightTextMaxLength": 512,
 	},
 	
 	/**
@@ -82,176 +87,6 @@ var _storage = {
 		});
 	},
 	
-	
-	/**
-	 * Setter for 'has user explictly dismissed the 'you must enabled file access'' warning
-	 * @param {Boolean} fileAccessRequiredWarningDismissed true if warning was dismissed
-     * @param {function} callback standard storage setter callback
-	 * @type function
-	 */
-	setFileAccessRequiredWarningDismissed_Promise: function(dismissed) {
-		"use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.set({
-	            fileAccessRequiredWarningDismissed: dismissed
-	        }, function () {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve();
-	        	}
-	        });
-		});
-	},
-	
-	/**
-	 * Getter for 'has user explictly dismissed the 'you must enabled file access'' warning
-	 * @param {function} callback function(fileAccessRequiredWarningDismissed)
-	 * @type function
-	 */
-	getFileAccessRequiredWarningDismissed_Promise: function () {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.get({
-	            fileAccessRequiredWarningDismissed: false
-	        }, function (items) {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve(items.fileAccessRequiredWarningDismissed);
-	        	}
-	        });
-		});
-	},
-	
-    /**
-     * Set 'should selection be removed after selection' flag
-     * @param {bool} unselectAfterHighlight
-     * @param {function} [callback] Callback on success, or on failure (in which case runtime.lastError will be set).
-     */
-    setUnselectAfterHighlight_Promise: function (unselectAfterHighlight) {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.set({
-	            unselectAfterHighlight: unselectAfterHighlight
-	        }, function () {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve();
-	        	}
-	        });
-		});
-    },
-
-    /**
-     * Getter for unselect setting
-     * @param {function} callback function(unselectAfterHighlight)
-     */
-    getUnselectAfterHighlight_Promise: function () {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.get({
-	            unselectAfterHighlight: false
-	        }, function (items) {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve(items.unselectAfterHighlight);
-	        	}
-	        });
-		});
-    },
-
-    /**
-     * Getter for max number of characters a highlight's text can show in popup before ellipsis/more link shows
-     * @param {function} callback function(max)
-     */
-    getPopupHighlightTextMaxLength_Promise: function () {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.get({
-	            popupHighlightTextMaxLength: 512
-	        }, function (items) {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve(items.popupHighlightTextMaxLength);
-	        	}
-	        });
-		});
-    },
-
-    /**
-     * Setter for alpha storage
-     * @param {number} alpha
-     * @param {function} callback Callback on success, or on failure (in which case runtime.lastError will be set).
-     */
-    setHighlightBackgroundAlpha_Promise: function (alpha) {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.set({
-	            highlightBackgroundAlpha: alpha
-	        }, function () {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve();
-	        	}
-	        });
-		});
-    },
-
-    /**
-     * Get highlight background alpha setting
-     * @param {function} callback function(alpha) (on error, alpha is undefined. call chrome.runtime.getLastError).
-     *  Alpha is in range 0..1
-     */
-    getHighlightBackgroundAlpha_Promise: function () {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-			chrome.storage.sync.get({
-	            highlightBackgroundAlpha: 0.8
-	        }, function (items) {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve(items.highlightBackgroundAlpha);
-	        	}
-	        });
-		});
-    },
-	
-	setEnableHighlightBoxShadow_Promise: function (enableHighlightBoxShadow) {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.set({
-	            "enableHighlightBoxShadow": enableHighlightBoxShadow
-	        }, function () {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve();
-	        	}
-	        });
-		});			
-	},
-
-	isHighlightBoxShadowEnabled_Promise: function () {
-        "use strict";
-		return new Promise(function (resolve, reject) {
-	        chrome.storage.sync.get({
-	            "enableHighlightBoxShadow": true,
-	        }, function (items) {
-	        	if (chrome.runtime.lastError) {
-	        		reject(chrome.runtime.lastError)
-	        	} else {
-	        		resolve(items.enableHighlightBoxShadow);
-	        	}
-	        });
-		})
-	},
-
     /**
      * Namespace for highlight definitions things
      */

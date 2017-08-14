@@ -518,7 +518,7 @@ var _contentScript = {
             // corresponding storage.StorageChange for that item.
 
             // this applies to all styles
-            _storage.isHighlightBoxShadowEnabled_Promise().then(function (enableBoxShadow) {
+            _storage.getValue("enableHighlightBoxShadow").then(enableBoxShadow => {
                 // default FIRST
                 if (changes.sharedHighlightStyle) {
                     var c1 = changes.sharedHighlightStyle;

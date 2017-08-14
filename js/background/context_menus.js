@@ -211,7 +211,7 @@ var _contextMenus = {
                         info.selectionText, className);
 				}).then(function () {
                     // remove selection?
-                    return _storage.getUnselectAfterHighlight_Promise();
+                    return _storage.getValue("unselectAfterHighlight")
 				}).then(function (unselect) {
                    if (unselect) {
                        // unselect all

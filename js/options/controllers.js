@@ -18,8 +18,8 @@
  */
 
 // disable console log
-// console.log = function () { }
-// console.assert = function () { }
+console.log = function () { }
+console.assert = function () { }
 
 /**
  * Controllers module
@@ -47,33 +47,33 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         modalElement = document.getElementById('myModal')
 
         // 1 - get storage value, and set up a watch on it
-        _storage.getUnselectAfterHighlight_Promise().then(function (unselect) {
+        _storage.getValue("unselectAfterHighlight").then(function (unselect) {
             $scope.unselectAfterHighlight = unselect;
 
             $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
 
-                    _storage.setUnselectAfterHighlight_Promise(newVal);
+                    _storage.setValue(newVal, "unselectAfterHighlight")
                 }
             });
         });
 
         // 1b - same, but for disable box shadow
-        _storage.isHighlightBoxShadowEnabled_Promise().then(function (isEnabled) {
+        _storage.getValue("enableHighlightBoxShadow").then(isEnabled => {
             $scope.isHighlightBoxShadowEnabled = isEnabled;
 
             $scope.$watch('isHighlightBoxShadowEnabled', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
 
-                    _storage.setEnableHighlightBoxShadow_Promise(newVal);
+                    _storage.setValue(newVal, "enableHighlightBoxShadow")
                 }
             });
         });
 
         // 2
-        _storage.getHighlightBackgroundAlpha_Promise().then(function (opacity) {
+        _storage.getValue("highlightBackgroundAlpha").then(opacity => {
             if (opacity === undefined) {
                 return;
             }
@@ -93,7 +93,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                     timeout = $timeout(function () {
                         console.log(newVal);
 
-                        _storage.setHighlightBackgroundAlpha_Promise(newVal);
+                        _storage.setValue(newVal, "highlightBackgroundAlpha")
                     }, 1000);
                 }
             });
@@ -734,6 +734,6 @@ optionsControllers.controller('AboutController', ["$scope", function ($scope) {
 	 */
     $scope.onClickRestoreAllWarnings = function () {
         // TODO: remember to keep all property setters in sync with this method
-        return _storage.setFileAccessRequiredWarningDismissed_Promise(false);
+        return _storage.setValue(false, "fileAccessRequiredWarningDismissed")
     };
 }]);

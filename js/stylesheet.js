@@ -116,7 +116,7 @@ var _stylesheet = {
         const match = re.exec(backgroundColor);
 
         if (match && match.length >= 4) {
-            return _storage.getHighlightBackgroundAlpha_Promise().then((a) => {
+            return _storage.getValue("highlightBackgroundAlpha").then(a => {
                 style["background-color"] = "rgba(" +
                     parseInt(match[1], 16) + ", " +
                     parseInt(match[2], 16) + ", " +
