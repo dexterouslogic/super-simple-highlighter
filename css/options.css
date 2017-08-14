@@ -95,6 +95,16 @@ input[type="color"] {
     color: #006621;
     display: block;
 }
+
+.page-text-list {
+    margin-top: 0.7rem;
+    margin-left: 0;
+}
+
+.page-text-list-item {
+    margin: 1px;
+    border-radius: 4px;
+}
 /* 
 .page > .close {
     float: none;

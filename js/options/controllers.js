@@ -319,6 +319,13 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 
                 // numeric date of creation of latest 'create' doc
                 a[0].lastDate = a[a.length - 1].date
+                // array of each text item for the page's 'create' docs, and its className (aka highlight style)
+                a[0].texts = a.map(doc => {
+                    return {
+                        text: doc.text,
+                        className: doc.className,
+                    }
+                })
             })
 
             const docs = createDocs.map(a => a[0])

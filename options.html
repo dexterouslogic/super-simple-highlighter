@@ -246,11 +246,20 @@
                                     <span class="sr-only">{{ 'close' | i18n }}</span>
                                 </button>
 
+                                <!-- page title -->
                                 <h5 class="page-title">
                                     <a href="{{doc.match}}" target="_blank"  ng-show="doc.title">{{doc.title}}</a>
                                 </h5>
+                                <!-- page link -->
                                 <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
+                                
+                                <!-- text for all highlights -->
+                                <ul class="list-inline page-text-list">
+                                    <li ng-repeat="t in doc.texts" class="list-inline page-text-list-item {{t.className}}">
+                                        {{ t.text }}
+                                    </li>
 
+                                </ul>
 <!-- 
                                 <a class="page-title" ng-show="typeof doc.title === 'string'" href="{{doc.match}}">{{doc.title}}</a>
                                 <a class="page-link" href="{{doc.match}}">{{doc.match}}</a> -->
