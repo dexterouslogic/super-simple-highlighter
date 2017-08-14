@@ -456,7 +456,7 @@ var _eventPage = {
             delete xpathRange.collapsed;
 
             // ignore tabs where the title == url (i.e. not explicity defined)
-            const title = (tab.title !== tab.url && tab.title) || undefined
+            const title = (tab && tab.title !== tab.url && tab.title) || undefined
 
             return _database.postCreateDocument_Promise(match, xpathRange, className, selectionText, title).then(response => {
                 // use the new document's id for the element id of the (first) highlight element
