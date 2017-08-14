@@ -143,6 +143,12 @@ var _eventPage = {
                 // promise resolves when tab title obtained
                 return new Promise((resolve) => {
                     chrome.tabs.get(details.tabId, tab => {
+                        // ignore tabs where the title == url (i.e. not explicity defined)
+                        if (tab.title === tab.url) {
+                            resolve()
+                            return
+                        }
+
                         _database.updateCreateDocument_Promise(firstDoc._id, {
                             title: tab.title
                         }).then(() => resolve())
@@ -443,14 +449,14 @@ var _eventPage = {
             
             return new Promise(resolve => {
                 // resolve to tab's title
-                chrome.tabs.get(tabId, tab => { resolve(tab.title) })
+                chrome.tabs.get(tabId, tab => { resolve(tab) })
             })
-        }).then(title => {
+        }).then(tab => {
             // not being collapsed is implicit
             delete xpathRange.collapsed;
 
-            // ignore undefined or empty titles
-            title = (typeof title === 'string' && title.length > 0 && title) || null
+            // ignore tabs where the title == url (i.e. not explicity defined)
+            const title = (tab.title !== tab.url && tab.title) || undefined
 
             return _database.postCreateDocument_Promise(match, xpathRange, className, selectionText, title).then(response => {
                 // use the new document's id for the element id of the (first) highlight element
