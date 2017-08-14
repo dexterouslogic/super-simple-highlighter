@@ -43,12 +43,26 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 	$scope.commands = {};
 	$scope.sort = {}
+	$scope.search = {}
 
 	// current style filter. null for none
 	$scope.styleFilterHighlightDefinition = null;
 
+	$scope.groupFilterPredicate = (group) => {
+		if (typeof $scope.search.text === 'undefined') {
+			return true
+		}
+
+		const text = $scope.search.text.toLowerCase()
+
+		return group.docs.some(doc => {
+			// delegate to search.text and styleFilterPredicate
+			return $scope.styleFilterPredicate(doc) && doc.text.toLowerCase().indexOf(text) != -1
+		})
+	}
+
 	// predicate for filter by style
-	$scope.styleFilterPredicate = function (doc, index) {
+	$scope.styleFilterPredicate = function (doc) {
 		if (!$scope.styleFilterHighlightDefinition) {
 			return true;
 		}
