@@ -50,9 +50,38 @@ input[type="color"] {
     background: #BABABA;
 }
 
+/* page pane */
 
+.header {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+}
 
-.pane-pages {
+.header-control {
+    margin-left: 8px;
+}
+
+.header-control-group {
+    display: inline-flex;
+}
+
+.button-partner {
+    margin-left: 4px;
+}
+
+.button-animate-transition {
+    transition: transform 0.3s;
+}
+
+.sort-inverted {
+    /* transform: rotate(180deg) */
+    transform: rotateX(180deg);  
+    /* background-color: black;
+    color: white; */
+}
+
+.list-grouped-pages {
     margin-top: 10px;
 }
 

@@ -223,12 +223,39 @@
 
             <!--Pages Pane-->
             <div class="tab-pane fade" id="pages" ng-controller="PagesController">
+                <form class="header form-inline">
+                    <!-- Show page text -->
+                    <div class="checkbox" style="margin-right: auto;">
+                        <label>
+                            <input type="checkbox" ng-model="options.showPageText">
+                            {{ 'show_page_highlight_text' | i18n }}
+                        </label>
+                    </div>
+
+                    <!-- Grouping & Direction -->
+                    <div class="header-control header-control-group">
+                        <select class="form-control" ng-model="options.groupBy" ng-change="onChangeGroupOptions()">
+                            <option value="title">{{'group_by_title' | i18n}}</option>
+                            <option value="first_date">{{'group_by_first_date' | i18n}}</option>
+                            <option value="last_date">{{'group_by_last_date' | i18n}}</option>
+                        </select>
+                        
+                        <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner button-animate-transition" 
+                            ng-class="{'sort-inverted': options.reverseOrder }"
+                            type="button" title="{{'title_sort_direction' | i18n}}"
+                            ng-click="options.reverseOrder = !options.reverseOrder; onChangeGroupOptions()">
+                            <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+                        </button>	
+                    </div>
+                </form>
+
+
                 <!-- Only show if no items -->
                 <h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
                     {{ 'pages_empty' | i18n }}
                 </h2>
 
-                <ol class="list-unstyled pane-pages">
+                <ol class="list-unstyled list-grouped-pages">
                     <li ng-repeat="group in groupedDocs" class="page-group-list-item">
                         <h4 class="page-group-header text-capitalize">
                             {{ group.title }}
@@ -254,7 +281,7 @@
                                 <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
                                 
                                 <!-- text for all highlights -->
-                                <ul class="list-inline page-text-list">
+                                <ul class="list-inline page-text-list" ng-show="options.showPageText">
                                     <li ng-repeat="t in doc.texts" class="list-inline page-text-list-item {{t.className}}">
                                         {{ t.text }}
                                     </li>

@@ -285,10 +285,19 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage
 
+    // docs before grouping
+    let ungroupedDocs = []
+
     // starter
     chrome.runtime.getBackgroundPage(bp => {
         backgroundPage = bp;
 
+        $scope.options = {
+            showPageText: true,
+            groupBy: 'last_date',
+            reverseOrder: true,
+        }
+        
         // get an array of each unique match, and the number of associated documents (which is of no use)
         backgroundPage._database.getMatchSums_Promise().then(rows => {
             // $scope.rows = rows.filter(row => row.value > 0)
@@ -328,15 +337,10 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 })
             })
 
-            const docs = createDocs.map(a => a[0])
+            ungroupedDocs = createDocs.map(a => a[0])
 
             // group the documents by their title (if possible), and get a sorted array
-            $scope.groupedDocs = groupDocuments(docs, {
-                groupBy: 'last_date',
-                reverse: true,
-            })
-            // $scope.rows = []//rows.filter(row => row.value > 0)
-
+            $scope.onChangeGroupOptions()
             $scope.$apply()
         })
     })
@@ -399,13 +403,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 }
             })()
 
-            const docs = group.docs
-
-            // if (options.reverse) {
-            //     docs.unshift(doc)
-            // } else {
-            docs.push(doc)
-            // }
+            group.docs.push(doc)
         })
 
         // convert to array
@@ -451,7 +449,15 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 // return a specific comparison func
                 switch (options.groupBy) {
                     case 'title':
-                        return (d1, d2) => d1.title.localeCompare(d2.title)
+                        return (d1, d2) => {
+                            // title may be undefined 
+                            if (typeof d1 === 'undefined' && typeof d2 === 'undefined') {
+                                return 0;
+                            }
+
+                            return (d1.title || "").localeCompare(d2.title || "")
+                        }
+
                     case 'first_date':
                         return (d1, d2) => d1.date - d2.date
                     case 'last_date':
@@ -509,6 +515,14 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             return Promise.reject(new Error());
         }
     };
+
+    $scope.onChangeGroupOptions = () => {
+        // group the documents by their title (if possible), and get a sorted array
+        $scope.groupedDocs = groupDocuments(ungroupedDocs, {
+            groupBy: $scope.options.groupBy,
+            reverse: $scope.options.reverseOrder,
+        })
+    }
 }]);
 
 /**
