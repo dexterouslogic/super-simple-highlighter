@@ -26,6 +26,9 @@ var _storage = {
 		// identifier for comparator to use for highlight sorting
 		"highlight_sort_by": "time",
 		"highlight_invert_sort": false,
+		"options_bookmarks_group_by": "title",
+		"options_bookmarks_ascending_order": true,
+		"options_bookmarks_show_page_text": false,
 	},
 	
 	/**

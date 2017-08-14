@@ -234,16 +234,16 @@
 
                     <!-- Grouping & Direction -->
                     <div class="header-control header-control-group">
-                        <select class="form-control" ng-model="options.groupBy" ng-change="onChangeGroupOptions()">
+                        <select class="form-control" ng-model="options.groupBy">
                             <option value="title">{{'group_by_title' | i18n}}</option>
                             <option value="first_date">{{'group_by_first_date' | i18n}}</option>
                             <option value="last_date">{{'group_by_last_date' | i18n}}</option>
                         </select>
                         
                         <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner button-animate-transition" 
-                            ng-class="{'sort-inverted': options.reverseOrder }"
+                            ng-class="{'sort-inverted': !options.ascendingOrder }"
                             type="button" title="{{'title_sort_direction' | i18n}}"
-                            ng-click="options.reverseOrder = !options.reverseOrder; onChangeGroupOptions()">
+                            ng-click="options.ascendingOrder = !options.ascendingOrder">
                             <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
                         </button>	
                     </div>
@@ -256,7 +256,7 @@
                 </h2>
 
                 <ol class="list-unstyled list-grouped-pages">
-                    <li ng-repeat="group in groupedDocs" class="page-group-list-item">
+                    <li ng-repeat="group in groupedDocs | filter:{title:'Untitled'}" class="page-group-list-item">
                         <h4 class="page-group-header text-capitalize">
                             {{ group.title }}
                         </h4>

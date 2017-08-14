@@ -288,18 +288,29 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     // docs before grouping
     let ungroupedDocs = []
 
+    $scope.options = {
+        // groupBy: {string}
+        // ascendingOrder: {Boolean}
+        // showPageText: {Boolean}
+    }
+
     // starter
     chrome.runtime.getBackgroundPage(bp => {
         backgroundPage = bp;
 
-        $scope.options = {
-            showPageText: true,
-            groupBy: 'last_date',
-            reverseOrder: true,
-        }
-        
-        // get an array of each unique match, and the number of associated documents (which is of no use)
-        backgroundPage._database.getMatchSums_Promise().then(rows => {
+        // build default options object
+        _storage.getValue("options_bookmarks_group_by").then(groupBy => {
+            $scope.options.groupBy = groupBy
+            return _storage.getValue("options_bookmarks_ascending_order")
+        }).then(ascendingOrder => {
+            $scope.options.ascendingOrder = ascendingOrder
+            return _storage.getValue("options_bookmarks_show_page_text")
+        }).then(showPageText => {
+            $scope.options.showPageText = showPageText
+
+            // get an array of each unique match, and the number of associated documents (which is of no use)
+            return backgroundPage._database.getMatchSums_Promise()
+        }).then(rows => {
             // $scope.rows = rows.filter(row => row.value > 0)
             // $scope.$apply();
 
@@ -340,10 +351,29 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             ungroupedDocs = createDocs.map(a => a[0])
 
             // group the documents by their title (if possible), and get a sorted array
-            $scope.onChangeGroupOptions()
+            updateGroupDocuments()
             $scope.$apply()
+
+            // watch for changes to options object
+            $scope.$watchCollection('options', (newValue, oldValue) => {
+                // update storage
+                _storage.setValue(newValue.groupBy, "options_bookmarks_group_by").then(() => 
+                    _storage.setValue(newValue.ascendingOrder, "options_bookmarks_ascending_order")
+                ).then(() => 
+                    _storage.setValue(newValue.showPageText, "options_bookmarks_show_page_text")
+                ).then(() => {
+                    // only these need to cause update
+                    if (newValue.groupBy === oldValue.groupBy &&
+                        newValue.ascendingOrder === oldValue.ascendingOrder) {
+                        return
+                    }
+
+                    // rebuild group documents array based on new options
+                    updateGroupDocuments()
+                })
+            })
         })
-    })
+    }) // end
 
     /**
      * Group an array of documents by a common property
@@ -362,7 +392,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 
         options = options || {}
         options.groupBy = options.groupBy || 'title'
-        options.reverse = options.reverse || false
+        options.reverse = (typeof options.reverse === 'boolean' && options.reverse) || false
 
         docs.forEach(doc => {
             // typeless value defining group
@@ -375,8 +405,8 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                     case 'first_date':
                         // days since epoch
                         return Math.floor(new Date(doc.date).getTime() / 8.64e7)
-                        
-                        case 'last_date':
+
+                    case 'last_date':
                         // days since epoch
                         return Math.floor(new Date(doc.lastDate).getTime() / 8.64e7)
 
@@ -479,6 +509,14 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         // $scope.apply()
     }
 
+    function updateGroupDocuments() {
+        // group the documents by their title (if possible), and get a sorted array
+        $scope.groupedDocs = groupDocuments(ungroupedDocs, {
+            groupBy: $scope.options.groupBy,
+            reverse: !$scope.options.ascendingOrder,
+        })
+    }
+
     /**
      * Clicked 'remove all highlights for this site' button (x)
      */
@@ -515,14 +553,6 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             return Promise.reject(new Error());
         }
     };
-
-    $scope.onChangeGroupOptions = () => {
-        // group the documents by their title (if possible), and get a sorted array
-        $scope.groupedDocs = groupDocuments(ungroupedDocs, {
-            groupBy: $scope.options.groupBy,
-            reverse: $scope.options.reverseOrder,
-        })
-    }
 }]);
 
 /**
