@@ -250,7 +250,7 @@
 
                     <div class="header-control header-control-group">
                         <input type="search" class="form-control search" ng-model="documentFilterText"
-                            placeholder="{{'placeholder_filter' | i18n}}">
+                            placeholder="{{'placeholder_filter' | i18n}}" autofocus>
                     </div>
 
                 </form>
@@ -280,7 +280,9 @@
 
                                 <!-- page title -->
                                 <h5 class="page-title">
-                                    <a href="{{doc.match}}" target="_blank"  ng-show="doc.title">{{doc.title}}</a>
+                                    <a href="{{doc.match}}" target="_blank" ng-class="{'no-title': !doc.title}">
+                                        {{doc.title || ('untitled_page_group' | i18n) }}
+                                    </a>
                                 </h5>
                                 <!-- page link -->
                                 <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>

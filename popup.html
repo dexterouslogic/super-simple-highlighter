@@ -192,9 +192,9 @@
 
     <ol class="list-unstyled"> 
         <li ng-repeat="group in groupedDocs">
-            <div class="group-header" ng-show="sort.value === 'time'">
+            <h5 class="group-header" ng-show="sort.value === 'time'">
                 {{ group.representativeDate | date:'fullDate' }}
-            </div>
+            </h5>
 
             <ol class="list-unstyled">
                 <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->

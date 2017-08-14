@@ -21,17 +21,21 @@ body {
     box-shadow: inherit !important;
     animation: none !important;
     margin-bottom: 0.6rem;
+    border: 1px solid grey;
 }
 
 .group-header {
-    background-color: white;
+    background-color: #f7f7f7;
     padding: 1rem;
     color: black;
     position: sticky;
     top: 0;
     z-index: 1;
     opacity: 0.9;
-     border-bottom: 2px solid grey; 
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: grey;
+    /* border-bottom: 1px solid grey;  */
 }
 
 .infobar {
