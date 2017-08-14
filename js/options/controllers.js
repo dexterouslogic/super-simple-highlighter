@@ -18,8 +18,8 @@
  */
 
 // disable console log
-console.log = function () { }
-console.assert = function () { }
+// console.log = function () { }
+// console.assert = function () { }
 
 /**
  * Controllers module
@@ -297,13 +297,15 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     // text of the filter
     $scope.documentFilterText = ""
 
-    // group filter delegates to document filter
+    // filter predicate called on individual groups
+    // (delegates to document filter)
     $scope.groupFilterPredicate = group => group.docs.some(doc => $scope.documentFilterPredicate(doc))
 
-    // predicate called to filter documents of the groups
+    // filter predicate called on individual documents of a group
     $scope.documentFilterPredicate = (doc) => {
         const t =  $scope.documentFilterText.toLowerCase()
 
+        // always check title & match (url), optionally check page text objects
         return t.length === 0 ||
             (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
             (doc.match.toLowerCase().indexOf(t) != -1) ||
@@ -367,11 +369,14 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             ungroupedDocs = createDocs.map(a => a[0])
 
             // group the documents by their title (if possible), and get a sorted array
-            updateGroupDocuments()
+            updateGroupedDocuments()
             $scope.$apply()
 
-            // watch for changes to options object
+            // After the initial update, watch for changes to options object
             $scope.$watchCollection('options', (newValue, oldValue) => {
+                console.dir(oldValue)
+                console.dir(newValue)
+
                 // update storage
                 _storage.setValue(newValue.groupBy, "options_bookmarks_group_by").then(() => 
                     _storage.setValue(newValue.ascendingOrder, "options_bookmarks_ascending_order")
@@ -379,13 +384,17 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                     _storage.setValue(newValue.showPageText, "options_bookmarks_show_page_text")
                 ).then(() => {
                     // only these need to cause update
-                    if (newValue.groupBy === oldValue.groupBy &&
-                        newValue.ascendingOrder === oldValue.ascendingOrder) {
-                        return
-                    }
+                    // if (newValue.groupBy === oldValue.groupBy &&
+                    //     newValue.ascendingOrder === oldValue.ascendingOrder) {
+                    //     return
+                    // }
 
+                    console.log("there")
+                    
                     // rebuild group documents array based on new options
-                    updateGroupDocuments()
+                    updateGroupedDocuments()
+
+                    $scope.$apply()
                 })
             })
         })
@@ -525,7 +534,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         // $scope.apply()
     }
 
-    function updateGroupDocuments() {
+    function updateGroupedDocuments() {
         // group the documents by their title (if possible), and get a sorted array
         $scope.groupedDocs = groupDocuments(ungroupedDocs, {
             groupBy: $scope.options.groupBy,
