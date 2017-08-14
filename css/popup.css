@@ -83,7 +83,7 @@ body {
 
 .date {
      margin-left: 0.5rem; 
-    color: lightgray;
+    color: grey;
 }
 
 .has-note {
@@ -168,7 +168,7 @@ body {
 
 .sort-inverted {
     /* transform: rotate(180deg) */
-    transform: perspective(50px) rotateX(180deg);  
+    transform: rotateX(180deg);  
     /* background-color: black;
     color: white; */
 }
