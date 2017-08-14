@@ -294,6 +294,22 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         // showPageText: {Boolean}
     }
 
+    // text of the filter
+    $scope.documentFilterText = ""
+
+    // group filter delegates to document filter
+    $scope.groupFilterPredicate = group => group.docs.some(doc => $scope.documentFilterPredicate(doc))
+
+    // predicate called to filter documents of the groups
+    $scope.documentFilterPredicate = (doc) => {
+        const t =  $scope.documentFilterText.toLowerCase()
+
+        return t.length === 0 ||
+            (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
+            (doc.match.toLowerCase().indexOf(t) != -1) ||
+            ($scope.options.showPageText && doc.texts.some(o => o.text.toLowerCase().indexOf(t) != -1))
+    }
+
     // starter
     chrome.runtime.getBackgroundPage(bp => {
         backgroundPage = bp;

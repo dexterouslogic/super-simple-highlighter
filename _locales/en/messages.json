@@ -307,13 +307,13 @@
     "message": "Untitled"
   },
   "group_by_title": {
-    "message": "by Page Title"
+    "message": "by Title"
   },
   "group_by_first_date": {
-    "message": "by Initial Highlight Date"
+    "message": "by Initial Highlight"
   },
   "group_by_last_date": {
-    "message": "by Latest Highlight Date"
+    "message": "by Most Recent Highlight"
   },
   "show_page_highlight_text": {
     "message": "Show Highlighted Text"

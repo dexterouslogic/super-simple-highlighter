@@ -94,7 +94,8 @@ input[type="color"] {
 }
 
 .page-group-header {
-    background-color: lightgray;
+    background-color: white;
+    border-bottom: 1px solid black;
     padding: 0.4rem 1rem;
     color: black;
     position: sticky;
@@ -117,6 +118,7 @@ input[type="color"] {
     font-size: 130%;
     margin-top: 0;
     margin-bottom: 0.5rem;
+    font-weight: normal;
 }
 
 .page-link {

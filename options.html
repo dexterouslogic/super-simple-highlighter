@@ -247,8 +247,13 @@
                             <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
                         </button>	
                     </div>
-                </form>
 
+                    <div class="header-control header-control-group">
+                        <input type="search" class="form-control search" ng-model="documentFilterText"
+                            placeholder="{{'placeholder_filter' | i18n}}">
+                    </div>
+
+                </form>
 
                 <!-- Only show if no items -->
                 <h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
@@ -256,13 +261,13 @@
                 </h2>
 
                 <ol class="list-unstyled list-grouped-pages">
-                    <li ng-repeat="group in groupedDocs | filter:{title:'Untitled'}" class="page-group-list-item">
-                        <h4 class="page-group-header text-capitalize">
+                    <li ng-repeat="group in groupedDocs | filter:groupFilterPredicate" class="page-group-list-item">
+                        <h3 class="page-group-header">
                             {{ group.title }}
-                        </h4>
+                        </h3>
         
                         <ol class="list-unstyled">
-                            <li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm page"
+                            <li ng-repeat="doc in group.docs | filter:documentFilterPredicate" id="{{doc._id}}" class="well-sm page"
                                 ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
                                 <!-- button to remove all highlights on this page -->
                                 <button type="button" class="close" 
