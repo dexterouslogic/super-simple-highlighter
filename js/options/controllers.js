@@ -18,8 +18,8 @@
  */
 
 // disable console log
-console.log = function() {}
-console.assert = function() {}
+console.log = function () { }
+console.assert = function () { }
 
 /**
  * Controllers module
@@ -39,10 +39,10 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
     // model
     // $scope.unselectAfterHighlight = true;
     $scope.highlightClassName = "highlight";
-//    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
-//        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
+    //    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
+    //        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
 
-    function onInit () {
+    function onInit() {
         // cache
         modalElement = document.getElementById('myModal')
 
@@ -53,36 +53,36 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
             $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
-					
+
                     _storage.setUnselectAfterHighlight_Promise(newVal);
                 }
             });
         });
 
-		// 1b - same, but for disable box shadow
+        // 1b - same, but for disable box shadow
         _storage.isHighlightBoxShadowEnabled_Promise().then(function (isEnabled) {
             $scope.isHighlightBoxShadowEnabled = isEnabled;
 
             $scope.$watch('isHighlightBoxShadowEnabled', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     console.log(newVal);
-					
+
                     _storage.setEnableHighlightBoxShadow_Promise(newVal);
                 }
             });
-        });	
+        });
 
         // 2
         _storage.getHighlightBackgroundAlpha_Promise().then(function (opacity) {
             if (opacity === undefined) {
-				 return;
-			 }
+                return;
+            }
 
             $scope.opacity = opacity;
 
             // watch our model, sync on change
             var timeout = null;     // debounce
-			
+
             $scope.$watch('opacity', function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     // save the new value. debounce for 1 second
@@ -105,7 +105,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         });
 
         // listen for edit modal close
-//        $modal.on('hidden.bs.modal', onModalHidden);
+        //        $modal.on('hidden.bs.modal', onModalHidden);
 
         // listen for changes to styles
         chrome.storage.onChanged.addListener(onStorageChanged);
@@ -139,7 +139,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         if ($scope.modalDefinition) {
             return _storage.highlightDefinitions.set_Promise($scope.modalDefinition);
         } else {
-        	return Promise.reject(new Error());
+            return Promise.reject(new Error());
         }
     };
 
@@ -152,7 +152,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         $scope.modalSaveButtonTitle = chrome.i18n.getMessage("create");
 
         $scope.modalDefinition = _storage.highlightDefinitions.create();
-//        $scope.$apply();
+        //        $scope.$apply();
 
         // activate the 'edit' model
         $(modalElement).modal();
@@ -165,7 +165,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
         if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
             return _storage.highlightDefinitions.removeAll_Promise();
         } else {
-        	return Promise.resolve();
+            return Promise.resolve();
         }
     };
 
@@ -193,10 +193,10 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
             // delete from storage. model should update automatically
             return _storage.highlightDefinitions.remove_Promise(className);
         } else {
-        	return Promise.resolve();
+            return Promise.resolve();
         }
     };
-	
+
     /**
      * A value in the storage changed
      * @param changes
@@ -219,7 +219,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                 }
             }
 
-			var disableBoxShadow = true;
+            var disableBoxShadow = true;
 
             // default FIRST
             if (changes.sharedHighlightStyle) {
@@ -233,7 +233,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                     _stylesheet.setHighlightStyle({
                         className: $scope.highlightClassName,
                         style: change.newValue,
-						disableBoxShadow: disableBoxShadow,
+                        disableBoxShadow: disableBoxShadow,
                     });
                 }
             }
@@ -243,7 +243,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                 change = changes.highlightDefinitions;
 
                 if (change.oldValue) {
-                    change.oldValue.forEach( function (h) {
+                    change.oldValue.forEach(function (h) {
                         _stylesheet.clearHighlightStyle(h.className);
                     });
                 }
@@ -256,8 +256,8 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                     $scope.$apply();
 
                     // update stylesheet
-                    definitions.forEach( function (definition) {
-						definition.disableBoxShadow = disableBoxShadow;
+                    definitions.forEach(function (definition) {
+                        definition.disableBoxShadow = disableBoxShadow;
                         _stylesheet.setHighlightStyle(definition);
                     });
                 };
@@ -268,7 +268,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
                         setDefinitions(items.highlightDefinitions);
                     });
                 } else {
-                    setDefinitions (change.newValue);
+                    setDefinitions(change.newValue);
                 }
             }
         }
@@ -284,7 +284,7 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     'use strict';
     var backgroundPage
-    
+
     // starter
     chrome.runtime.getBackgroundPage(bp => {
         backgroundPage = bp;
@@ -293,7 +293,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         backgroundPage._database.getMatchSums_Promise().then(rows => {
             // $scope.rows = rows.filter(row => row.value > 0)
             // $scope.$apply();
-    
+
             // the key for each row (item in the array) is the 'match' for each document, 
             // and the value is the sum ('create'+1, 'delete'-1)
             return Promise.all(rows
@@ -305,9 +305,27 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             // first doc should always be a 'create'
             console.assert(docs.every(doc => doc.verb === 'create'))
 
+            // if we're grouping by last_date (date of the last non-deleted 'create' document),
+            // or showing text for each highlight, we need to get all create documents too
+            return Promise.all(docs.map(doc => {
+                return backgroundPage._database.getCreateDocuments_Promise(doc.match)
+            }))
+        }).then(createDocs => {
+            // we have an array of array of createDocs
+
+            // add temporary properties to first doc of each
+            createDocs.forEach(a => {
+                console.assert(a.length >= 1)
+
+                // numeric date of creation of latest 'create' doc
+                a[0].lastDate = a[a.length - 1].date
+            })
+
+            const docs = createDocs.map(a => a[0])
+
             // group the documents by their title (if possible), and get a sorted array
             $scope.groupedDocs = groupDocuments(docs, {
-                groupBy: 'first_date',
+                groupBy: 'last_date',
                 reverse: true,
             })
             // $scope.rows = []//rows.filter(row => row.value > 0)
@@ -334,26 +352,28 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         options = options || {}
         options.groupBy = options.groupBy || 'title'
         options.reverse = options.reverse || false
-            
+
         docs.forEach(doc => {
             // typeless value defining group
             const groupValue = (() => {
                 switch (options.groupBy) {
                     case 'title':
                         const title = doc.title
-                        return typeof title === 'string' && title.length >= 1 && title[0].toUpperCase() || undefined            
+                        return typeof title === 'string' && title.length >= 1 && title[0].toUpperCase() || undefined
 
                     case 'first_date':
-                        const date = new Date(doc.date)
-                        const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
-
-                        return daysSinceEpoch
+                        // days since epoch
+                        return Math.floor(new Date(doc.date).getTime() / 8.64e7)
+                        
+                        case 'last_date':
+                        // days since epoch
+                        return Math.floor(new Date(doc.lastDate).getTime() / 8.64e7)
 
                     default:
                         console.assert(false)
                 }
             })()
-            
+
             const group = (() => {
                 switch (typeof groupValue) {
                     case 'undefined':
@@ -377,7 +397,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             // if (options.reverse) {
             //     docs.unshift(doc)
             // } else {
-                docs.push(doc)
+            docs.push(doc)
             // }
         })
 
@@ -392,8 +412,8 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             sortedGroups.push(untitledGroup)
         }
 
-        // currently groups only have a raw value - format it as text
         sortedGroups.forEach(group => {
+            // currently groups only have a raw value - format it as text
             group.title = (() => {
                 switch (typeof group.value) {
                     case 'string':
@@ -402,25 +422,43 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                     case 'number':
                         // value is days since epoch
                         const date = new Date(group.value * 8.64e7)
-                        
+
                         return date.toLocaleDateString(undefined, {
                             weekday: 'long',
-                            year:'numeric',
+                            year: 'numeric',
                             month: 'long',
                             day: 'numeric'
                         })
-                
+
                     default:
                         console.assert(false)
                         break;
                 }
             })()
 
+            // not needed
             delete group.value
+
+            // sort documents in-place within group
+            group.docs.sort((() => {
+                // return a specific comparison func
+                switch (options.groupBy) {
+                    case 'title':
+                        return (d1, d2) => d1.title.localeCompare(d2.title)
+                    case 'first_date':
+                        return (d1, d2) => d1.date - d2.date
+                    case 'last_date':
+                        return (d1, d2) => d1.lastDate - d2.lastDate
+                }
+            })())
         })
 
         if (options.reverse) {
             sortedGroups.reverse()
+
+            sortedGroups.forEach(group => {
+                group.docs.reverse()
+            })
         }
         // groups.sort((a, b) => b.title.localeCompare(a.title))
 
@@ -431,7 +469,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     /**
      * Clicked 'remove all highlights for this site' button (x)
      */
-    $scope.onClickRemoveAllHighlights = function (doc, group){
+    $scope.onClickRemoveAllHighlights = function (doc, group) {
         if (!window.confirm(chrome.i18n.getMessage("confirm_remove_all_highlights"))) {
             return Promise.resolve()
         }
@@ -456,12 +494,12 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     $scope.onClickRemoveAllPages = function () {
         if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
             // destroy and re-create the database
-            return backgroundPage._database.reset().then(function() {
+            return backgroundPage._database.reset().then(function () {
                 $scope.groupedDocs = [];
                 $scope.$apply();
             });
         } else {
-        	return Promise.reject(new Error());
+            return Promise.reject(new Error());
         }
     };
 }]);
@@ -473,131 +511,131 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
     'use strict';
     var backgroundPage;
 
-	const KEYNAMES = {
-		magic: 'magic',
-		version: 'version'
-	};
-	
-	const VALUE_MAGIC = "Super Simple Highlighter Exported Database";
+    const KEYNAMES = {
+        magic: 'magic',
+        version: 'version'
+    };
 
-	function utf8_to_b64(str) {
-	    return window.btoa(unescape(encodeURIComponent(str)));
-	}
+    const VALUE_MAGIC = "Super Simple Highlighter Exported Database";
 
-	function b64_to_utf8(str) {
-	    return decodeURIComponent(escape(window.atob(str)));
-	}
-	
+    function utf8_to_b64(str) {
+        return window.btoa(unescape(encodeURIComponent(str)));
+    }
 
-	function onFileSelect(evt) {
-		var file = evt.target.files[0];	// FileList object
-		var reader = new FileReader();
-  	  	
-		// Closure to capture the file information.
-        reader.onload = function(e) {
-			// newline delimited json
-			var dumpedString = e.target.result;
-			
-			load(dumpedString).then(function() {
-				location.reload();
-			}).catch(function(err) {
-				// error loading or replicating tmp db to main db
-				var text = "Status: " + err.status + "\nMessage: " + err.message;
-	        	alert(text);
-	        });
-		};
-        
-		 // Read in the image file as a data URL.
+    function b64_to_utf8(str) {
+        return decodeURIComponent(escape(window.atob(str)));
+    }
+
+
+    function onFileSelect(evt) {
+        var file = evt.target.files[0];	// FileList object
+        var reader = new FileReader();
+
+        // Closure to capture the file information.
+        reader.onload = function (e) {
+            // newline delimited json
+            var dumpedString = e.target.result;
+
+            load(dumpedString).then(function () {
+                location.reload();
+            }).catch(function (err) {
+                // error loading or replicating tmp db to main db
+                var text = "Status: " + err.status + "\nMessage: " + err.message;
+                alert(text);
+            });
+        };
+
+        // Read in the image file as a data URL.
         reader.readAsText(file, "utf-8");
-		// reader.readAsDataURL(file);
-	}
+        // reader.readAsDataURL(file);
+    }
 
     /**
      * Init
      * @param {object} _backgroundPage
      */
-    function onInit(_backgroundPage){
+    function onInit(_backgroundPage) {
         backgroundPage = _backgroundPage;
-		
-		// add event listener to files input element
-		document.getElementById('files').addEventListener('change', onFileSelect, false);
+
+        // add event listener to files input element
+        document.getElementById('files').addEventListener('change', onFileSelect, false);
     }
-	
+
 	/**
 	 * dump database to text, copy to clipboard
 	 */
-	$scope.onClickDump = function () {
-		// header
-		var header = {};
-		
-		header[KEYNAMES.magic] = VALUE_MAGIC;
-		header[KEYNAMES.version] = 1;
-		
-		var dumpedString = JSON.stringify(header);
-		
-		return _storage.highlightDefinitions.getAll_Promise({
-			defaults: false
-		}).then(function (items) {
-			// the first item is always the highlights object
-			dumpedString += '\n' + JSON.stringify(items) + '\n';
+    $scope.onClickDump = function () {
+        // header
+        var header = {};
 
-			// the remainder is the dumped database
-			var stream = new window.memorystream();
+        header[KEYNAMES.magic] = VALUE_MAGIC;
+        header[KEYNAMES.version] = 1;
 
-			stream.on('data', function(chunk) {
-				dumpedString += chunk.toString();
-			});
-			
-			return backgroundPage._database.dump(stream);
-		}).then(function () {
-			// create a temporary anchor to navigate to data uri
-			var a = document.createElement("a");
-			
-			a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
-			a.href = "data:text;base64," + utf8_to_b64(dumpedString);
-			
-			// a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
-			// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
-			// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
-				//window.btoa(dumpedString);
+        var dumpedString = JSON.stringify(header);
 
-			// create & dispatch mouse event to hidden anchor
-			var mEvent = document.createEvent("MouseEvent");
-			mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-		
-			a.dispatchEvent(mEvent);
-		});
-	};
+        return _storage.highlightDefinitions.getAll_Promise({
+            defaults: false
+        }).then(function (items) {
+            // the first item is always the highlights object
+            dumpedString += '\n' + JSON.stringify(items) + '\n';
 
-	function load(dumpedString) {
-		var jsonObjects = dumpedString.split('\n');
-		var highlightDefinitions;
-		
-		// newline delimited json
-		return new Promise(function(resolve, reject) {
-			// validate header
-			var header = JSON.parse(jsonObjects.shift());
-			
-			if (header[KEYNAMES.magic] === VALUE_MAGIC || header[KEYNAMES.version] === 1) {
-				resolve()
-			} else {
-				reject({
-					status: 403,
-					message: "Invalid File"
-				});
-			}
-		}).then(function() {
-			// the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
-			highlightDefinitions = JSON.parse(jsonObjects.shift());
-			
-			// remainder is the database
-			return backgroundPage._database.load(jsonObjects.join('\n'));
-		}).then(function() {
-			// set associated styles. null items are removed (implying default should be used)
-			return _storage.highlightDefinitions.setAll_Promise(highlightDefinitions);
-		});
-	}
-	
+            // the remainder is the dumped database
+            var stream = new window.memorystream();
+
+            stream.on('data', function (chunk) {
+                dumpedString += chunk.toString();
+            });
+
+            return backgroundPage._database.dump(stream);
+        }).then(function () {
+            // create a temporary anchor to navigate to data uri
+            var a = document.createElement("a");
+
+            a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
+            a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+
+            // a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
+            // a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+            // a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+            //window.btoa(dumpedString);
+
+            // create & dispatch mouse event to hidden anchor
+            var mEvent = document.createEvent("MouseEvent");
+            mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+
+            a.dispatchEvent(mEvent);
+        });
+    };
+
+    function load(dumpedString) {
+        var jsonObjects = dumpedString.split('\n');
+        var highlightDefinitions;
+
+        // newline delimited json
+        return new Promise(function (resolve, reject) {
+            // validate header
+            var header = JSON.parse(jsonObjects.shift());
+
+            if (header[KEYNAMES.magic] === VALUE_MAGIC || header[KEYNAMES.version] === 1) {
+                resolve()
+            } else {
+                reject({
+                    status: 403,
+                    message: "Invalid File"
+                });
+            }
+        }).then(function () {
+            // the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
+            highlightDefinitions = JSON.parse(jsonObjects.shift());
+
+            // remainder is the database
+            return backgroundPage._database.load(jsonObjects.join('\n'));
+        }).then(function () {
+            // set associated styles. null items are removed (implying default should be used)
+            return _storage.highlightDefinitions.setAll_Promise(highlightDefinitions);
+        });
+    }
+
     // starter
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
         onInit(backgroundPage);
@@ -610,16 +648,16 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 optionsControllers.controller('AboutController', ["$scope", function ($scope) {
     'use strict';
     $scope.manifest = chrome.runtime.getManifest();
-//    $scope.changelog = _changelog;
+    //    $scope.changelog = _changelog;
     $scope.libraries = _libraries;
     $scope.cc = _licenses;
-	
+
 	/**
 	 * Clicked 'restore all warnings' button. Clears the 'dismissed' property for all warning dialogs
 	 * @type function
 	 */
-	$scope.onClickRestoreAllWarnings = function () {
-		// TODO: remember to keep all property setters in sync with this method
-		return _storage.setFileAccessRequiredWarningDismissed_Promise(false);
-	};
+    $scope.onClickRestoreAllWarnings = function () {
+        // TODO: remember to keep all property setters in sync with this method
+        return _storage.setFileAccessRequiredWarningDismissed_Promise(false);
+    };
 }]);

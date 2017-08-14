@@ -235,7 +235,7 @@
                         </h4>
         
                         <ol class="list-unstyled">
-                            <li ng-repeat="doc in group.docs | orderBy:'title'" id="{{doc._id}}" class="well-sm page"
+                            <li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm page"
                                 ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
                                 <!-- button to remove all highlights on this page -->
                                 <button type="button" class="close" 
