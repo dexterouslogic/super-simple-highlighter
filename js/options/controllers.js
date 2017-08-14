@@ -306,7 +306,10 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             console.assert(docs.every(doc => doc.verb === 'create'))
 
             // group the documents by their title (if possible), and get a sorted array
-            $scope.groupedDocs = groupDocuments(docs, 'date')
+            $scope.groupedDocs = groupDocuments(docs, {
+                groupBy: 'first_date',
+                reverse: true,
+            })
             // $scope.rows = []//rows.filter(row => row.value > 0)
 
             $scope.$apply()
@@ -316,43 +319,108 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     /**
      * Group an array of documents by a common property
      * 
-     * @param {[{object}]} docs array of 'create' documents for the first of its matches 
-     * @param {string} [groupBy] type of grouping (currently ignored)
+     * @param {[{Object}]} docs array of 'create' documents for the first of its matches 
+     * @param {Object} [options] options object
      * @returns [{object}] array of groups
      */
-    function groupDocuments(docs, groupBy) {
+    function groupDocuments(docs, options) {
         // grouped by property name (section title)
         var groups = {},
             untitledGroup = {
-                title: chrome.i18n.getMessage('untitled_page_group'),
+                // title: chrome.i18n.getMessage('untitled_page_group'),
                 docs: []
             }
+
+        options = options || {}
+        options.groupBy = options.groupBy || 'title'
+        options.reverse = options.reverse || false
             
         docs.forEach(doc => {
-            // section to group document in (title)
-            const title = typeof doc.title === 'string' && doc.title.length >= 1 && doc.title[0].toLowerCase() || ""
-            const group = (title.length === 0 ? untitledGroup : function () {
-                // if groups doesn't have a section with this title, add it
-                if (!groups.hasOwnProperty(title)) {
-                    groups[title] = {
-                        title: title,
-                        docs: []
-                    }
-                }
-                
-                return groups[title]
-            }())
+            // typeless value defining group
+            const groupValue = (() => {
+                switch (options.groupBy) {
+                    case 'title':
+                        const title = doc.title
+                        return typeof title === 'string' && title.length >= 1 && title[0].toUpperCase() || undefined            
 
-            group.docs.push(doc)
+                    case 'first_date':
+                        const date = new Date(doc.date)
+                        const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+                        return daysSinceEpoch
+
+                    default:
+                        console.assert(false)
+                }
+            })()
+            
+            const group = (() => {
+                switch (typeof groupValue) {
+                    case 'undefined':
+                        return untitledGroup
+
+                    default:
+                        // if groups doesn't have a section with this title, add it
+                        if (!groups.hasOwnProperty(groupValue)) {
+                            groups[groupValue] = {
+                                value: groupValue,      // formatted later (if not string)
+                                docs: []
+                            }
+                        }
+
+                        return groups[groupValue]
+                }
+            })()
+
+            const docs = group.docs
+
+            // if (options.reverse) {
+            //     docs.unshift(doc)
+            // } else {
+                docs.push(doc)
+            // }
         })
 
         // convert to array
         let sortedGroups = Object.getOwnPropertyNames(groups)
             .sort()
-            .map(title => groups[title])
+            .map(value => groups[value])
 
         if (untitledGroup.docs.length > 0) {
+            untitledGroup.value = chrome.i18n.getMessage('untitled_page_group')
+
             sortedGroups.push(untitledGroup)
+        }
+
+        // currently groups only have a raw value - format it as text
+        sortedGroups.forEach(group => {
+            group.title = (() => {
+                switch (typeof group.value) {
+                    case 'string':
+                        // value is the first letter of group title
+                        return group.value
+                    case 'number':
+                        // value is days since epoch
+                        const date = new Date(group.value * 8.64e7)
+                        
+                        return date.toLocaleDateString(undefined, {
+                            weekday: 'long',
+                            year:'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })
+                
+                    default:
+                        console.assert(false)
+                        break;
+                }
+            })()
+
+            delete group.value
+        })
+
+        if (options.reverse) {
+            sortedGroups.reverse()
         }
         // groups.sort((a, b) => b.title.localeCompare(a.title))
 
