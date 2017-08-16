@@ -37,10 +37,6 @@ var _libraries = [
         text: "jQuery"
     },
     {
-        href: "https://github.com/f0r4y312/jquery-stylesheet",
-        text: "jQuery StyleSheet"
-    },
-    {
         href: "http://pouchdb.com/",
         text: "PouchDB"
     },

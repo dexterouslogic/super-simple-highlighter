@@ -42,7 +42,7 @@
 </nav>	
 	
 	
-<div id="page-container" class="container-fluid">
+<div id="page-container" class="container">
    <header class="page-header">
 	     <!-- Main Header -->
         <h1>
@@ -71,7 +71,9 @@
                         <!--Number (index+1)-->
                         <!-- <h2 class="number highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{$index + 1}}</h2> -->
                         <!--title-->
-                        <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{doc.text}}</p>
+                        <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">
+                            {{doc.text}}
+                        </p>
 
                         <!-- info -->
                         <div class="infobar">
@@ -88,8 +90,7 @@
     </footer>
 </div>
 
-<script src="static/js/jquery-2.1.3.min.js"></script>
-<script src="static/js/jquery.stylesheet.min.js"></script>
+<script src="static/js/jquery-3.2.1.min.js"></script>
 <script src="static/js/angular.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/purl.min.js"></script>
