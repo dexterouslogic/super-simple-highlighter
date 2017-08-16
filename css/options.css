@@ -23,6 +23,7 @@ input[type="color"] {
 
     display: block;
     border: 2px solid black;
+    animation: unset !important;
 }
 
 /*

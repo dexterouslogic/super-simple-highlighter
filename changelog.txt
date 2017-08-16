@@ -1,5 +1,6 @@
 # 3.12
 * Group pages (now renamed bookmarks) in options page
+* Add style sort to popup, remove style filter
 * Optimisations, reductions, and so on
 
 # 3.11
