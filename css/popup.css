@@ -96,8 +96,6 @@ body {
 .not-in-dom {
     /* border: 1px dashed #c66; */
     text-decoration: line-through;
-    box-shadow: inset 0px 2px 6px 0px rgba(50,50,50,0.14);
-    background-color: #f7f7f7;
 }
 
 .not-in-dom .highlight {

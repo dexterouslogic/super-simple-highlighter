@@ -29,7 +29,7 @@ var _storage = {
 		"options_bookmarks_group_by": "title",
 		"options_bookmarks_ascending_order": true,
 		"options_bookmarks_show_page_text": false,
-		"enableHighlightBoxShadow": false,
+		"enableHighlightBoxShadow": true,
 		"highlightBackgroundAlpha": 0.8,
 		"fileAccessRequiredWarningDismissed": false,
 		"unselectAfterHighlight": false,

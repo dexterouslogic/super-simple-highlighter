@@ -15,13 +15,14 @@ input[type="color"] {
 }
 
 .token {
-    margin: 0 0 8px 12px;
-    font-size: 24pt !important;
+    margin: 0 0 3px 1rem;
+    font-size: 2rem !important;
  /*   padding: 10px 0 10px 0.3em !important;*/
     cursor: pointer;
 	border-radius: 0.5em !important;
 
     display: block;
+    border: 2px solid black;
 }
 
 /*
@@ -37,8 +38,9 @@ input[type="color"] {
 .token > .number {
     background: white;
     padding: 0 0.4em;
-    color: grey;
-    border-radius: 1em !important;
+    color: black;
+    /* border-radius: 1em !important; */
+    border: 2px solid black;
 }
 
 .token > a {
@@ -98,7 +100,7 @@ input[type="color"] {
     border-width: 1px 0;
     border-style: solid;
     border-color: grey;
-    padding: 0.4rem 1rem;
+    padding: 0.6rem 1rem;
     color: black;
     position: sticky;
     top: 0;
