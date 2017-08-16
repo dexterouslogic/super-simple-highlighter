@@ -309,7 +309,10 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         return t.length === 0 ||
             (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
             (doc.match.toLowerCase().indexOf(t) != -1) ||
-            ($scope.options.showPageText && doc.texts.some(o => o.text.toLowerCase().indexOf(t) != -1))
+            ($scope.options.showPageText && doc.texts.some(o => {
+                // text may have introduced undefined (see context_menus)
+                return typeof o.text === 'string' && o.text.toLowerCase().indexOf(t) != -1
+            }))
     }
 
     // starter
@@ -360,7 +363,8 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 // array of each text item for the page's 'create' docs, and its className (aka highlight style)
                 a[0].texts = a.map(doc => {
                     return {
-                        text: doc.text,
+                        // text might be undefined if info.selectedText was undefined in context_menus.js (for some reason)
+                        text: doc.text, 
                         className: doc.className,
                     }
                 })

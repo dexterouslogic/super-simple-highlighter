@@ -57,7 +57,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 		return group.docs.some(doc => {
 			// delegate to search.text and styleFilterPredicate
-			return $scope.styleFilterPredicate(doc) && doc.text.toLowerCase().indexOf(text) != -1
+			// text can be undefined 
+			return $scope.styleFilterPredicate(doc) && 
+				typeof doc.text === 'string' && doc.text.toLowerCase().indexOf(text) != -1
 		})
 	}
 
