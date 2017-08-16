@@ -367,30 +367,55 @@ var _tabs = {
 	 * Get a sort comparison function, which takes a document and returns a
 	 * promise that resolves to a comparable value
 	 * @param {number} tabId tab id upon which our resolution depends
-	 * @return {Function} type a known type of comparison
+	 * @return {Function} Function that returns a promise that gets a comparable value
 	 */
 	getComparisonFunction: function (tabId, sortby) {
 		switch(sortby) {
-		case "time":
-			return function (doc) {
-				// simply order by creation time (which it probably already does)
-				return Promise.resolve(doc.time);
-			}
+        case "time":
+            // simply order by creation time (which it probably already does)
+            return doc => Promise.resolve(doc.time)
 			
-		case "location":
-			// resolve to top of bounding client rect
-			return function (doc) {
-				return _tabs.sendIsHighlightInDOMMessage_Promise(tabId, doc._id).then(function (inDOM) {
-					if (!inDOM) {
-						return Promise.reject(new Error());
-					}
-			
-					return _tabs.getHighlightBoundingClientRect(tabId, doc._id)
-				}).then(function(rect) {
-					return rect.top;
-				});	
-			}
-			
+        case "location":
+            return doc => {
+                // resolve to top of bounding client rect
+                return _tabs.sendIsHighlightInDOMMessage_Promise(tabId, doc._id).then(function (inDOM) {
+                    return inDOM ?
+                        _tabs.getHighlightBoundingClientRect(tabId, doc._id) :
+                        Promise.reject(new Error())
+                }).then(rect => rect.top)
+            }
+
+        case "style":
+            // items are ordered by the index of its associated style. Build a map for faster lookup
+            // return doc => {
+            //     let map = new Map()
+                
+            //     return _storage.highlightDefinitions.getAll_Promise().then(o => {
+            //         // key is definition className, value is the index that occupies
+            //         o.highlightDefinitions.forEach((dfn, idx) => {
+            //             map.set(dfn.className, idx)
+            //         })
+            //     }).then(() => map.get(doc.className)) 
+            // }
+
+            let map = new Map()
+
+            return doc => {
+                if (map.size === 0) {
+                    return _storage.highlightDefinitions.getAll_Promise().then(o => {
+                        // key is definition className, value is the index that occupies
+                        o.highlightDefinitions.forEach((dfn, idx) => {
+                            map.set(dfn.className, idx)
+                        })
+                    }).then(() => map.get(doc.className)) 
+                } else {
+                    return Promise.resolve(map.get(doc.className))
+                }
+            }
+
+
+
+
 		default:
 			throw "Unknown type";
 		}

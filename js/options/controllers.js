@@ -388,20 +388,18 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                     _storage.setValue(newValue.ascendingOrder, "options_bookmarks_ascending_order")
                 ).then(() =>
                     _storage.setValue(newValue.showPageText, "options_bookmarks_show_page_text")
-                    ).then(() => {
-                        // only these need to cause update
-                        // if (newValue.groupBy === oldValue.groupBy &&
-                        //     newValue.ascendingOrder === oldValue.ascendingOrder) {
-                        //     return
-                        // }
+                ).then(() => {
+                    // only these need to cause update
+                    // if (newValue.groupBy === oldValue.groupBy &&
+                    //     newValue.ascendingOrder === oldValue.ascendingOrder) {
+                    //     return
+                    // }
 
-                        console.log("there")
+                    // rebuild group documents array based on new options
+                    updateGroupedDocuments()
 
-                        // rebuild group documents array based on new options
-                        updateGroupedDocuments()
-
-                        $scope.$apply()
-                    })
+                    $scope.$apply()
+                })
             })
         })
     }) // end

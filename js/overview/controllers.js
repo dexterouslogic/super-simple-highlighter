@@ -56,12 +56,12 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 		backgroundPage = bgPage;
 
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-		var match = backgroundPage._database.buildMatchString(url);
-		var compare = backgroundPage._tabs.getComparisonFunction(tabId, sortby);
+		const match = backgroundPage._database.buildMatchString(url);
+		const comparator = backgroundPage._tabs.getComparisonFunction(tabId, sortby)
 
         return backgroundPage._database.getCreateDocuments_Promise(match).then(function (docs) {
 			// main promise (default to native order)
-			return (compare && backgroundPage._database.sortDocuments(docs, compare, invert)) 
+			return (comparator && backgroundPage._database.sortDocuments(docs, comparator, invert)) 
 				|| Promise.resolve(docs);
 		}).then(function (docs) {
 			// group by days since epoch

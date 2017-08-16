@@ -309,12 +309,9 @@ var _eventPage = {
 			}).then(function (value) {
                 sortby = value;
                 return _storage.getValue("highlight_invert_sort");
-			}).then(function (value) {
-                invert = value;
-				return _tabs.getComparisonFunction(tab.id, sortby);
-			}).then(function (compare) {
-                return _eventPage.getOverviewText("markdown", tab,
-                    compare, undefined, invert);
+			}).then(function (invert) {
+                const comparator = _tabs.getComparisonFunction(tab.id, sortby)
+                return _eventPage.getOverviewText("markdown", tab, comparator, undefined, invert);
 			}).then(function(text) {
 				// copy to clipboard
 				_eventPage.copyText(text);

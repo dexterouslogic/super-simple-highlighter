@@ -93,7 +93,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @private
 	 */
 	var updateDocs = function () {
-		// get all the documents (create & delete) associated with the match, then filter the deleted ones
+		const comparator = backgroundPage._tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
+			
+			// get all the documents (create & delete) associated with the match, then filter the deleted ones
 		return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
 			// if the highlight cant be found in DOM, flag that
 			return Promise.all(docs.map(function (doc) {
@@ -105,45 +107,112 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				}).then(function () {
 					return doc;
 				})
-			}));
-
+			}))
 		}).then(function (docs) {
 			// sort the docs using the sort value
-			var compare = (backgroundPage._tabs.getComparisonFunction(
-				activeTab.id, $scope.sort.value)) || null;
-
-			// var compare = backgroundPage._tabs.getComparisonFunction(
-			// 	activeTab.id, "location")
-
-			return (compare &&
-				backgroundPage._database.sortDocuments(docs, compare, $scope.sort.invert)) ||
-				Promise.resolve(docs);
+			return backgroundPage._database.sortDocuments(docs, comparator, $scope.sort.invert)
 		}).then(function (docs) {
 			// group by days since epoch
-			var groupedDocs = []
+			var groups = []
 
-			docs.forEach((doc) => {
-				var date = new Date(doc.date)
-				var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
-
-				// first, or different days since epoch of last group
-				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length - 1].daysSinceEpoch) {
-					// each group defines its days since epoch and an ordered array of docs
-					groupedDocs.push({
-						daysSinceEpoch: daysSinceEpoch,
-						representativeDate: date,
-						docs: []
+			switch ($scope.sort.value) {
+				case 'location':
+					// a single untitled group containing all items sorted by location
+					groups.push({
+						docs: docs
 					})
-				}
+					break
 
-				groupedDocs[groupedDocs.length - 1].docs.push(doc)
-			})
+				case 'time':
+					// a group for each unique day
+					docs.forEach(doc => {
+						var date = new Date(doc.date)
+						var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+		
+						// first, or different days since epoch of last group
+						if (groups.length === 0 || daysSinceEpoch !== groups[groups.length - 1].daysSinceEpoch) {
+							// each group defines its days since epoch and an ordered array of docs
+							groups.push({
+								daysSinceEpoch: daysSinceEpoch,
+								title: date.toLocaleDateString(undefined, {
+										weekday: 'long',
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric'
+								}),
+								docs: []
+							})
+						}
+		
+						groups[groups.length - 1].docs.push(doc)
+					})
+					break
 
-			$scope.groupedDocs = groupedDocs
+				case 'style':
+					// first map highlight classname to index of definition
+					var m = new Map($scope.highlightDefinitions.map((d, idx) => [d.className, idx]))
+
+					// a group for each non-empty style
+					docs.forEach(doc => {
+						// docs are already sorted
+						const definitionIndex = m.get(doc.className)
+
+						if (groups.length === 0 || definitionIndex !== groups[groups.length - 1].definitionIndex) {
+							groups.push({
+								definitionIndex: definitionIndex,
+								title: $scope.highlightDefinitions[definitionIndex].title,
+								docs: []
+							})
+						}
+
+						groups[groups.length - 1].docs.push(doc)
+					})
+					break
+			
+				default:
+					console.assert(false)
+			}
+
+			// docs.forEach((doc) => {
+			// 	var date = new Date(doc.date)
+			// 	var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+			// 	// first, or different days since epoch of last group
+			// 	if (groups.length === 0 || daysSinceEpoch !== groups[groups.length - 1].daysSinceEpoch) {
+			// 		// each group defines its days since epoch and an ordered array of docs
+			// 		groups.push({
+			// 			daysSinceEpoch: daysSinceEpoch,
+			// 			representativeDate: date,
+			// 			docs: []
+			// 		})
+			// 	}
+
+			// 	groups[groups.length - 1].docs.push(doc)
+			// })
+
+			$scope.groupedDocs = groups
 			$scope.docs = docs
 
 			return docs;
 		});
+	};
+
+	var groupDocuments = function (docs, options) {
+		// grouped by property name (section title)
+		var groups = {},
+
+		options = options || {}
+  	options.groupBy = options.groupBy || 'time'	// 'time'|'time'|'style'
+		options.invert = (typeof options.invert === 'boolean' && options.invert) || false
+
+		switch (options.groupBy) {
+			case 'position':
+				
+				break;
+		
+			default:
+				break;
+		}
 	};
 
 	// starter
@@ -224,9 +293,18 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 				return updateDocs();
 			}).then(function () {
+				// After the initial update, watch for changes to options object
+				$scope.$watchCollection('sort', (newValue, oldValue) => {
+					// update storage
+					_storage.setValue(newValue.value, "highlight_sort_by").then(() => {
+						return _storage.setValue(newValue.invert, "highlight_invert_sort")
+					}).then(() => updateDocs()).then(() => $scope.$apply())
+				})
+
 				// this bullshit is done because if it finishes too quick the popup is the wrong height
 				setTimeout(() => {
 					$scope.$apply()
+					
 					// presumably the autofocus attribute effect gets overridden, so do it manually.
 					$('#input-search').focus()
 
@@ -245,32 +323,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 		$scope.styleFilterHighlightDefinition = definition;
 		// $scope.$apply();
-	};
-
-	$scope.onChangeSelectSort = function () {
-		// update the stored sort value
-		return _storage.setValue($scope.sort.value, "highlight_sort_by").then(function () {
-			// update the docs array, taking into account the current sort value
-			return updateDocs()
-		}).then(function () {
-			// reflect in DOM
-			$scope.$apply()
-		})
-	};
-
-	$scope.onClickToggleInvertSort = function () {
-		var inverted = !$scope.sort.invert
-
-		// update the stored invert value
-		return _storage.setValue(inverted, "highlight_invert_sort").then(function () {
-			// update the docs array, taking into account the current sort value
-			$scope.sort.invert = inverted
-
-			return updateDocs()
-		}).then(function () {
-			// reflect in DOM
-			$scope.$apply()
-		})
 	};
 
 	/**
@@ -379,59 +431,59 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	};
 
 	$scope.onClickSaveOverview = function (docs) {
-		var comparisonPredicate = backgroundPage._tabs.getComparisonFunction(
-			activeTab.id, $scope.sort.value);
+		const comparator = backgroundPage._tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
 
 		// format all highlights as a markdown document
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown", activeTab, comparisonPredicate,
-			$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
-				// create a temporary anchor to navigate to data uri
-				var a = document.createElement("a");
+				"markdown", activeTab, comparator, $scope.styleFilterPredicate,
+				 $scope.sort.invert
+		).then(function (text) {
+			// create a temporary anchor to navigate to data uri
+			var a = document.createElement("a");
 
-				a.download = chrome.i18n.getMessage("save_overview_file_name");
-				a.href = "data:text;base64," + utf8_to_b64(text);
+			a.download = chrome.i18n.getMessage("save_overview_file_name");
+			a.href = "data:text;base64," + utf8_to_b64(text);
 
-				// create & dispatch mouse event to hidden anchor
-				var mEvent = document.createEvent("MouseEvent");
-				mEvent.initMouseEvent("click", true, true, window,
-					0, 0, 0, 0, 0, false, false, false, false, 0, null);
+			// create & dispatch mouse event to hidden anchor
+			var mEvent = document.createEvent("MouseEvent");
+			mEvent.initMouseEvent("click", true, true, window,
+				0, 0, 0, 0, 0, false, false, false, false, 0, null);
 
-				a.dispatchEvent(mEvent);
-			});
+			a.dispatchEvent(mEvent);
+		})
 	};
 
 	$scope.onClickCopyOverview = function (docs) {
 		// format all highlights as a markdown document
 
 		// sort the docs using the sort value
-		var comparisonPredicate = backgroundPage._tabs.getComparisonFunction(
-			activeTab.id, $scope.sort.value);
-
+		const comparator = backgroundPage._tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
+		
 		return backgroundPage._eventPage.getOverviewText(
-			"markdown-no-footer", activeTab, comparisonPredicate,
-			$scope.styleFilterPredicate, $scope.sort.invert).then(function (text) {
-				// Create element to contain markdown
-				var pre = document.createElement('pre');
-				pre.innerText = text;
+				"markdown-no-footer", activeTab, comparator,
+				$scope.styleFilterPredicate, $scope.sort.invert
+		).then(function (text) {
+			// Create element to contain markdown
+			var pre = document.createElement('pre');
+			pre.innerText = text;
 
-				document.body.appendChild(pre);
+			document.body.appendChild(pre);
 
-				var range = document.createRange();
-				range.selectNode(pre);
+			var range = document.createRange();
+			range.selectNode(pre);
 
-				// make our node the sole selection
-				var selection = document.getSelection();
-				selection.removeAllRanges();
-				selection.addRange(range);
+			// make our node the sole selection
+			var selection = document.getSelection();
+			selection.removeAllRanges();
+			selection.addRange(range);
 
-				document.execCommand('copy');
+			document.execCommand('copy');
 
-				selection.removeAllRanges();
-				document.body.removeChild(pre);
+			selection.removeAllRanges();
+			document.body.removeChild(pre);
 
-				window.close();
-			});
+			window.close();
+		});
 	};
 
 	/**

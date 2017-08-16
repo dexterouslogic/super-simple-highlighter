@@ -96,23 +96,24 @@
         <div class="header-control header-control-group">
 			   <!-- <label for="sel1" styl>Sort By</label>  -->
 			  <select class="form-control input-sm" id="sel1"
-			  	 	ng-model="sort.value" ng-change="onChangeSelectSort()">
+			  	 	ng-model="sort.value">
                 <option value="time">{{'sort_by_time' | i18n}}</option>
                 <option value="location">{{'sort_by_location' | i18n}}</option>
+                <option value="style">{{'sort_by_style' | i18n}}</option>
               </select>
               
                 <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner" 
                     ng-class="{'sort-inverted': sort.invert === true}"
                     type="button" title="{{'title_sort_direction' | i18n}}"
-                    ng-click="onClickToggleInvertSort()">
+                    ng-click="sort.invert = !sort.invert">
                     <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
                 </button>	
         </div>
             
-        <div class="header-control header-control-group">
+        <div class="header-control">
             <input id="input-search" type="search" class="form-control input-sm search" ng-model="search.text"
                    placeholder="{{'placeholder_filter' | i18n}}" autofocus>
-
+<!-- 
 			<div class="dropdown pull-right" style="display: inline">
 			   <button class="btn btn-sm btn-default button-partner" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-expanded="true"
 			   		ng-class="styleFilterHighlightDefinition.className"
@@ -121,12 +122,10 @@
 				   <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
 			  </button>				
 				
-                <!-- <a href="" class="dropdown-toggle caret" id="dropdownMenu3" data-toggle="dropdown"></a> -->
 			    <ol class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu3">
 					<li role="presentation" class="dropdown-header">{{'visible_style' | i18n}}</li>
 					
                     <li ng-repeat="d in highlightDefinitions" role="presentation">
-						<!-- Index - title -->
                         <a role="menuitem" tabindex="-1" href="" ng-click="onClickStyleFilter($event, d)">
 							<span class="redefinition-well-sm {{highlightClassName}} {{d.className}}">{{$index + 1}}</span>
                     		<span>{{d.title}}</span>
@@ -145,7 +144,7 @@
                         </a>	
 					</li>
                 </ol>
-            </div>
+            </div> -->
         </div>
     </div>
 	
@@ -192,8 +191,8 @@
 
     <ol class="list-unstyled"> 
         <li ng-repeat="group in groupedDocs | filter:filters.group">
-            <h5 class="group-header" ng-show="sort.value === 'time'">
-                {{ group.representativeDate | date:'fullDate' }}
+            <h5 class="group-header" ng-show="group.title">
+                {{ group.title }}
             </h5>
 
             <ol class="list-unstyled">

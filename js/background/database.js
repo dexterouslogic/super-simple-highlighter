@@ -502,11 +502,12 @@ var _database = {
 	
 	/**
 	 * Sort documents using promise that resolves to a comparable value
+     * @param {Array<Object>} docs - array of document objects
+     * @param {Function<Promise>} [comparator] - Function that returns a promise that returns a comparable value
+     * @param {Boolean} invert - invert comparison
 	 */
-	sortDocuments: function (docs, compareFunction, invert) { 
-		var cf = compareFunction || function (doc) {
-			return Promise.resolve(doc.date)
-		}
+	sortDocuments: function (docs, comparator, invert) { 
+		comparator = comparator || (doc => Promise.resolve(doc.date))
 
 		// object in which each attribute's value corresponds to the resolved
 		// promise result for it. If the promise rejected, no attribute is
@@ -514,7 +515,7 @@ var _database = {
 		var results = {};
 		
 		return Promise.all(docs.map(function (doc) {
-			return cf(doc).then(function (result) {
+			return comparator(doc).then(function (result) {
 				results[doc._id] = result
 			}).catch(function () {
 				// swallow and ignore

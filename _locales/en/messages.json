@@ -255,6 +255,9 @@
   "sort_by_time": {
     "message": "By Date"
   },
+  "sort_by_style": {
+    "message": "By Style"
+  },
   "speak_highlight_text": {
     "message": "Speak"
   },
