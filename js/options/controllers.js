@@ -415,7 +415,11 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         // grouped by property name (section title)
         var groups = {},
             untitledGroup = {
-                // title: chrome.i18n.getMessage('untitled_page_group'),
+                value: chrome.i18n.getMessage('untitled_page_group'),
+                docs: []
+            },
+            numberGroup = { 
+                value: "#",// chrome.i18n.getMessage('untitled_page_group'),
                 docs: []
             }
 
@@ -449,6 +453,13 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                     case 'undefined':
                         return untitledGroup
 
+                    case 'string':
+                        // if the string (single letter) is a digit
+                        if (options.groupBy === 'title' && !isNaN(parseInt(groupValue, 10))) {
+                            return numberGroup
+                        }
+                        // fallthrough
+
                     default:
                         // if groups doesn't have a section with this title, add it
                         if (!groups.hasOwnProperty(groupValue)) {
@@ -470,11 +481,18 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             .sort()
             .map(value => groups[value])
 
-        if (untitledGroup.docs.length > 0) {
-            untitledGroup.value = chrome.i18n.getMessage('untitled_page_group')
+        Array.prototype.push.apply(sortedGroups, [
+            numberGroup,
+            untitledGroup
+        ].filter(g => g.docs.length > 0))
 
-            sortedGroups.push(untitledGroup)
-        }
+        // if (numberGroup.docs.length > 0) {
+        //     sortedGroups.push(numberGroup)
+        // }
+
+        // if (untitledGroup.docs.length > 0) {
+        //     sortedGroups.push(untitledGroup)
+        // }
 
         sortedGroups.forEach(group => {
             // currently groups only have a raw value - format it as text
