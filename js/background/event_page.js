@@ -780,13 +780,12 @@ var _eventPage = {
 	 * Get an overiew of the highlights for the current page
 	 * @param {Object} tab one of the available tabs, or active tab if undefined
 	 * @param {string} format one of [markdown]
-	 * @param {Function} [comparisonPredicate] function that returns a promise
-	 *	that resolves to a comparible value
+	 * @param {Function} [comparator] function that returns a promise that resolves to a comparible value
      * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
      * @param {Boolean} [invert] invert the document order
 	 * @returns: {Promise} overview correctly formatted as a string
 	 */
-	getOverviewText: function(format, tab, comparisonPredicate, filterPredicate, invert) {
+	getOverviewText: function(format, tab, comparator, filterPredicate, invert) {
 		var titles = {};
 		var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
 
@@ -812,9 +811,13 @@ var _eventPage = {
             return (filterPredicate && docs.filter(filterPredicate)) || docs; 
 		}).then(function(docs) {
 			// sort - main promise (default to native order)
-			return (comparisonPredicate && _database.sortDocuments(docs, comparisonPredicate, invert)) ||
+			return (comparator && _database.sortDocuments(docs, comparator)) ||
 				Promise.resolve(docs);
 		}).then(function (docs) {
+            if (invert) {
+                docs.reverse()
+            }
+
 			switch(format) {
 			case "markdown":
             case "markdown-no-footer":

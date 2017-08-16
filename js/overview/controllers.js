@@ -61,9 +61,13 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 
         return backgroundPage._database.getCreateDocuments_Promise(match).then(function (docs) {
 			// main promise (default to native order)
-			return (comparator && backgroundPage._database.sortDocuments(docs, comparator, invert)) 
+			return (comparator && backgroundPage._database.sortDocuments(docs, comparator)) 
 				|| Promise.resolve(docs);
 		}).then(function (docs) {
+			if (invert) {
+				docs.reverse()
+			}
+			
 			// group by days since epoch
 			var groupedDocs = []
 
