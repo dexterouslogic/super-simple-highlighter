@@ -10,5 +10,8 @@
     },
     "color_title_grey": {
         "message": "Grey"
+    },
+    "options_tab_page_header_sites": {
+        "message": "Click a highlight to change its title and colours"
     }
 }

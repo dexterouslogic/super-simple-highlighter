@@ -297,22 +297,27 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     // text of the filter
     $scope.documentFilterText = ""
 
-    // filter predicate called on individual groups
-    // (delegates to document filter)
-    $scope.groupFilterPredicate = group => group.docs.some(doc => $scope.documentFilterPredicate(doc))
+    // filter predicates
+    $scope.filters = {
+        // filter predicate called on individual groups
+        // (delegates to document filter)
+        group: (group) => group.docs.some(doc => $scope.filters.document(doc)),
 
-    // filter predicate called on individual documents of a group
-    $scope.documentFilterPredicate = (doc) => {
-        const t =  $scope.documentFilterText.toLowerCase()
+        // filter predicate called on individual documents of a group
+        document: (doc) => {
+            const t = $scope.documentFilterText.toLowerCase()
 
-        // always check title & match (url), optionally check page text objects
-        return t.length === 0 ||
-            (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
-            (doc.match.toLowerCase().indexOf(t) != -1) ||
-            ($scope.options.showPageText && doc.texts.some(o => {
-                // text may have introduced undefined (see context_menus)
-                return typeof o.text === 'string' && o.text.toLowerCase().indexOf(t) != -1
-            }))
+            // always check title & match (url), optionally check page text objects
+            return t.length === 0 ||
+                (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
+                (doc.match.toLowerCase().indexOf(t) != -1) || (
+                    $scope.options.showPageText &&
+                    doc.texts.some(o => {
+                        // text may have introduced undefined (see context_menus)
+                        return typeof o.text === 'string' && o.text.toLowerCase().indexOf(t) != -1
+                    })
+                )
+        }
     }
 
     // starter
@@ -364,7 +369,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 a[0].texts = a.map(doc => {
                     return {
                         // text might be undefined if info.selectedText was undefined in context_menus.js (for some reason)
-                        text: doc.text, 
+                        text: doc.text,
                         className: doc.className,
                     }
                 })
@@ -379,24 +384,24 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             // After the initial update, watch for changes to options object
             $scope.$watchCollection('options', (newValue, oldValue) => {
                 // update storage
-                _storage.setValue(newValue.groupBy, "options_bookmarks_group_by").then(() => 
+                _storage.setValue(newValue.groupBy, "options_bookmarks_group_by").then(() =>
                     _storage.setValue(newValue.ascendingOrder, "options_bookmarks_ascending_order")
-                ).then(() => 
+                ).then(() =>
                     _storage.setValue(newValue.showPageText, "options_bookmarks_show_page_text")
-                ).then(() => {
-                    // only these need to cause update
-                    // if (newValue.groupBy === oldValue.groupBy &&
-                    //     newValue.ascendingOrder === oldValue.ascendingOrder) {
-                    //     return
-                    // }
+                    ).then(() => {
+                        // only these need to cause update
+                        // if (newValue.groupBy === oldValue.groupBy &&
+                        //     newValue.ascendingOrder === oldValue.ascendingOrder) {
+                        //     return
+                        // }
 
-                    console.log("there")
-                    
-                    // rebuild group documents array based on new options
-                    updateGroupedDocuments()
+                        console.log("there")
 
-                    $scope.$apply()
-                })
+                        // rebuild group documents array based on new options
+                        updateGroupedDocuments()
+
+                        $scope.$apply()
+                    })
             })
         })
     }) // end

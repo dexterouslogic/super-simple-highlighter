@@ -244,13 +244,13 @@
                             ng-class="{'sort-inverted': !options.ascendingOrder }"
                             type="button" title="{{'title_sort_direction' | i18n}}"
                             ng-click="options.ascendingOrder = !options.ascendingOrder">
-                            <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+                            <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
                         </button>	
                     </div>
 
                     <div class="header-control header-control-group">
                         <input type="search" class="form-control search" ng-model="documentFilterText"
-                            placeholder="{{'placeholder_filter' | i18n}}" autofocus>
+                            placeholder="{{(options.showPageText ? 'placeholder_filter_highlights' : 'placeholder_filter_titles') | i18n}}" autofocus>
                     </div>
 
                 </form>
@@ -261,13 +261,13 @@
                 </h2>
 
                 <ol class="list-unstyled list-grouped-pages">
-                    <li ng-repeat="group in groupedDocs | filter:groupFilterPredicate" class="page-group-list-item">
+                    <li ng-repeat="group in groupedDocs | filter:filters.group" class="page-group-list-item">
                         <h3 class="page-group-header">
                             {{ group.title }}
                         </h3>
         
                         <ol class="list-unstyled">
-                            <li ng-repeat="doc in group.docs | filter:documentFilterPredicate" id="{{doc._id}}" class="well-sm page"
+                            <li ng-repeat="doc in group.docs | filter:filters.document" id="{{doc._id}}" class="well-sm page"
                                 ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
                                 <!-- button to remove all highlights on this page -->
                                 <button type="button" class="close" 
@@ -280,9 +280,12 @@
 
                                 <!-- page title -->
                                 <h5 class="page-title">
-                                    <a href="{{doc.match}}" target="_blank" ng-class="{'no-title': !doc.title}">
+                                    <a href="{{doc.match}}" target="_blank">
                                         {{doc.title || ('untitled_page_group' | i18n) }}
                                     </a>
+                                    <!-- Show a 'refresh' indicator for untitled pages -->
+                                    <span class="glyphicon glyphicon-refresh small" ng-show="!doc.title" 
+                                        aria-hidden="true" title="{{'untitled_page_tooltip' | i18n }}"></span>
                                 </h5>
                                 <!-- page link -->
                                 <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
@@ -290,7 +293,7 @@
                                 <!-- text for all highlights -->
                                 <ul class="list-inline page-text-list" ng-show="options.showPageText">
                                     <li ng-repeat="t in doc.texts" class="list-inline page-text-list-item {{t.className}}">
-                                        {{ t.text }}
+                                        {{ t.text || "&nbsp" }}
                                     </li>
 
                                 </ul>

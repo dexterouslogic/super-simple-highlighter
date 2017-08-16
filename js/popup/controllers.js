@@ -48,29 +48,40 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	// current style filter. null for none
 	$scope.styleFilterHighlightDefinition = null;
 
-	$scope.groupFilterPredicate = (group) => {
-		if (typeof $scope.search.text === 'undefined') {
-			return true
-		}
+	// filter predicates
+	$scope.filters = {
+		// by style and text of any document within group
+		group: (group) => {
+			const searchText = $scope.search.text && $scope.search.text.toLowerCase()
+			
+			return group.docs.some(doc => {
+				// delegate to search.text and styleFilterPredicate
+				return $scope.filters.style(doc)
+					&& (!searchText 
+						|| (typeof doc.text === 'string' && doc.text.toLowerCase().indexOf(searchText) != -1)
+					)
+			})
+		},
 
-		const text = $scope.search.text.toLowerCase()
-
-		return group.docs.some(doc => {
-			// delegate to search.text and styleFilterPredicate
-			// text can be undefined 
-			return $scope.styleFilterPredicate(doc) && 
-				typeof doc.text === 'string' && doc.text.toLowerCase().indexOf(text) != -1
-		})
+		// by current text search string of document
+		text: (doc) => {
+			const searchText = $scope.search.text && $scope.search.text.toLowerCase()
+			
+			return (!searchText 
+				|| (
+					typeof doc.text === 'string'
+						&& doc.text.toLowerCase().indexOf(searchText) != -1
+				)
+			)
+		},
+		
+		// by current filter style of document
+		style: (doc) => {
+			const hd = $scope.styleFilterHighlightDefinition
+			
+			return (!hd || doc.className === hd.className)
+		},
 	}
-
-	// predicate for filter by style
-	$scope.styleFilterPredicate = function (doc) {
-		if (!$scope.styleFilterHighlightDefinition) {
-			return true;
-		}
-
-		return doc.className === $scope.styleFilterHighlightDefinition.className;
-	};
 
 	var utf8_to_b64 = function (str) {
 		return window.btoa(unescape(encodeURIComponent(str)));

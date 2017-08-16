@@ -72,7 +72,7 @@
     "message": "Edit Style"
   },
   "experimental": {
-    "message": "Experimental"
+    "message": "Experiments"
   },
   "experimental_database_export_button_text": {
     "message": "Export…"
@@ -84,7 +84,7 @@
     "message": "database.ldjson"
   },
   "experimental_database_export_title": {
-    "message": "Export"
+    "message": "Backup"
   },
   "experimental_database_heading": {
     "message": "Database"
@@ -96,10 +96,10 @@
     "message": "Replace the highlights and styles with those previously exported into a file. NOTE: ALL existing highlights on ALL pages will be replaced, along with ALL modified highlight styles."
   },
   "experimental_database_import_title": {
-    "message": "Import"
+    "message": "Restore"
   },
   "experimental_header": {
-    "message": "Caution! Items in this section should be considered experimental, not fully tested, and subject to change, so be careful!"
+    "message": "Caution! Functions in this section should be considered experimental, and subject to change."
   },
   "extension_author": {
     "message": "Dexterous Logic"
@@ -171,7 +171,7 @@
     "message": "Options"
   },
   "options_tab_page_header_sites": {
-    "message": "Click on a highlight definition to change its style."
+    "message": "Click a highlight to redefine its title and colors"
   },
   "overview_footer": {
     "message": "Created with [$EXTENSION_NAME$]($EXTENSION_URL$). (C)$COPYRIGHT_YEAR$ [$EXTENSION_AUTHOR$]($EXTENSION_AUTHOR_URL$)",
@@ -209,7 +209,7 @@
     "message": "Nothing to see here, move along"
   },
   "placeholder_filter": {
-    "message": "Filter"
+    "message": "Search"
   },
   "plural_one_highlight": {
     "message": "1 highlight"
@@ -295,7 +295,7 @@
     "message": "Style"
   },
   "visible_stylename_all": {
-    "message": "All"
+    "message": "Reset"
   },
   "warning_file_access_required": {
     "message": "NB: This is an offline page (stored locally in a file). The highlights it contains can only be shown if 'Allow access to file URLs' is enabled for this extension. You may choose to do this via the 'Extensions' tool page."
@@ -306,16 +306,25 @@
   "untitled_page_group": {
     "message": "Untitled"
   },
+  "untitled_page_tooltip": {
+    "message": "Refresh page to update its title"
+  },
   "group_by_title": {
     "message": "By Title"
   },
   "group_by_first_date": {
-    "message": "By Initial Highlight"
+    "message": "By First Highlight"
   },
   "group_by_last_date": {
-    "message": "By Latest Highlight"
+    "message": "By Last Highlight"
   },
   "show_page_highlight_text": {
-    "message": "Include Highlights"
+    "message": "Show Highlights"
+  },
+  "placeholder_filter_titles": {
+    "message": "Search Titles"
+  },
+  "placeholder_filter_highlights": {
+    "message": "Search Highlights"
   }
 }

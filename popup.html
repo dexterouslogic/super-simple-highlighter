@@ -105,7 +105,7 @@
                     ng-class="{'sort-inverted': sort.invert === true}"
                     type="button" title="{{'title_sort_direction' | i18n}}"
                     ng-click="onClickToggleInvertSort()">
-                    <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
                 </button>	
         </div>
             
@@ -191,7 +191,7 @@
 
 
     <ol class="list-unstyled"> 
-        <li ng-repeat="group in groupedDocs | filter:groupFilterPredicate">
+        <li ng-repeat="group in groupedDocs | filter:filters.group">
             <h5 class="group-header" ng-show="sort.value === 'time'">
                 {{ group.representativeDate | date:'fullDate' }}
             </h5>
@@ -199,7 +199,7 @@
             <ol class="list-unstyled">
                 <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
                 <!--isInDOM defaults to undefined-->
-                <li ng-repeat="doc in filteredDocs = (group.docs | filter:search | filter:styleFilterPredicate)"
+                <li ng-repeat="doc in filteredDocs = (group.docs | filter:filters.style | filter:filters.text)"
                     id="{{doc._id}}"
                     class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
                     ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
@@ -214,10 +214,11 @@
                             <span class="sr-only"> {{ 'close' | i18n }}</span>
                         </button>
                         <!--text-->
-                        <span class="highlight-text">{{doc.text.substring(0, popupHighlightTextMaxLength)}}<span
-                                ng-show="doc.text.length > popupHighlightTextMaxLength">&#8230;
-                                <a href="" class="more"
-                                data-ng-click="onClickMore($event, doc)">
+                        <span class="highlight-text">
+                            {{doc.text && doc.text.substring(0, popupHighlightTextMaxLength) || "&nbsp;"}}
+                            <span ng-show="doc.text && doc.text.length > popupHighlightTextMaxLength">
+                                &#8230;
+                                <a href="" class="more" data-ng-click="onClickMore($event, doc)">
                                     {{ 'more' | i18n }}
                                 </a>
                             </span>
