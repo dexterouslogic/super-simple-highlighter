@@ -200,24 +200,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		});
 	};
 
-	var groupDocuments = function (docs, options) {
-		// grouped by property name (section title)
-		var groups = {},
-
-		options = options || {}
-  	options.groupBy = options.groupBy || 'time'	// 'time'|'time'|'style'
-		options.invert = (typeof options.invert === 'boolean' && options.invert) || false
-
-		switch (options.groupBy) {
-			case 'position':
-				
-				break;
-		
-			default:
-				break;
-		}
-	};
-
 	// starter
 	chrome.tabs.query({
 		active: true,
@@ -518,7 +500,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 					$scope.$apply();
 				}
 			});
-		}, false);
+		}, { capture: false, passive: true, once: true });
 
 		const style = elm.style
 

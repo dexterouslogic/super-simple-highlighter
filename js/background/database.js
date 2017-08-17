@@ -295,13 +295,13 @@ var _database = {
      * @param {number} [limit] max number of documents to return
      */
 	getDocuments_Promise: function (match, descending, limit) {
-		descending = descending || false;
+		// descending = descending || false;
 		
-		var options = {
-            "startkey": !descending ? [match] : [match, {}],
-            "endkey": !descending ? [match, {}] : [match],
-            "descending": descending,
-            "include_docs": true
+		let options = {
+            startkey: !descending ? [match] : [match, {}],
+            endkey: !descending ? [match, {}] : [match],
+            "descending": descending || false,
+            include_docs: true
         }
 
         // optional
@@ -309,27 +309,9 @@ var _database = {
             options.limit = limit;
         }
 		
-		// var o = options || {
-		//             descending: false,
-		//         };
-		//
-		// // defaults
-		// o.startkey = [match];
-		// o.endKey = [match, {}];
-		// o.include_docs = true;
-		//
-		// // promise version
-		// return _database.getDatabase().query("match_date_view", o).then(function(result) {
-		// 	return result.rows.map(function (row) {
-		//             	return row.doc;
-		//             });
-		//         })
-		
 		// promise version
-		return _database.getDatabase().query("match_date_view", options).then(function(result) {
-			return result.rows.map(function (row) {
-            	return row.doc;
-            });
+		return _database.getDatabase().query("match_date_view", options).then(result => {
+			return result.rows.map(row => row.doc)
         });
 	},
 	
@@ -413,27 +395,17 @@ var _database = {
 		// promise version
 		
         // get all the documents (create & delete) associated with the match, then filter the deleted ones
-        return _database.getDocuments_Promise(match).then(function(docs) {
-            var filterable = {};
+        return _database.getDocuments_Promise(match).then(docs => {
+            // set of ids of documents that can be removed
+            let s = new Set()
 
-            // map to just the documents,
-            return docs.filter(function (doc) {
-                // filter out delete documents, and mark corresponding 'create' document for filtering later
-                if (doc.verb === "delete") {
-                    // remove this, and mark the corresponding doc as being ready for removal later
-                    filterable[doc.correspondingDocumentId] = true;
-                    return false;
-                }
-                else {
-                    return true;
-                }
-            }).filter(function (doc) {
-                // filter out corresponding docs collected earlier
+            docs.filter(doc => doc.verb === 'delete').forEach(doc => {
+                s.add(doc._id)
+                s.add(doc.correspondingDocumentId)
+            })
 
-                // return FALSE to filter it out
-                return filterable[doc._id] === undefined;
-            });
-        });
+            return docs.filter(doc => !s.has(doc._id))
+        })
 	},
 
     /**
