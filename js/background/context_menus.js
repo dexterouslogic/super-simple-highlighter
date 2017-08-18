@@ -190,17 +190,17 @@ var _contextMenus = {
             case "create_highlight":
                 if (info.editable) {
                     window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"));
-                    return Promise.reject(new Error());
+                    return
                 }
 
                 // can't create highlight in frames that aren't top level frames, or in editable textareas
                 if (info.frameUrl && info.frameUrl !== tab.url){
                     window.alert(chrome.i18n.getMessage("alert_create_highlight_in_subframe"));
-                    return Promise.reject(new Error());
+                    return
                 }
 
                 // get the selection range (_xpath) from content script
-				return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
+				_tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
 					if (xpathRange.collapsed) {
 						return Promise.reject(new Error());
 					}
@@ -217,49 +217,46 @@ var _contextMenus = {
                        // unselect all
                       return _eventPage.selectHighlightText(tab.id);
                    }
-                });
+                })
+                break
 
             case "update_highlight":
                 if (_contextMenus.hoveredHighlightId) {
-                    return _eventPage.updateHighlight(tab.id,
+                    _eventPage.updateHighlight(tab.id,
                         _contextMenus.hoveredHighlightId, className);
-                } else {
-                	return Promise.reject(new Error());
-                }
-                break;
+                } 
+                break
 
             default:
                 throw "Unhandled menu item id: " + info.menuItemId;
             }
+
+            return
         }
 
         // default (constant ids)
         switch (info.menuItemId) {
         case "select_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.selectHighlightText(
-					tab.id, _contextMenus.hoveredHighlightId);
+                _eventPage.selectHighlightText(tab.id, _contextMenus.hoveredHighlightId);
             }
             break;
 
         case "copy_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.copyHighlightText(
-					_contextMenus.hoveredHighlightId);
+                _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
             }
             break;
 
         case "speak_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.speakHighlightText(
-					tab.id, _contextMenus.hoveredHighlightId);
+                _eventPage.speakHighlightText(tab.id, _contextMenus.hoveredHighlightId);
             }
             break;
 
         case "delete_highlight":
             if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.deleteHighlight(tab.id,
-                    _contextMenus.hoveredHighlightId);
+                _eventPage.deleteHighlight(tab.id, _contextMenus.hoveredHighlightId);
             }
             break;
 
@@ -267,6 +264,6 @@ var _contextMenus = {
             throw "Unhandled menu item. id=" + info.menuItemId;
         }
 		
-		return Promise.reject(new Error());
+		// return Promise.reject(new Error());
     }
 };

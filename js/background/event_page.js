@@ -124,19 +124,19 @@ var _eventPage = {
 
         // get all the documents with our desired highlight key, in increasing order
         // query for all documents with this key
-        var match = _database.buildMatchString(details.url);
-		var docs;
+        let matchString = _database.buildMatchString(details.url);
+		let matchedDocs;
 
-		return _database.getDocuments_Promise(match).then(function (d) {
-            docs = d;
+		return _database.getDocuments_Promise(matchString).then(function (docs) {
+            matchedDocs = docs;
             
             // configure and show page action
-            console.log("Matched " + docs.length + " document(s) with '" + match + "'");
-            if (docs.length === 0) {
+            console.log("Matched " + matchedDocs.length + " document(s) with '" + matchString + "'");
+            if (matchedDocs.length === 0) {
                 return;
             }
 
-            const firstDoc = docs[0]
+            const firstDoc = matchedDocs[0]
             
             // if the first document is a 'create' document without a title, update it now
             if (firstDoc.verb === 'create' && typeof firstDoc.title === 'undefined') {
@@ -163,7 +163,7 @@ var _eventPage = {
         }).then(() => {
 			console.log("Replaying documents into DOM");
 			
-            return _tabs.replayDocuments_Promise(details.tabId, docs, function (errorDoc) {
+            return _tabs.replayDocuments_Promise(details.tabId, matchedDocs, function (errorDoc) {
                 // method only called if there's an error. called multiple times
                 console.log("Error:" + JSON.stringify(errorDoc));
 
@@ -437,54 +437,60 @@ var _eventPage = {
             return Promise.reject(new Error("Ignoring collapsed range"));
         }
 
+        // shared between promises
+        let _newDoc = {}
+
         // if this is the first create document to be posted, we want the title too
         return _database.getMatchSum_Promise(match).then(sum => {
             if (sum != 0) {
                 // resolve to undefined title
                 return Promise.resolve()
             }
-            
-            return new Promise(resolve => {
-                // resolve to tab's title
-                chrome.tabs.get(tabId, tab => { resolve(tab) })
-            })
+
+            // resolve to tab's title
+            return new Promise(resolve => { chrome.tabs.get(tabId, tab => { resolve(tab) }) })
         }).then(tab => {
             // not being collapsed is implicit
             delete xpathRange.collapsed;
 
             // ignore tabs where the title == url (i.e. not explicity defined)
-            const title = (tab && tab.title !== tab.url && tab.title) || undefined
+            return _database.postCreateDocument_Promise(
+                match,
+                xpathRange,
+                className,
+                selectionText,
+                (tab && tab.title !== tab.url && tab.title) || undefined
+            )
+        }).then(resp => {
+            _newDoc = {
+                id: resp.id,
+                rev: resp.rev
+            }
 
-            return _database.postCreateDocument_Promise(match, xpathRange, className, selectionText, title).then(response => {
-                // use the new document's id for the element id of the (first) highlight element
-                try {
-                    return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, response.id)
-                        .then(function (is_created) {
-                            // a false response means something went wrong.
-                            // Delete document from db
-                            if (is_created) {
-                                // (re) show page action on success
-                                chrome.pageAction.show(tabId);
-                                return Promise.resolve();
-                            } else {
-                                console.log("Error creating highlight in DOM - Removing associated document");
+            // use the new document's id for the element id of the (first) highlight element
+            try {
+                return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, resp.id) 
+            } catch (e) {
+                console.log("Exception creating highlight in DOM - Removing associated document");
 
-                                return _database.removeDocument_Promise(response.id, response.rev).then(function () {
-                                    return Promise.reject(new Error());
-                                });
-                            }
-                        });
-                }catch (e){
-                    console.log("Exception creating highlight in DOM - Removing associated document");
+                // always rejects
+                return _database.removeDocument_Promise(resp.id, resp.rev)
+                    .then(() => Promise.reject(new Error()))
+            }
+        }).then(didCreate => {
+            // a false response means something went wrong.
+            // Delete document from db
+            if (!didCreate) {
+                console.log("Error creating highlight in DOM - Removing associated document");
 
-                    _database.removeDocument_Promise(response.id, response.rev).then(function () {
-                        return Promise.reject(new Error());
-                    });
-                }
-            });
+                // always rejects
+                return _database.removeDocument_Promise(_newDoc.id, _newDoc.rev)
+                    .then(() => Promise.reject(new Error()))
+            }
+
+            // (re) show page action on success
+            chrome.pageAction.show(tabId);
         })
-
-        
     },
 
     /**
@@ -617,22 +623,21 @@ var _eventPage = {
 	 * Undo the last undoable document in the journal (by negating it)
 	 */
 	undoLastHighlight: function (tabId) {
-		return new Promise(function(resolve, reject) {
+		return new Promise(resolve => {
 			// get tab object from tab id
-			chrome.tabs.get(tabId, function (tab) {
-				resolve(tab);
-			});
+			chrome.tabs.get(tabId, tab => resolve(tab))
 		}).then(function (tab) {
 			// build match using tab's url, and get the last document
-			var match = _database.buildMatchString(tab.url);
-			
-			return _database.getDocuments_Promise(match, true);
+			return _database.getDocuments_Promise(
+                _database.buildMatchString(tab.url),
+                true
+            )
 		}).then(function (docs) {
 			// find last 'undoable' document that has not already been
 			// negated 
-			var deletedDocumentIds = new Set();
+			let deletedDocumentIds = new Set();
 			
-			var i, len = docs.length;
+			let i, len = docs.length;
 			for (i=0; i<len; ++i) {
 				var doc = docs[i];
 				

@@ -98,37 +98,35 @@ var _tabs = {
 
     sendMessage_Promise: function (tabId, message) {
         "use strict";
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			chrome.tabs.sendMessage(tabId, message, function (response) {
 				// it is possible that the script hasn't yet been injected,
-				// so check the response for a undefined param
-	            if (response !== undefined) {
-	                // ok - pass to original handler
-	            	resolve(response);	
-				} else {
-					// probably scripts not yet executed
-					reject();
-				}
-			});
+                // so check the response for a undefined param
+                if (typeof response === 'undefined') {
+                    // probably scripts not yet executed
+                    reject();
+                    return
+                }
+
+                // ok - pass to original handler
+                resolve(response);	
+			})
 		}).catch(function () {
             console.log("sendMessage() response undefined. Executing scripts, then retrying...");
 			
             // inject scripts into top level frames, then send message again
-            return _tabs.executeAllScripts_Promise(tabId, false).then(function () {
-                // send again
-				return new Promise(function (resolve, reject) {
-					chrome.tabs.sendMessage(tabId, message, function (response) {
-						if (response === undefined && chrome.runtime.lastError) {
-							reject(chrome.runtime.lastError);
-						}  else {
-							// response may still be undefined, but legal
-							resolve(response);
-						}
-						// return resolve(response);
-					});
-				});
-			});
-		});
+            return _tabs.executeAllScripts_Promise(tabId, false).then(() => new Promise((resolve, reject) => {
+                chrome.tabs.sendMessage(tabId, message, (response) => {
+                    if (typeof response === 'undefined' && chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError)
+                        return
+                    }  
+                    
+                    // response may still be undefined, but legal
+                    resolve(response);
+                });
+			}))
+		})
     },
 
     /**

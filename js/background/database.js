@@ -17,6 +17,8 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// PouchDB.debug.enable('*');
+
 var _database = {
     db: null,
 	dbname: 'sos',
@@ -28,7 +30,10 @@ var _database = {
     getDatabase: function () {
         "use strict";
         if (!_database.db) {
-            _database.db = new PouchDB(_database.dbname);
+            _database.db = new PouchDB(_database.dbname, {
+                auto_compaction: true,
+                adapter: 'idb',
+            });
         }
 
         return _database.db;
@@ -164,7 +169,7 @@ var _database = {
     postCreateDocument_Promise: function (match, range, className, text, title) {
         "use strict";
         // required
-        var doc = {
+        let doc = {
             _id: _stringUtils.createUUID({ beginWithLetter: true }),
             // _rev: undefined,
 
@@ -182,8 +187,7 @@ var _database = {
             doc.title = title
         }
 
-        // var options = {};
-        return _database.getDatabase().put(doc);
+        return _database.getDatabase().put(doc)
     },
 
     /**
@@ -199,8 +203,8 @@ var _database = {
 
             // create a new document, detailing the 'delete' verb transaction
             // no need for createUUID, as it won't be used as an id/class attribute
-            var doc = {
-                match: match,
+            doc = {
+                match: doc.match,
                 date: Date.now(),
                 verb: "delete",
                 //
@@ -231,15 +235,13 @@ var _database = {
             options.title = options.title || doc.title
 
             // change required?
-            if (doc.className === options.className &&
-                doc.title === options.title)
-            {
+            if (doc.className === options.className && doc.title === options.title) {
                 // no change
-				return Promise.resolve({
+				return {
 					'ok': true,
 					'id': doc._id,
 					'rev': doc._rev
-				})
+				}
             }
 
             // put new revision
@@ -249,32 +251,6 @@ var _database = {
             return _database.getDatabase().put(doc);
         })
     },
-    // updateCreateDocument_Promise: function (documentId, className) {
-    //     "use strict";
-    //     return _database.getDocument_Promise(documentId).then(function (doc) {
-    //         // can only update 'create' documents
-    //         if (doc.verb !== 'create') {
-	// 			return Promise.reject(
-	// 				new Error('Attempted to update document with unhandled verb: ' + doc.verb));
-    //         }
-
-    //         // don't update if the class name is already the same
-    //         if (doc.className === className) {
-    //             // no change
-	// 			return Promise.resolve({
-	// 				'ok': true,
-	// 				'id': doc._id,
-	// 				'rev': doc._rev
-	// 			});
-    //         }
-
-    //         // update the property of the document
-    //         doc.className = className;
-
-    //         // var options = {};
-    //         return _database.getDatabase().put(doc);
-    //     });
-    // },
 
     /**
      * Get document (of any verb). Always latest revision
@@ -449,7 +425,9 @@ var _database = {
 	 */
 	load: function (urlOrString) {
 		// attempt to load database into a temporary db (not in-memory, though)
-		var tmpdb = new PouchDB("_tmpdb");
+		var tmpdb = new PouchDB("_tmpdb", {
+            storage: 'temporary',
+        });
 		
 		return tmpdb.load(urlOrString).then(function() {
 			// safe to destroy existing database

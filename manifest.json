@@ -31,7 +31,7 @@
     "background": {
         "scripts": [
             "static/js/purl.min.js",
-            "static/js/pouchdb-3.6.0.min.js",
+            "static/js/pouchdb-6.3.4.min.js",
 			"static/js/pouchdb.replication-stream.min.js",
 			"static/js/pouchdb.load.min.js",
             "js/storage.js",

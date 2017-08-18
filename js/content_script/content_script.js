@@ -57,8 +57,6 @@ var _contentScript = {
         }
 
         // shared options
-        const passiveCaptureEventOptions = { capture: true, passive: true }
-
         document.addEventListener('mouseenter', function (event) {
             // ignore events where the target of the captured event isn't a highlight
             const target = event.target
@@ -80,7 +78,7 @@ var _contentScript = {
             // transition in
             style.setProperty('opacity', '1')
             style.setProperty('transform', 'scale(1.0)')
-        }, passiveCaptureEventOptions)
+        }, { capture: true, passive: true })
 
         document.addEventListener('mouseleave', function (event) {
             // ignore events where the target of the captured event isn't a highlight
@@ -98,7 +96,7 @@ var _contentScript = {
                 style.setProperty('opacity', '0')
                 style.setProperty('transform', 'scale(0.6)')
             }, 500);
-        }, passiveCaptureEventOptions)
+        }, { capture: true, passive: true })
 
         // non-passive captured event
         document.addEventListener('click', function (event) {
@@ -132,7 +130,7 @@ var _contentScript = {
                     id: "on_click_delete_highlight",
                     highlightId: highlightId
                 });
-            }, { capture: false, passive: true});
+            }, { capture: false, passive: true, once: true});
 
             // transition out
             target.style.setProperty('opacity', '0')
@@ -182,39 +180,36 @@ var _contentScript = {
      */
     createHighlight: function (xpathRange, id, className) {
         "use strict";
-        var range;
+        let range;
 
         // this is likely to cause exception when the underlying DOM has changed
         try {
             range = _xpath.createRangeFromXPathRange(xpathRange);
+            if (!range) {
+                throw new Error(`error parsing xpathRange: ${xpathRange}`)
+            }
         } catch (err) {
             console.log("Exception parsing xpath range: " + err.message);
             return null;
         }
 
-        if (!range) {
-            console.log("error parsing xpathRange: " + xpathRange);
-            return null;
-        }
-
         // create span(s), with 2 class names
-        var highlightElement = _highlighter.create(range, id, [
+        const elm = _highlighter.create(range, id, [
             _contentScript.highlightClassName,
             className
         ]);
 
-        // enable tabbing
-        highlightElement.setAttribute("tabindex", "0");
-
         // 1 - only the first of the chain of spans should get the closeable class
-        highlightElement.classList.add("closeable");
+        elm.setAttribute("tabindex", "0");
+        elm.classList.add("closeable");
 
         // 2 - add 'close' span to the element
-        var closeElement = document.createElement("SPAN");
+        const closeElm = document.createElement("span");
+        closeElm.className = "close";
 
-        closeElement.className = "close";
+        elm.appendChild(closeElm);
 
-        highlightElement.appendChild(closeElement);
+        return elm
     },
 
     /**
@@ -265,15 +260,11 @@ var _contentScript = {
      * @return {boolean} true if on page
      */
     isHighlightInDOM: function (id) {
-        "use strict";
-
-        return document.querySelector(`#${id}`) != null
+        return !!document.querySelector(`#${id}`)
         // return $('#' + id).length === 1;
     },
 
     getBoundingClientRect: function (id) {
-        "use strict"
-
         return document.querySelector(`#${id}`).getBoundingClientRect()
     },
 
@@ -353,8 +344,7 @@ var _contentScript = {
             case "create_highlight":
                 // the caller specifies the id to use for the first span of the highlight,
                 // so it can identify it to remove it later
-                response = _contentScript.createHighlight(message.range,
-                    message.highlightId, message.className) !== null;
+                response = !!_contentScript.createHighlight(message.range, message.highlightId, message.className)
                 break;
 
             case "update_highlight":
@@ -367,24 +357,24 @@ var _contentScript = {
                 break;
 
             case "select_highlight":
-                // if highlightId is null, selection is cleared (no result)
-                var range = _contentScript.selectHighlight(message.highlightId);
-
-                // else response undefined
-                if (message.highlightId) {
-                    response = _xpath.createXPathRangeFromRange(range);
-                }
-                //            response = _xpath.createXPathRangeFromRange(
-                //                _contentScript.selectHighlight(message.highlightId));
+                response = (function(){
+                    // if highlightId is null, selection is cleared (no result)
+                    let range = _contentScript.selectHighlight(message.highlightId)
+                    
+                    return message.highlightId ? 
+                        _xpath.createXPathRangeFromRange(range) :
+                        undefined
+                })()
                 break;
 
             case "select_range":
                 // if range is null, selection is cleared
-                var range = message.range && _xpath.createRangeFromXPathRange(message.range);
+                response = (function(){
+                    let range = message.range && _xpath.createRangeFromXPathRange(message.range);
+                    _contentScript.selectRange(range);
 
-                _contentScript.selectRange(range);
-
-                response = range && _xpath.createXPathRangeFromRange(range);
+                    return range && _xpath.createXPathRangeFromRange(range);
+                })()
                 break;
 
             case "is_highlight_in_dom":
@@ -396,8 +386,10 @@ var _contentScript = {
                 break;
 
             case "get_range_text":
-                var range = _xpath.createRangeFromXPathRange(message.range);
-                response = range ? range.toString() : null;
+                response = (function () {
+                    let range = _xpath.createRangeFromXPathRange(message.range);
+                    return range ? range.toString() : null;
+                })()
                 break;
 
             case "scroll_to":
@@ -434,6 +426,9 @@ var _contentScript = {
         }
 
         sendResponse(response);
+
+        // always a synchronous response
+        return false
     },
 
     /**
@@ -455,36 +450,36 @@ var _contentScript = {
     /**
      * Mouse entered one of the highlight's spans
      */
-    onMouseEnterHighlight: function () {
-        "use strict";
-        // if text is selected, don't use the 'update' method
-        // if (!_contentScript.isSelectionCollapsed()) {
-        //     // dont wake event page if possible
-        //     return;
-        // }
+    // onMouseEnterHighlight: function () {
+    //     "use strict";
+    //     // if text is selected, don't use the 'update' method
+    //     // if (!_contentScript.isSelectionCollapsed()) {
+    //     //     // dont wake event page if possible
+    //     //     return;
+    //     // }
 
-        // 'this' is one of the spans in the list, related to a single highlight.
-        var id = _contentScript._getHighlightId(this);
-        if (id) {
-            // tell event page that this is the current highlight.
-            // if the range is not collapsed, it will probably be ignored
-            chrome.runtime.sendMessage({
-                id: "on_mouse_enter_highlight",
-                highlightId: id
-            });
-        }
-    },
+    //     // 'this' is one of the spans in the list, related to a single highlight.
+    //     var id = _contentScript._getHighlightId(this);
+    //     if (id) {
+    //         // tell event page that this is the current highlight.
+    //         // if the range is not collapsed, it will probably be ignored
+    //         chrome.runtime.sendMessage({
+    //             id: "on_mouse_enter_highlight",
+    //             highlightId: id
+    //         });
+    //     }
+    // },
 
     /**
      * Mouse left one of the highlight's spans
 	 */
-    onMouseLeaveHighlight: function () {
-        "use strict";
-        // tell event page that this is the current highlight
-        chrome.runtime.sendMessage({
-            id: "on_mouse_leave_highlight",
-        });
-    },
+    // onMouseLeaveHighlight: function () {
+    //     "use strict";
+    //     // tell event page that this is the current highlight
+    //     chrome.runtime.sendMessage({
+    //         id: "on_mouse_leave_highlight",
+    //     });
+    // },
 
     /**
      * Get the ID of the highlight currently being hovered over
