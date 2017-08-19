@@ -121,9 +121,9 @@ var _contentScript = {
             // wait until button disappears before sending message to remove highlight
             target.addEventListener("transitionend", function (event) {
                 // ignore the transform animation
-                if (event.propertyName !== "opacity") {
-                    return;
-                }
+                // if (event.propertyName !== "opacity") {
+                //     return;
+                // }
 
                 // tell event page to delete the highlight
                 chrome.runtime.sendMessage({
@@ -134,7 +134,7 @@ var _contentScript = {
 
             // transition out
             target.style.setProperty('opacity', '0')
-            target.style.setProperty('transform', 'scale(5)')
+            // target.style.setProperty('transform', 'scale(5)')
         }, { capture: true, passive: false })
 
         // OLD ROUTINE (not used because we don't want to wake event page')

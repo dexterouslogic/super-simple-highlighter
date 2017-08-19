@@ -481,23 +481,14 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @param {string} documentId highlight id
 	 */
 	$scope.onClickRemoveHighlight = function (event, documentId) {
-		// event.preventDefault();
-		// event.stopPropagation();
+		// don't scroll
+		event.stopPropagation();
+
 		const elm = event.currentTarget
 
 		// wait until button disappears before sending message to remove highlight
 		elm.addEventListener("transitionend", function (event) {
-			if (event.propertyName !== "opacity") {
-				return;
-			}
-
-			backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
-				if (result.ok) {
-					return updateDocs();
-				} else {
-					return Promise.reject(new Error());
-				}
-			}).then(function (docs) {
+			backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(() => updateDocs()).then(docs => {
 				// close popup on last doc removed
 				if (docs.length === 0) {
 					window.close();
@@ -510,7 +501,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		const style = elm.style
 
 		style.setProperty('opacity', 0)
-		style.setProperty('transform', 'scale(5)')
+		// style.setProperty('transform', 'scale(5)')
 
 		// backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
 		//     if (result.ok ) {

@@ -519,82 +519,101 @@ var _eventPage = {
 
     /**
      * Delete a highlight in the database, and in the page DOM
-     * @param {number} tabId tab id of associated tab, whose DOM should contain the highlight.
+     * @param {number} tabId tab id of associated tab, whose DOM should contain the highlight. 
+     * If undefined, assume NOT in DOM. It will still be removed from database
      * @param {string} documentId id of the document representing the highlight to remove
      */
-    deleteHighlight: function (tabId, documentId) {
+    deleteHighlight: function (tabId, docId) {
         "use strict";
-		var inDOM;
-		
-        // if the highlight isn't in the DOM, then deleting
-		// the 'create' document can be done directly,
-        // as create never had any effect
-        return _eventPage.isHighlightInDOM(tabId, documentId).then(function (result) {
-			inDOM = result;
-
+        
+        // document to be removed
+        let _doc
+        // was highlight for DOC found in DOM
+        var _isInDOM;
+        
+        return _database.getDocument_Promise(docId).then(doc => {
+            _doc = doc
+            
+            // promise to get whether highlight is in DOM. if no tabID, assume NO
+            return (typeof tabId !== 'undefined' && _eventPage.isHighlightInDOM(tabId, docId)) || false
+        }).then(function (isInDOM) {
+            _isInDOM = isInDOM;
+            
             // check the number of 'create' and 'delete' documents.
 			// if equal, there are no highlights for the page,
 			// so the page action can be removed
-            if (inDOM) {
-                console.log("Highlight IS in DOM. Posting 'delete' doc");
-
+            if (isInDOM || typeof tabId === 'undefined') {
+                console.log("Highlight found in DOM, or tabId undefined. Posting 'delete' doc");
+                
                 // highlight was in DOM, so we post an 
 				// additional 'delete' document
-                return _database.postDeleteDocument_Promise(documentId);//, _resultCallback);
+                return _database.postDeleteDocument_Promise(docId);//, _resultCallback);
             } else {
-                // remove directly
-                console.log("Highlight IS NOT in DOM. Directly removing 'create' doc");
+                // if the highlight isn't in the DOM, then deleting
+                // the 'create' document can be done directly,
+                // as create never had any effect
+                console.log("Highlight not in DOM. Directly removing 'create' doc");
 
-                return _database.getDocument_Promise(documentId).then(function (doc) {
-                    return _database.removeDocument_Promise(
-						doc._id, doc._rev);//, _resultCallback);                
-                });
+                return _database.removeDocument_Promise(_doc._id, _doc._rev)
             }
         }).then(function (response) {
-            /**
-             * Callback handler for posting 'delete' doc or removing 'create' doc
-             * @param [err]
-             * @param {object} response (ok/id/rev)
-             * @private
-             */
 			if (!response.ok) {
-				return response;
+				return Promise.reject(new Error(response))
 			}
 		
-			if (inDOM) {
-                console.log("Successfully posted ;delete' document. Removing in DOM");
-                _tabs.sendDeleteHighlightMessage_Promise(tabId, documentId);
-            } else {
-                console.log("Removed 'create' document");
-            }
+			if (_isInDOM) {
+                console.assert(typeof tabId === 'number')
+                console.log("Successfully posted 'delete' document. Removing in DOM");
 
-            console.log("reevaluating page action visibility");
-
-			var match;
+                return _tabs.sendDeleteHighlightMessage_Promise(tabId, docId);
+            } 
+            // else {
+            //     console.log("Removed 'create' document");
+            // }
+        }).then(_ => {
+            // console.log("reevaluating page action visibility");
 
             // check the number of 'create' and 'delete' documents. 
 			// if equal, there are no highlights for the page, 
-			// so the page action can be removed
-			return new Promise(function(resolve, reject) {
-				chrome.tabs.get(tabId, function (tab) {
-					resolve(tab);
-				});
-			}).then(function (tab) {
-				match = _database.buildMatchString(tab.url);
+            // so the page action can be removed
 
-                // sum of +create-delete verbs for a specific match
-				return _database.getMatchSum_Promise(match);
-			}).then(function (sum) {
-                if (sum <= 0) {					
-                    chrome.pageAction.hide(tabId);
+            // sum of +create-delete verbs for a specific match
+            return _database.getMatchSum_Promise(_doc.match)
+        }).then(sum => {
+            if (sum > 0) {
+                return
+            }
+
+            console.log(`Zero sum: removing all documents for ${_doc.match}`);
+
+            if (typeof tabId === 'number') {
+                chrome.pageAction.hide(tabId)
+            }
+
+            // can delete all documents
+            return _database.removeDocuments_Promise(_doc.match)
+        })
+
+			// return new Promise(function(resolve, reject) {
+			// 	chrome.tabs.get(tabId, function (tab) {
+			// 		resolve(tab);
+			// 	});
+			// }).then(function (tab) {
+			// 	match = _database.buildMatchString(tab.url);
+
+            //     // sum of +create-delete verbs for a specific match
+			// 	return _database.getMatchSum_Promise(match);
+			// }).then(function (sum) {
+            //     if (sum <= 0) {					
+            //         chrome.pageAction.hide(tabId);
 					
-					// can delete all documents
-					return _database.removeDocuments_Promise(match);
-                }
-			}).then(function () {
-				return response;
-			});
-        });
+			// 		// can delete all documents
+			// 		return _database.removeDocuments_Promise(match);
+            //     }
+			// }).then(function () {
+			// 	return response;
+			// });
+        // });
     },
 
     /**
