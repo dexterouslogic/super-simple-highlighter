@@ -369,13 +369,19 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		event.stopPropagation()
 
 		// get classname of new definition
-		var newDefinition = $scope.highlightDefinitions[index];
+		const dfn = $scope.highlightDefinitions[index];
 
-		backgroundPage._eventPage.updateHighlight(activeTab.id,
-			doc._id, newDefinition.className);
+		return backgroundPage._eventPage.updateHighlight(activeTab.id, doc._id, dfn.className).then(() => {
+			// update local classname, which will update class in dom
+			doc.className = dfn.className;
 
-		// update local classname, which will update class in dom
-		doc.className = newDefinition.className;
+			// regroup if required
+			if ($scope.sort.value !== 'style') {
+				return
+			}
+
+			return updateDocs().then(() => $scope.$apply())
+		})
 	};
 
 	$scope.onClickUndoLastHighlight = function () {
