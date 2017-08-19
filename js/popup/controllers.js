@@ -286,7 +286,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				})
 
 				// this bullshit is done because if it finishes too quick the popup is the wrong height
-				// setTimeout(() => {
+				setTimeout(() => {
 					$scope.$apply()
 					
 					// presumably the autofocus attribute effect gets overridden, so do it manually.
@@ -294,7 +294,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 					// if we set this too early the first value would be animated
 					$('#btn-sort-invert').addClass('button-animate-transition')
-				// }, 50)
+				}, 50)
 			})
 		});
 	});

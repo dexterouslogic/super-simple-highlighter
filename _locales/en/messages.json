@@ -63,7 +63,7 @@
     "message": "Create"
   },
   "create_new_style": {
-    "message": "New Style"
+    "message": "Create New Style"
   },
   "delete_highlight": {
     "message": "Remove"
@@ -72,7 +72,7 @@
     "message": "Edit Style"
   },
   "experimental": {
-    "message": "Experiments"
+    "message": "Advanced"
   },
   "experimental_database_export_button_text": {
     "message": "Export…"
@@ -87,7 +87,7 @@
     "message": "Backup"
   },
   "experimental_database_heading": {
-    "message": "Database"
+    "message": "Styles, Bookmarks & Highlights"
   },
   "experimental_database_import_button_text": {
     "message": "Import…"
@@ -171,7 +171,7 @@
     "message": "Options"
   },
   "options_tab_page_header_sites": {
-    "message": "Click a highlight to redefine its title and colors"
+    "message": "Select a style to change its title and colors"
   },
   "overview_footer": {
     "message": "Created with [$EXTENSION_NAME$]($EXTENSION_URL$). (C)$COPYRIGHT_YEAR$ [$EXTENSION_AUTHOR$]($EXTENSION_AUTHOR_URL$)",
@@ -238,7 +238,7 @@
     "message": "Every style requires a title"
   },
   "reset_default_styles": {
-    "message": "Reset All"
+    "message": "Reset to Default Styles"
   },
   "restore_all_warnings": {
     "message": "Restore all warnings"
@@ -262,10 +262,10 @@
     "message": "By Style"
   },
   "speak_highlight_text": {
-    "message": "Speak"
+    "message": "Say"
   },
   "styles": {
-    "message": "Styles"
+    "message": "Style"
   },
   "support": {
     "message": "Support"
@@ -319,10 +319,10 @@
     "message": "By Title"
   },
   "group_by_first_date": {
-    "message": "By First Highlight"
+    "message": "By Initial Highlight Date"
   },
   "group_by_last_date": {
-    "message": "By Last Highlight"
+    "message": "By Latest Highlight Date"
   },
   "show_page_highlight_text": {
     "message": "Show Highlights"
