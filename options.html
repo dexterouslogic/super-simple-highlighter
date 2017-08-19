@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html ng-app="optionsApp" ng-csp>
+
 <head lang="en" data-ng-controller="AboutController">
     <meta charset="UTF-8">
     <link href="static/css/angular-csp.css" rel="stylesheet">
@@ -8,396 +9,387 @@
     <link href="css/options.css" rel="stylesheet">
 
     <!-- <link href='http://fonts.googleapis.com/css?family=Roboto:400italic,400,300,600' rel='stylesheet' type='text/css'> -->
-	
-	<title>{{'options_page_title_prefix' | i18n}} - {{manifest.name}}</title>
-	
-	<script src="static/js/jquery-3.2.1.min.js"></script>
-	<script src="static/js/angular.min.js"></script>
-	<script src="static/js/bootstrap.min.js"></script>
-	<script src="static/js/angular.rangeSlider.min.js"></script>
-	<script src="static/js/memorystream.js"></script>
 
-	<script src="js/storage.js"></script>
-	<script src="js/stylesheet.js"></script>
-	<script src="js/string_utils.js"></script>
-	<!-- <script src="js/changelog.js"></script> -->
-	<script src="js/libraries.js"></script>
-	<script src="js/licenses.js"></script>
+    <title>{{'options_page_title_prefix' | i18n}} - {{manifest.name}}</title>
 
-	<script src="js/options/app.js"></script>
-	<script src="js/options/controllers.js"></script>
-	<script src="js/options/filters.js"></script>
-	<script src="js/i18n_filters.js"></script>
+    <script src="static/js/jquery-3.2.1.min.js"></script>
+    <script src="static/js/angular.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/angular.rangeSlider.min.js"></script>
+    <script src="static/js/memorystream.js"></script>
+
+    <script src="js/storage.js"></script>
+    <script src="js/stylesheet.js"></script>
+    <script src="js/string_utils.js"></script>
+    <!-- <script src="js/changelog.js"></script> -->
+    <script src="js/libraries.js"></script>
+    <script src="js/licenses.js"></script>
+
+    <script src="js/options/app.js"></script>
+    <script src="js/options/controllers.js"></script>
+    <script src="js/options/filters.js"></script>
+    <script src="js/i18n_filters.js"></script>
 
 </head>
 
 <body>
-<nav class="navbar navbar-default" role="navigation" data-ng-controller="AboutController">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1">
+    <nav class="navbar navbar-default" role="navigation" data-ng-controller="AboutController">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
 
-            <a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
-                <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
-				{{manifest.name}}
-                <span style="font-size: small;">{{manifest.version}}</span>
-            </a>
-			
+                <a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
+                    <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
+                    {{manifest.name}}
+                    <span style="font-size: small;">{{manifest.version}}</span>
+                </a>
+
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="mailto:support@dexterouslogic.com?subject=Re: {{manifest.name}} {{manifest.version}}">
+                        {{ 'support' | i18n}}
+                    </a></li>
+                    <li><a target="_blank" href="faq.html">{{'faq_title' | i18n}}</a></li>
+                    <li><a ng-href="{{'extension_author_url' | i18n}}">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
+                </ul>
+                <div class="navbar-form navbar-right">
+                    <div class="form-group" style="margin-top: 7px;">
+                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" style="/* vertical-align: middle; */">
+                            <input type="hidden" name="cmd" value="_s-xclick">
+                            <input type="hidden" name="hosted_button_id" value="5BME4UN9X4DC8">
+                            <input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal – The safer, easier way to pay online!"
+                                class="">
+                            <img alt="" border="0" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1">
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
+    </nav>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-			<!-- <ul class="nav navbar-nav">
+    <div class="container">
 
-			</ul>
-			 -->
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="mailto:support@dexterouslogic.com?subject=Re: {{manifest.name}} {{manifest.version}}">
-	                    {{ 'support' | i18n}}
-	            </a></li>
-				<li><a target="_blank" href="faq.html">{{'faq_title' | i18n}}</a></li>
-                <li><a ng-href="{{'extension_author_url' | i18n}}">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
+        <div class="row" ng-controller="PagesController">
+            <!--Nav Pills-->
+            <div class="col-xs-3">
+                <ul class="nav nav-pills nav-stacked" role="tablist">
+                    <li class="active"><a href="#styles" role="tab" data-toggle="pill">{{ 'styles' | i18n }}</a></li>
+                    <li><a href="#pages" role="tab" data-toggle="pill">{{ 'pages' | i18n }}</a></li>
+                    <li><a href="#experimental" role="tab" data-toggle="pill">{{ 'experimental' | i18n }}</a></li>
+                    <li><a href="#about" role="tab" data-toggle="pill">{{ 'about' | i18n }}</a></li>
+                </ul>
+            </div>
 
-<div class="container">
-
-    <div class="row" ng-controller="PagesController">
-        <!--Nav Pills-->
-        <div class="col-xs-3">
-            <ul class="nav nav-pills nav-stacked" role="tablist">
-                <li class="active"><a href="#styles" role="tab" data-toggle="pill">{{ 'styles' | i18n }}</a></li>
-                <li><a href="#pages" role="tab" data-toggle="pill">{{ 'pages' | i18n }}</a></li>
-                <li><a href="#experimental" role="tab" data-toggle="pill">{{ 'experimental' | i18n }}</a></li>
-                <li><a href="#about" role="tab" data-toggle="pill">{{ 'about' | i18n }}</a></li>
-            </ul>
-        </div>
-
-        <!--Nav Content-->
-        <div class="col-xs-9 tab-content">
-            <!--Styles Pane-->
-            <div class="tab-pane active fade in" id="styles" ng-controller="StylesController">
-                <!-- Shared Modal Dialog-->
-                <div class="modal fade" id="myModal" tabindex="-1" role="dialog"
-                     aria-labelledby="myModalTitle" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <form name="myForm" role="form">
-                                <!--Header-->
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">
+            <!--Nav Content-->
+            <div class="col-xs-9 tab-content">
+                <!--Styles Pane-->
+                <div class="tab-pane active fade in" id="styles" ng-controller="StylesController">
+                    <!-- Shared Modal Dialog-->
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form name="myForm" role="form">
+                                    <!--Header-->
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">
                                         <span aria-hidden="true">&times;</span>
                                         <span class="sr-only">{{ 'close' | i18n }}</span>
                                     </button>
 
-                                    <h4 class="modal-title" id="myModalTitle">{{modalTitle}}</h4>
-                                </div>
+                                        <h4 class="modal-title" id="myModalTitle">{{modalTitle}}</h4>
+                                    </div>
 
-                                <!--Body-->
-                                <div class="modal-body">
-                                    <!--Title-->
-                                    <div class="form-group"
-                                         ng-class="{'has-error': myForm.title.$invalid}">
+                                    <!--Body-->
+                                    <div class="modal-body">
+                                        <!--Title-->
+                                        <div class="form-group" ng-class="{'has-error': myForm.title.$invalid}">
 
-                                        <label class="control-label" for="myTitle">{{ 'highlight_title' | i18n }}</label>
-                                        <input class="form-control" name="title" id="myTitle"
-                                               type="text" ng-model="modalDefinition.title" required autofocus>
+                                            <label class="control-label" for="myTitle">{{ 'highlight_title' | i18n }}</label>
+                                            <input class="form-control" name="title" id="myTitle" type="text" ng-model="modalDefinition.title" required autofocus>
 
-                                        <span ng-show="myForm.title.$error.required" class="help-block">
+                                            <span ng-show="myForm.title.$error.required" class="help-block">
                                             {{ 'required_highlight_title' | i18n }}
                                         </span>
-                                    </div>
+                                        </div>
 
-                                    <!--Background Colour-->
-                                    <div class="form-group">
-                                        <label for="backgroundColour">{{ 'highlight_background_colour' | i18n }}</label>
-                                        <input type="color" class="form-control" id="backgroundColour"
-                                               ng-model="modalDefinition.style['background-color']">
-                                    </div>
+                                        <!--Background Colour-->
+                                        <div class="form-group">
+                                            <label for="backgroundColour">{{ 'highlight_background_colour' | i18n }}</label>
+                                            <input type="color" class="form-control" id="backgroundColour" ng-model="modalDefinition.style['background-color']">
+                                        </div>
 
-                                    <!--Text Colour-->
-                                    <div class="form-group">
-                                        <label for="textColour">{{ 'highlight_text_colour' | i18n }}</label>
-                                        <input type="color" class="form-control" id="textColour"
-                                               ng-model="modalDefinition.style['color']"
-                                                data-ng-disabled="modalDefinition.inherit_style_color">
-                                    </div>
+                                        <!--Text Colour-->
+                                        <div class="form-group">
+                                            <label for="textColour">{{ 'highlight_text_colour' | i18n }}</label>
+                                            <input type="color" class="form-control" id="textColour" ng-model="modalDefinition.style['color']" data-ng-disabled="modalDefinition.inherit_style_color">
+                                        </div>
 
-                                    <!--Inherit Text Color-->
-                                    <div class="checkbox">
-                                        <label>
+                                        <!--Inherit Text Color-->
+                                        <div class="checkbox">
+                                            <label>
                                             <input type="checkbox" ng-model="modalDefinition.inherit_style_color">
                                             {{ 'highlight_text_colour_inherit' | i18n }}
                                         </label>
+                                        </div>
+
+                                        <!--Shortcut help-->
+                                        <div class="help-block">{{ 'highlight_help_keyboard_shortcut' | i18n }}</div>
                                     </div>
 
-                                    <!--Shortcut help-->
-                                    <div class="help-block">{{ 'highlight_help_keyboard_shortcut' | i18n }}</div>
-                                </div>
-
-                                <!--Footer-->
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                                    <!--Footer-->
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">
                                         {{ 'cancel' | i18n }}
                                     </button>
-                                    <button type="button" class="btn btn-primary" data-ng-disabled="myForm.$invalid"
-                                            data-ng-click="onClickModalSave()">{{modalSaveButtonTitle}}
+                                        <button type="button" class="btn btn-primary" data-ng-disabled="myForm.$invalid" data-ng-click="onClickModalSave()">{{modalSaveButtonTitle}}
                                     </button>
-                                </div>
-                            </form>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!--Definitions-->
-                <!--<h4>Predefined Highlight Styles</h4>-->
-                <h4 class="lead">{{ 'options_tab_page_header_sites' | i18n }}</h4>
-                <ul class="list-unstyled">
-                    <li ng-repeat="d in definitions"
-                        class="token well-sm {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
-                        <!--Number (index+1)-->
-                        <span class="number">{{$index + 1}}</span>
-                        <!--title-->
-                        <span>{{d.title}}</span>
-                        <!--hotkey-->
-                        <kbd class="shortcut" ng-show="{{$index < commands.length && commands[$index].shortcut.length > 0}}">
+                    <!--Definitions-->
+                    <!--<h4>Predefined Highlight Styles</h4>-->
+                    <h4 class="lead">{{ 'options_tab_page_header_sites' | i18n }}</h4>
+                    <ul class="list-unstyled">
+                        <li ng-repeat="d in definitions" class="token well-sm {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
+                            <!--Number (index+1)-->
+                            <span class="number">{{$index + 1}}</span>
+                            <!--title-->
+                            <span>{{d.title}}</span>
+                            <!--hotkey-->
+                            <kbd class="shortcut" ng-show="{{$index < commands.length && commands[$index].shortcut.length > 0}}">
                             {{commands[$index].shortcut}}
                         </kbd>
 
-                        <!--Delete Button-->
-                        <button type="button" class="close"  title="Remove Style"
-                                ng-click="onClickDelete(d.className); $event.preventDefault(); $event.stopPropagation();">
+                            <!--Delete Button-->
+                            <button type="button" class="close" title="Remove Style" ng-click="onClickDelete(d.className); $event.preventDefault(); $event.stopPropagation();">
                             <span aria-hidden="true">&times;</span>
                             <span class="sr-only">{{'close' | i18n}}</span>
                         </button>
-                    </li>
-                </ul>
+                        </li>
+                    </ul>
 
-                <!--TODO: move to new page-->
-                <div style="margin-top: 20px">
-                    <!--Opacity-->
-                    <div class="row">
-                        <h5>{{ 'highlight_opacity' | i18n }}</h5>
-                        <div range-slider min="0.3" max="1.0"
-                             model-max="opacity" attach-handle-values="true"
-                             step="0.1" decimal-places="2" pin-handle="min" filter="alphaPercent"></div>
-                    </div>
+                    <!--TODO: move to new page-->
+                    <div style="margin-top: 20px">
+                        <!--Opacity-->
+                        <div class="row">
+                            <h5>{{ 'highlight_opacity' | i18n }}</h5>
+                            <div range-slider min="0.3" max="1.0" model-max="opacity" attach-handle-values="true" step="0.1" decimal-places="2" pin-handle="min"
+                                filter="alphaPercent"></div>
+                        </div>
 
-                    <!--Unselect after highlight-->
-                    <div class="checkbox">
-                        <label>
+                        <!--Unselect after highlight-->
+                        <div class="checkbox">
+                            <label>
                             <input type="checkbox" ng-model="unselectAfterHighlight">
                             {{ 'highlight_unselect' | i18n }}
                         </label>
-                    </div>
+                        </div>
 
-                    <!--Highlight box shadow enabled-->
-                    <div class="checkbox">
-                        <label>
+                        <!--Highlight box shadow enabled-->
+                        <div class="checkbox">
+                            <label>
                             <input type="checkbox" ng-model="isHighlightBoxShadowEnabled">
                             {{ 'highlight_box_shadow' | i18n }}
                         </label>
+                        </div>
+
                     </div>
 
-                </div>
-
-                <!-- Buttons -->
-                <div class="row row-buttons">
-                    <button type="button" class="btn btn-danger" ng-click="onClickReset()">
+                    <!-- Buttons -->
+                    <div class="row row-buttons">
+                        <button type="button" class="btn btn-danger" ng-click="onClickReset()">
                         {{ 'reset_default_styles' | i18n }}
                     </button>
-                    <button type="button" class="btn btn-default pull-right" ng-click="onClickAdd()">
+                        <button type="button" class="btn btn-default pull-right" ng-click="onClickAdd()">
                         {{ 'create_new_style' | i18n }}
                     </button>
+                    </div>
                 </div>
-            </div>
 
-            <!--Pages Pane-->
-            <div class="tab-pane fade" id="pages" ng-controller="PagesController">
-                <form class="header form-inline">
-                    <!-- Show page text -->
-                    <div class="checkbox" style="margin-right: auto;">
-                        <label>
+                <!--Pages Pane-->
+                <div class="tab-pane fade" id="pages" ng-controller="PagesController">
+                    <form class="header form-inline">
+                        <!-- Show page text -->
+                        <div class="checkbox" style="margin-right: auto;">
+                            <label>
                             <input type="checkbox" ng-model="options.showPageText">
                             {{ 'show_page_highlight_text' | i18n }}
                         </label>
-                    </div>
+                        </div>
 
-                    <!-- Grouping & Direction -->
-                    <div class="header-control header-control-group">
-                        <select class="form-control" ng-model="options.groupBy">
+                        <!-- Grouping & Direction -->
+                        <div class="header-control header-control-group">
+                            <select class="form-control" ng-model="options.groupBy">
                             <option value="title">{{'group_by_title' | i18n}}</option>
                             <option value="first_date">{{'group_by_first_date' | i18n}}</option>
                             <option value="last_date">{{'group_by_last_date' | i18n}}</option>
                         </select>
-                        
-                        <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner button-animate-transition" 
-                            ng-class="{'sort-inverted': !options.ascendingOrder }"
-                            type="button" title="{{'title_sort_direction' | i18n}}"
-                            ng-click="options.ascendingOrder = !options.ascendingOrder">
+
+                            <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner button-animate-transition" ng-class="{'sort-inverted': !options.ascendingOrder }"
+                                type="button" title="{{'title_sort_direction' | i18n}}" ng-click="options.ascendingOrder = !options.ascendingOrder">
                             <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
-                        </button>	
-                    </div>
+                        </button>
+                        </div>
 
-                    <div class="header-control header-control-group">
-                        <input type="search" class="form-control search" ng-model="documentFilterText"
-                            placeholder="{{(options.showPageText ? 'placeholder_filter_highlights' : 'placeholder_filter_titles') | i18n}}" autofocus>
-                    </div>
+                        <div class="header-control header-control-group">
+                            <input type="search" class="form-control search" ng-model="documentFilterText" placeholder="{{(options.showPageText ? 'placeholder_filter_highlights' : 'placeholder_filter_titles') | i18n}}"
+                                autofocus>
+                        </div>
 
-                </form>
+                    </form>
 
-                <!-- Only show if no items -->
-                <h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
-                    {{ 'pages_empty' | i18n }}
-                </h2>
+                    <!-- Only show if no items -->
+                    <h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
+                        {{ 'pages_empty' | i18n }}
+                    </h2>
 
-                <ol class="list-unstyled list-grouped-pages">
-                    <li ng-repeat="group in groupedDocs | filter:filters.group" class="page-group-list-item">
-                        <h3 class="page-group-header">
-                            {{ group.title }}
-                        </h3>
-        
-                        <ol class="list-unstyled">
-                            <li ng-repeat="doc in group.docs | filter:filters.document" id="{{doc._id}}" class="well-sm page"
-                                ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
-                                <!-- button to remove all highlights on this page -->
-                                <button type="button" class="close" 
-                                    ng-click="onClickRemoveAllHighlights(doc, group)"
-                                    title="{{ 'remove_all_highlights' | i18n }}"
-                                    ng-class="{'sr-only sr-only-focusable': !doc.hover}">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">{{ 'close' | i18n }}</span>
-                                </button>
+                    <ol class="list-unstyled list-grouped-pages">
+                        <li ng-repeat="group in groupedDocs | filter:filters.group" class="page-group-list-item">
+                            <h3 class="page-group-header">
+                                {{ group.title }}
+                            </h3>
 
-                                <!-- page title -->
-                                <h5 class="page-title">
-                                    <a href="{{doc.match}}" target="_blank">
+                            <ol class="list-unstyled">
+                                <li ng-repeat="doc in group.docs | filter:filters.document" id="{{doc._id}}" class="well-sm page" ng-mouseenter="doc.hover=true"
+                                    ng-mouseleave="doc.hover=false">
+                                    <!-- button to remove all highlights on this page -->
+                                    <button type="button" class="close" ng-click="onClickRemoveAllHighlights(doc, group)" title="{{ 'remove_all_highlights' | i18n }}"
+                                        ng-class="{'sr-only sr-only-focusable': !doc.hover}">
+                                        <span aria-hidden="true">&times;</span>
+                                        <span class="sr-only">{{ 'close' | i18n }}</span>
+                                    </button>
+
+                                    <!-- page title -->
+                                    <h5 class="page-title">
+                                        <a href="{{doc.match}}" target="_blank">
                                         {{doc.title || ('untitled_page_group' | i18n) }}
                                     </a>
-                                    <!-- Show a 'refresh' indicator for untitled pages -->
-                                    <span class="glyphicon glyphicon-refresh small" ng-show="!doc.title" 
-                                        aria-hidden="true" title="{{'untitled_page_tooltip' | i18n }}"></span>
-                                </h5>
-                                <!-- page link -->
-                                <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
-                                
-                                <!-- text for all highlights -->
-                                <ul class="list-inline page-text-list" ng-show="options.showPageText">
-                                    <li ng-repeat="t in doc.texts" class="list-inline page-text-list-item {{t.className}}">
-                                        {{ t.text || "&nbsp" }}
-                                    </li>
+                                        <!-- Show a 'refresh' indicator for untitled pages -->
+                                        <span class="glyphicon glyphicon-refresh small" ng-show="!doc.title" aria-hidden="true" title="{{'untitled_page_tooltip' | i18n }}"></span>
+                                    </h5>
+                                    <!-- page link -->
+                                    <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
 
-                                </ul>
-<!-- 
+                                    <!-- text for all highlights -->
+                                    <ul class="list-inline page-text-list" ng-show="options.showPageText">
+                                        <li ng-repeat="t in doc.texts" class="list-inline page-text-list-item {{t.className}}" title="{{ t.date | date:'medium' }}">
+                                            {{ t.text || "&nbsp" }}
+
+                                            <button type="button" class="list-item-close" ng-click="onClickRemoveHighlight(t.docId, doc)"  title="{{ 'remove_highlight' | i18n }}">
+                                            </button>
+    
+    
+                                        </li>
+                                    </ul>
+                                    <!-- 
                                 <a class="page-title" ng-show="typeof doc.title === 'string'" href="{{doc.match}}">{{doc.title}}</a>
                                 <a class="page-link" href="{{doc.match}}">{{doc.match}}</a> -->
-                                <!-- <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{doc.text}}</p>
+                                    <!-- <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{doc.text}}</p>
                                 <div class="infobar">
                                     <small class="date">{{ doc.date | date:'mediumTime' }}</small>
                                 </div> -->
-                            </li>
-                        </ol>
-                    </li>
-                </ol>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
 
-                <!-- row of buttons below list of pages -->
-                <div class="row row-buttons">
-                    <button type="button" class="btn btn-danger pull-right"
-                            ng-class="{'disabled': groupedDocs.length === 0}"
-                            data-ng-click="onClickRemoveAllPages()">
+                    <!-- row of buttons below list of pages -->
+                    <div class="row row-buttons">
+                        <button type="button" class="btn btn-danger pull-right" ng-class="{'disabled': groupedDocs.length === 0}" data-ng-click="onClickRemoveAllPages()">
                         {{ 'text_remove_all_pages' | i18n }}
                     </button>
+                    </div>
                 </div>
-            </div>
-			
-            <!--Experimental Pane-->
-            <div class="tab-pane fade" id="experimental" ng-controller="ExperimentalController">
-				<h4 class="lead">{{ 'experimental_header' | i18n }}</h4>
 
-				<div class="panel panel-default">
-				  <!-- Default panel contents -->
-				  <div class="panel-heading">{{ 'experimental_database_heading' | i18n }}</div>
+                <!--Experimental Pane-->
+                <div class="tab-pane fade" id="experimental" ng-controller="ExperimentalController">
+                    <h4 class="lead">{{ 'experimental_header' | i18n }}</h4>
 
-				  <!-- List group -->
-				  <ul class="list-group">
-				    <li class="list-group-item">
-						<strong>{{ 'experimental_database_export_title' | i18n }}</strong>
-						<p>{{ 'experimental_database_export_description' | i18n }}</p>
+                    <div class="panel panel-default">
+                        <!-- Default panel contents -->
+                        <div class="panel-heading">{{ 'experimental_database_heading' | i18n }}</div>
 
-		                <div class="row-buttons">
-		                    <button type="button" class="btn btn-default" data-ng-click="onClickDump()">
+                        <!-- List group -->
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>{{ 'experimental_database_export_title' | i18n }}</strong>
+                                <p>{{ 'experimental_database_export_description' | i18n }}</p>
+
+                                <div class="row-buttons">
+                                    <button type="button" class="btn btn-default" data-ng-click="onClickDump()">
 								{{ 'experimental_database_export_button_text' | i18n }}
 							</button>
-		                </div>
-					</li>
-					
-				    <li class="list-group-item">
-						<strong>{{ 'experimental_database_import_title' | i18n }}</strong>
-						<p>{{ 'experimental_database_import_description' | i18n }}</p>
-						
-		                <div class="row-buttons">
-							<span class="btn btn-danger btn-file">
+                                </div>
+                            </li>
+
+                            <li class="list-group-item">
+                                <strong>{{ 'experimental_database_import_title' | i18n }}</strong>
+                                <p>{{ 'experimental_database_import_description' | i18n }}</p>
+
+                                <div class="row-buttons">
+                                    <span class="btn btn-danger btn-file">
 							    {{ 'experimental_database_import_button_text' | i18n }}
 								<input type="file" id="files">
 							</span>
-		                </div>
-					</li>
-				  </ul>
-				</div>
-            </div>
-			
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
 
-            <!--About Pane-->
-            <div class="tab-pane fade" id="about" data-ng-controller="AboutController">
-                <img data-ng-src="{{manifest.icons['256']}}"/>
-                <h1>{{manifest.name}}</h1>
-                <h5>Version {{manifest.version}}</h5>
-                <p>
-					&copy;{{'copyright_year' | i18n}} <a ng-href="{{'extension_author_url' | i18n}}">{{ 'extension_author' | i18n }}</a>
-				</p>
 
-				<p>
-					Twitter: <a ng-href="{{'extension_author_twitter_url' | i18n}}" class="twitter-follow-button" data-show-count="false">
+                <!--About Pane-->
+                <div class="tab-pane fade" id="about" data-ng-controller="AboutController">
+                    <img data-ng-src="{{manifest.icons['256']}}" />
+                    <h1>{{manifest.name}}</h1>
+                    <h5>Version {{manifest.version}}</h5>
+                    <p>
+                        &copy;{{'copyright_year' | i18n}} <a ng-href="{{'extension_author_url' | i18n}}">{{ 'extension_author' | i18n }}</a>
+                    </p>
+
+                    <p>
+                        Twitter: <a ng-href="{{'extension_author_twitter_url' | i18n}}" class="twitter-follow-button" data-show-count="false">
 						@{{ 'extension_author_twitter' | i18n }}
 					</a>
-				</p>
-				<p>
-					<div>
-						<a target="_blank" href="changelog.txt">{{'changelog' | i18n}}</a>
-					</div>
-				</p>
- 
-               <h4>{{'libraries' | i18n}}</h4>
-                <ul>
-                    <li ng-repeat="library in libraries">
-                        <a href="{{library.href}}">{{library.text}}</a>
-                    </li>
-                </ul>
+                    </p>
+                    <p>
+                        <div>
+                            <a target="_blank" href="changelog.txt">{{'changelog' | i18n}}</a>
+                        </div>
+                    </p>
 
-                <h4>{{'licenses' | i18n}}</h4>
-                <div ng-repeat="item in cc" class="cc">
-                    "<a href="{{item.work.href}}">{{item.work.text}}</a>"
-                    by <a href="{{item.author.href}}">{{item.author.text}}</a>
-                    is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
-                </div>
-				
-                <div class="row row-buttons">
-	                <button type="button" class="btn btn-warning" data-ng-click="onClickRestoreAllWarnings()">
+                    <h4>{{'libraries' | i18n}}</h4>
+                    <ul>
+                        <li ng-repeat="library in libraries">
+                            <a href="{{library.href}}">{{library.text}}</a>
+                        </li>
+                    </ul>
+
+                    <h4>{{'licenses' | i18n}}</h4>
+                    <div ng-repeat="item in cc" class="cc">
+                        "<a href="{{item.work.href}}">{{item.work.text}}</a>" by <a href="{{item.author.href}}">{{item.author.text}}</a>                        is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
+                    </div>
+
+                    <div class="row row-buttons">
+                        <button type="button" class="btn btn-warning" data-ng-click="onClickRestoreAllWarnings()">
 	                    {{ 'restore_all_warnings' | i18n }}
 	                </button>
-                </div>
-				
-                
-<!--
+                    </div>
+
+
+                    <!--
                 <h4>{{'changelog' | i18n}}</h4>
                 <ul>
                     <li class="version" ng-repeat="unit in changelog">
@@ -410,10 +402,11 @@
                     </li>
                 <ul>
 -->
+                </div>
             </div>
         </div>
-    </div>
 
-</div>
+    </div>
 </body>
+
 </html>

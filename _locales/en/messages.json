@@ -229,7 +229,10 @@
     "message": "Style"
   },
   "remove_all_highlights": {
-    "message": "Remove Highlights"
+    "message": "Remove All Highlights"
+  },
+  "remove_highlight": {
+    "message": "Remove Highlight"
   },
   "required_highlight_title": {
     "message": "Every style requires a title"
@@ -268,7 +271,7 @@
     "message": "Support"
   },
   "text_remove_all_pages": {
-    "message": "Remove All"
+    "message": "Remove All Bookmarks"
   },
   "title": {
     "message": "Title"

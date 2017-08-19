@@ -278,6 +278,62 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
 }]);
 
 
+    // add event listener to document for mouseover on page-text-list-item (highlight texts)
+    document.addEventListener('mouseenter', function (event) {
+        const elm = event.target
+        
+        if (!(elm.classList && elm.classList.contains('page-text-list-item'))) {
+            return
+        }
+
+        // remove hysteresis timer
+        if (typeof elm.hysteresisTimeoutID === 'number') {
+            clearTimeout(elm.hysteresisTimeoutID)
+            delete elm.hysteresisTimeoutID
+        }
+
+        // show close button
+        const closeElm = elm.querySelector('.list-item-close')
+        closeElm.style.setProperty('opacity', '1')
+
+        // // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
+        // // have the 'closeable' class)
+        // const span = target.firstSpan;// $(this).prop('firstSpan');
+
+        // // remove hysteresis timer from the first span
+        // if (span.mouseLeaveHysteresisTimeoutID != null) {
+        //     // cancel scheduled out transition
+        //     clearTimeout(span.mouseLeaveHysteresisTimeoutID);
+        //     span.mouseLeaveHysteresisTimeoutID = null;
+        // }
+
+        // const style = span.querySelector('.close').style;
+
+        // // transition in
+        // style.setProperty('opacity', '1')
+        // style.setProperty('transform', 'scale(1.0)')
+    }, { capture: true, passive: true })
+
+    // add event listener for leaving highlight text
+    document.addEventListener('mouseleave', function (event) {
+        const elm = event.target
+        
+        if (!(elm.classList && elm.classList.contains('page-text-list-item'))) {
+            return
+        }
+
+        const closeElm = elm.querySelector('.list-item-close')
+
+        // add a timeout once we leave the element. If we return we cancel the transition out
+        elm.hysteresisTimeoutID = setTimeout(() => {
+            // transition out wasn't cancelled
+            delete elm.mouseLeaveHysteresisTimeoutID
+
+            closeElm.style.setProperty('opacity', '0')
+        }, 500);
+    }, { capture: true, passive: true })
+
+
 /**
  * Controller for Sites pane
  */
@@ -286,7 +342,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     var backgroundPage
 
     // docs before grouping
-    let ungroupedDocs = []
+    let _docs = []
 
     $scope.options = {
         // groupBy: {string}
@@ -319,6 +375,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 )
         }
     }
+
 
     // starter
     chrome.runtime.getBackgroundPage(bp => {
@@ -370,12 +427,14 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                     return {
                         // text might be undefined if info.selectedText was undefined in context_menus.js (for some reason)
                         text: doc.text,
+                        docId: doc._id,
+                        date: doc.date,
                         className: doc.className,
                     }
                 })
             })
 
-            ungroupedDocs = createDocs.map(a => a[0])
+            _docs = createDocs.map(a => a[0])
 
             // group the documents by their title (if possible), and get a sorted array
             updateGroupedDocuments()
@@ -427,7 +486,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         options.groupBy = options.groupBy || 'title'
         options.reverse = (typeof options.reverse === 'boolean' && options.reverse) || false
 
-        docs.forEach(doc => {
+        docs.filter(d => d.texts.length > 0).forEach(doc => {
             // typeless value defining group
             const groupValue = (() => {
                 switch (options.groupBy) {
@@ -558,10 +617,41 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 
     function updateGroupedDocuments() {
         // group the documents by their title (if possible), and get a sorted array
-        $scope.groupedDocs = groupDocuments(ungroupedDocs, {
+        $scope.groupedDocs = groupDocuments(_docs, {
             groupBy: $scope.options.groupBy,
             reverse: !$scope.options.ascendingOrder,
         })
+    }
+
+    /**
+     * Button on the text of each highlight was clicked
+     * @param {Object} docId - id of doc that defines the actual highlight
+     * @param {Object} initialDoc - initial doc for the page, containing array of text objects for all the highlights
+     */
+    $scope.onClickRemoveHighlight = (docId, initialDoc) => {
+        // close button
+		const elm = event.currentTarget
+        
+        // wait until transition on close button ends before updating model
+        elm.addEventListener("transitionend", event => {
+            backgroundPage._eventPage.deleteHighlight(undefined, docId).then(result => {
+                // if (!result.ok) {
+                //     return Promise.reject(new Error());
+                // }
+
+                const index = initialDoc.texts.findIndex(t => t.docId === docId)
+                console.assert(index !== -1)
+
+                // splice out of array of highlights (i.e. texts)
+                initialDoc.texts.splice(index, 1)
+
+                // regroup
+                updateGroupedDocuments()
+                $scope.$apply()
+            })
+        }, { capture: false, passive: true, once: true });
+        
+        elm.style.setProperty('opacity', 0)
     }
 
     /**
