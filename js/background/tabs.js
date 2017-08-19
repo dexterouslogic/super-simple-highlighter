@@ -371,7 +371,7 @@ var _tabs = {
 		switch(sortby) {
         case "time":
             // simply order by creation time (which it probably already does)
-            return doc => Promise.resolve(doc.time)
+            return doc => Promise.resolve(doc.date)
 			
         case "location":
             return doc => {

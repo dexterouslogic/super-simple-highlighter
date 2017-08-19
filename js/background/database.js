@@ -460,23 +460,32 @@ var _database = {
 
 		// object in which each attribute's value corresponds to the resolved
 		// promise result for it. If the promise rejected, no attribute is
-		// added. Every attribute's value must be of the same type
-		var results = {};
+        // added. Every attribute's value must be of the same type
+        let values = new Map()
 		
-		return Promise.all(docs.map(function (doc) {
-			return comparator(doc).then(function (result) {
-				results[doc._id] = result
-			}).catch(function () {
-				// swallow and ignore
-			})
-		})).then(function () {
-			// sort a shallow copy, and return it
-			return docs.slice().sort(function (doc1, doc2) {
-				const a = (typeof(results[doc1._id]) === 'undefined' ? true : results[doc1._id])
-				const b = (typeof(results[doc2._id]) === 'undefined' ? true : results[doc2._id])
-                
-                return a > b
-			})
+		return Promise.all(docs.map(doc => {
+			return comparator(doc).then(value => values.set(doc._id, value)).catch(() => { /* ignore */ })
+		})).then(() => {
+            // shallow copy docs, and sort it
+            return docs.slice().sort((d1, d2) => {
+                const v1 = values.get(d1._id)
+                const v2 = values.get(d2._id)
+                const t1 = typeof v1
+
+                if (t1 === 'undefined') {
+                    return (typeof v2 === 'undefined') ? 0 : -1;
+                }
+                if (typeof v2 === 'undefined') {
+                    return (typeof v1 === 'undefined') ? 0 : 1;
+                }
+
+                switch (t1) {
+                    case 'string':
+                        return v1.localeCompare(v2)
+                    default:
+                        return v1 - v2
+                }
+            })
 		})
 	},
 };
