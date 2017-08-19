@@ -33,7 +33,7 @@ var _eventPage = {
         chrome.runtime.onStartup.addListener(_eventPage.onRuntimeStartup);
         chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
 
-        chrome.webNavigation.onDOMContentLoaded.addListener(_eventPage.onDOMContentLoaded, {
+        chrome.webNavigation.onCompleted.addListener(_eventPage.onCompleted, {
             url: [{ 
                 schemes: ['http', 'https', 'file']
             }]
@@ -100,11 +100,13 @@ var _eventPage = {
 
     /**
      * Fired when a document, including the resources it refers to, is completely loaded and initialized.
-     * @param details
+     * We should probably use 'onDOMContentLoaded', but leaving it until the very last opportunity is
+     * (probably) more robust, but slower
+     * @param {Object} details - navigation details
      */
-    onDOMContentLoaded: function (details) {
+    onCompleted: function (details) {
         "use strict";
-        console.log("onDOMContentLoaded");
+        console.log("onCompleted");
 //        console.log(details);
 
         // 0 indicates the navigation happens in the tab content window
