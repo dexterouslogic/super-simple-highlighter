@@ -18,8 +18,8 @@
  */
 
 // disable console log
-console.log = function () { }
-console.assert = function () { }
+// console.log = function () { }
+// console.assert = function () { }
 
 /**
  * Controllers module

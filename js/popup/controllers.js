@@ -18,7 +18,7 @@
  */
 
 // disable console log
-console.log = function () { }
+// console.log = function () { }
 
 /**
  * Controllers module
@@ -239,7 +239,6 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 					return;
 				}
 
-				console.log(newVal);
 				_storage.setValue(!newVal, "fileAccessRequiredWarningDismissed")
 			});
 

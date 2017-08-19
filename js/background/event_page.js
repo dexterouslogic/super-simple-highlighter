@@ -18,7 +18,7 @@
  */
 
 // disable console log
-console.log = function() {}
+// console.log = function() {}
 
 var _eventPage = {
     /**
