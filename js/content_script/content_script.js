@@ -105,7 +105,7 @@ var _contentScript = {
             
             if (!(target.classList.contains('close') &&
                 target.parentElement &&
-                target.parentElement.classList.contains('closeable') &&
+                target.parentElement.classList.contains('closeable') &&     // only first highlight span is closeable
                 target.parentElement.classList.contains(`${_contentScript.highlightClassName}`)))
                 { return }
             
@@ -118,22 +118,11 @@ var _contentScript = {
                 return
             }
 
-            // wait until button disappears before sending message to remove highlight
-            target.addEventListener("transitionend", function (event) {
-                // ignore the transform animation
-                // if (event.propertyName !== "opacity") {
-                //     return;
-                // }
-
-                // tell event page to delete the highlight
-                chrome.runtime.sendMessage({
-                    id: "on_click_delete_highlight",
-                    highlightId: highlightId
-                });
-            }, { capture: false, passive: true, once: true});
-
-            // transition out
-            target.style.setProperty('opacity', '0')
+            // tell event page to delete the highlight
+            chrome.runtime.sendMessage({
+                id: "on_click_delete_highlight",
+                highlightId: highlightId
+            });
             // target.style.setProperty('transform', 'scale(5)')
         }, { capture: true, passive: false })
 
@@ -194,22 +183,23 @@ var _contentScript = {
         }
 
         // create span(s), with 2 class names
-        const elm = _highlighter.create(range, id, [
+        let firstSpan = _highlighter.create(range, id, [
             _contentScript.highlightClassName,
             className
         ]);
 
         // 1 - only the first of the chain of spans should get the closeable class
-        elm.setAttribute("tabindex", "0");
-        elm.classList.add("closeable");
+        firstSpan.setAttribute("tabindex", "0");
+        firstSpan.classList.add("closeable");
 
         // 2 - add 'close' span to the element
+        // TODO: button
         const closeElm = document.createElement("span");
         closeElm.className = "close";
 
-        elm.appendChild(closeElm);
+        firstSpan.appendChild(closeElm);
 
-        return elm
+        return firstSpan
     },
 
     /**
@@ -275,8 +265,7 @@ var _contentScript = {
      */
     updateHighlight: function (id, className) {
         // remember to also include the shared highlights class name
-        "use strict";
-        return _highlighter.update(id, [_contentScript.highlightClassName, className]);
+        return _highlighter.update(id, className)
     },
 
     /**

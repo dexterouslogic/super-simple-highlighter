@@ -26,7 +26,7 @@ var _highlighter = {
      * @param range Range object describing range to highlight
      * @param id id to assign to first span in highlight's list
      * @param className string or array of class names to assign of all spans in highlight's list
-     * @return {null} first and last node will both be !== null if created. see comments for structure
+     * @return {Object} first and last node will both be !== null if created. see comments for structure
      */
     create: function (range, id, className) {
         "use strict";
@@ -34,7 +34,7 @@ var _highlighter = {
         // highlights are wrapped in one or more spans
         var span = document.createElement("SPAN");
         
-        span.className = (className instanceof Array ? className.join(" ") : className);
+        span.className = (Array.isArray(className) && className.join(" ")) || className
 
         // each node has a .nextElement property, for following the linked list
         var record = {
@@ -183,26 +183,36 @@ var _highlighter = {
 
     /**
      * Update the classname of a highlight
-     * @param id id of first span in highlight's list
-     * @param className string or array of new class name(s)
+     * @param {string} id - id of first span in highlight's list
+     * @param {string} newHighlightClassname string for new class name
      */
-    update: function (id, className) {
+    update: function (id, newHighlightClassname) {
         "use strict";
         // id is for first span in list
-        var span = document.getElementById(id);
+        let span = document.getElementById(id);
 
         // not finding the first element, or it not being legal, is a fail
         if (!this._isHighlightSpan(span)) {
             return false;
         }
 
-        // make string
-        className = (className instanceof Array ? className.join(" ") : className);
+        // any classes not in this set are removed
+        const allowedClasses = new Set([
+            _contentScript.highlightClassName,
+            'closeable'
+        ])
 
         do {
-            span.className = className;
+            // remove all but required classes            
+            span.classList.remove(
+                Array.prototype.slice.call(span.classList).filter(className => !allowedClasses.has(className))
+            )
+
+            // add new class
+            span.classList.add(newHighlightClassname)
+
             span = span.nextSpan;
-        } while (this._isHighlightSpan(span));
+        } while (span && this._isHighlightSpan(span));
 
         return true;
     },
