@@ -19,20 +19,29 @@ var _tabs = {
 	/** 
 	 * Promise version of chrome's active tab getter
 	 */
-	getActiveTab: function() {
-		return new Promise(function(resolve, reject) {
-	        chrome.tabs.query({ 
-				active: true,
-				currentWindow: true 
-			}, function (tabs) {
-	            if (!tabs || tabs.length < 1) {
-					reject(new Error("No active tab"));
-				} else {
-					resolve(tabs[0]);
-				}
-			});
-		})        
-	},
+    getActiveTab: () => {
+        return _tabs.query({
+            active: true,
+            currentWindow: true 
+        }).then(tabs => {
+            if (!tabs || tabs.length === 0) {
+                return Promise.reject(new Error("No active tab"))
+            }
+
+            return tabs[0]
+        })
+    },
+    
+    /**
+     * Promisifed version of chrome.tabs.query
+     * @param {Object} queryInfo - see https://developer.chrome.com/extensions/tabs#method-query 
+     * @returns {Promise<Array<Tab>>} - array of chrome tabs
+     */
+    query: (queryInfo) => {
+        return new Promise(resolve => {
+            chrome.tabs.query(queryInfo, tabs => resolve(tabs))
+        })
+    },
 	
     /**
      * call {@link chrome.tabs.executeScript()} serially

@@ -34,12 +34,12 @@ var _eventPage = {
         chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
 
         chrome.webNavigation.onCompleted.addListener(_eventPage.onCompleted, {
-            url: [{ 
+            url: [{
                 schemes: ['http', 'https', 'file']
             }]
         })
-            
-		// DISABLED UNTIL MOUSE EVENT BUG IS FIXED
+
+        // DISABLED UNTIL MOUSE EVENT BUG IS FIXED
         // chrome.tabs.onActivated.addListener(_eventPage.onActivated);
 
         chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
@@ -67,10 +67,10 @@ var _eventPage = {
 
             return _database.viewCleanup_Promise();
         }).then(function () {
-	        _contextMenus.recreateMenu();        	
+            _contextMenus.recreateMenu();
         });
 
-//        _eventPage.onRuntimeStartup();
+        //        _eventPage.onRuntimeStartup();
     },
 
     /**
@@ -83,19 +83,19 @@ var _eventPage = {
         console.log("onRuntimeStartup");
 
         _contextMenus.recreateMenu();
-		
+
         // remove entries in which the number of 'create' doc == number of 'delete' docs
-		return _database.getMatchSums_Promise().then(function (rows) {
-			return Promise.all(rows.filter(function(row) {
-				return row.value === 0;
-			}).map(function(row) {
-				return _database.removeDocuments_Promise(row.key);
-			}));
-		}).then(function() {
-			_database.compact()
-		}).then(function() {
+        return _database.getMatchSums_Promise().then(function (rows) {
+            return Promise.all(rows.filter(function (row) {
+                return row.value === 0;
+            }).map(function (row) {
+                return _database.removeDocuments_Promise(row.key);
+            }));
+        }).then(function () {
+            _database.compact()
+        }).then(function () {
             console.log("Compacted database");
-		});
+        });
     },
 
     /**
@@ -107,7 +107,7 @@ var _eventPage = {
     onCompleted: function (details) {
         "use strict";
         console.log("onCompleted");
-//        console.log(details);
+        //        console.log(details);
 
         // 0 indicates the navigation happens in the tab content window
         if (details.frameId !== 0) {
@@ -116,22 +116,22 @@ var _eventPage = {
 
         // default (ok)
         // NW don't know why tab id sometimes is invalid
-//        _eventPage.setPageActionStatus(details.tabId, false);
+        //        _eventPage.setPageActionStatus(details.tabId, false);
 
         // update the page action with the app title, even if it doesn't get shown
-//        chrome.pageAction.setTitle({
-//            "tabId": details.tabId,
-//            "title": chrome.runtime.getManifest().name
-//        });
+        //        chrome.pageAction.setTitle({
+        //            "tabId": details.tabId,
+        //            "title": chrome.runtime.getManifest().name
+        //        });
 
         // get all the documents with our desired highlight key, in increasing order
         // query for all documents with this key
         let matchString = _database.buildMatchString(details.url);
-		let matchedDocs;
+        let matchedDocs;
 
-		return _database.getDocuments_Promise(matchString).then(function (docs) {
+        return _database.getDocuments_Promise(matchString).then(function (docs) {
             matchedDocs = docs;
-            
+
             // configure and show page action
             console.log("Matched " + matchedDocs.length + " document(s) with '" + matchString + "'");
             if (matchedDocs.length === 0) {
@@ -139,7 +139,7 @@ var _eventPage = {
             }
 
             const firstDoc = matchedDocs[0]
-            
+
             // if the first document is a 'create' document without a title, update it now
             if (firstDoc.verb === 'create' && typeof firstDoc.title === 'undefined') {
                 // promise resolves when tab title obtained
@@ -160,11 +160,11 @@ var _eventPage = {
                 return Promise.resolve()
             }
         }).then(() => {
-			console.log("Injecting scripts into top level frames...");
-			return _tabs.executeAllScripts_Promise(details.tabId, false);
+            console.log("Injecting scripts into top level frames...");
+            return _tabs.executeAllScripts_Promise(details.tabId, false);
         }).then(() => {
-			console.log("Replaying documents into DOM");
-			
+            console.log("Replaying documents into DOM");
+
             return _tabs.replayDocuments_Promise(details.tabId, matchedDocs, function (errorDoc) {
                 // method only called if there's an error. called multiple times
                 console.log("Error:" + JSON.stringify(errorDoc));
@@ -174,14 +174,14 @@ var _eventPage = {
                     _eventPage.setPageActionStatus(details.tabId, true);
                 }
             })
-		}).then((sum) => {
+        }).then((sum) => {
             console.log("Create/Delete document sum is " + sum);
 
             if (sum > 0) {
                 console.log("Showing page action");
                 chrome.pageAction.show(details.tabId);
             }
-		});
+        });
     },
 
     /**
@@ -197,8 +197,8 @@ var _eventPage = {
         // any errors will changes the page action image
         chrome.pageAction.setTitle({
             tabId: tabId,
-            title: chrome.i18n.getMessage(not_in_dom ? 
-				"page_action_title_not_in_dom" : "page_action_default_title")
+            title: chrome.i18n.getMessage(not_in_dom ?
+                "page_action_title_not_in_dom" : "page_action_default_title")
         });
 
         chrome.pageAction.setIcon({
@@ -220,30 +220,30 @@ var _eventPage = {
         "use strict";
 
         switch (message.id) {
-        case "on_click_delete_highlight":
-            // message.highlightId is the document id to be deleted
-            _tabs.getActiveTab().then(function(tab) {
-                _eventPage.deleteHighlight(tab.id, message.highlightId);
-            });
-            break;
+            case "on_click_delete_highlight":
+                // message.highlightId is the document id to be deleted
+                _tabs.getActiveTab().then(function (tab) {
+                    _eventPage.deleteHighlight(tab.id, message.highlightId);
+                });
+                break;
 
-        // case "on_mouse_enter_highlight":
-        //     _contextMenus.setHoveredHighlightId(message.highlightId);
-        //     break;
+            // case "on_mouse_enter_highlight":
+            //     _contextMenus.setHoveredHighlightId(message.highlightId);
+            //     break;
 
-        // case "on_mouse_leave_highlight":
-        //     _contextMenus.setHoveredHighlightId(null);
-        //     break;
+            // case "on_mouse_leave_highlight":
+            //     _contextMenus.setHoveredHighlightId(null);
+            //     break;
 
-//        case "create_highlight":
-//            // create new document for highlight, then update DOM
-//            _eventPage.createHighlight(sender.tab.id,
-//                message.range, _database.buildMatchString(sender.tab.url),
-//                message.selectionText, message.className);
-//            break;
+            //        case "create_highlight":
+            //            // create new document for highlight, then update DOM
+            //            _eventPage.createHighlight(sender.tab.id,
+            //                message.range, _database.buildMatchString(sender.tab.url),
+            //                message.selectionText, message.className);
+            //            break;
 
-        default:
-            throw "Unhandled message: sender=" + sender + ", id=" + message.id;
+            default:
+                throw "Unhandled message: sender=" + sender + ", id=" + message.id;
         }
     },
 
@@ -281,148 +281,148 @@ var _eventPage = {
      */
     onCommandsCommand: function (command) {
         "use strict";
-		// parse well-known command strings, but default to the formatted kind
-		switch(command) {
-        case "delete_hovered_highlight":
-            var _tab;
+        // parse well-known command strings, but default to the formatted kind
+        switch (command) {
+            case "delete_hovered_highlight":
+                var _tab;
 
-            return _tabs.getActiveTab().then(function(tab) {
-                _tab = tab;
+                return _tabs.getActiveTab().then(function (tab) {
+                    _tab = tab;
 
-                return _tabs.getHoveredHighlightID(tab.id);
-			}).then(function(documentId) {
-                if (documentId) {
-                    _eventPage.deleteHighlight(_tab.id, documentId);
+                    return _tabs.getHoveredHighlightID(tab.id);
+                }).then(function (documentId) {
+                    if (documentId) {
+                        _eventPage.deleteHighlight(_tab.id, documentId);
+                    }
+                });
+
+            case "undo_last_create_highlight":
+                return _tabs.getActiveTab().then(function (tab) {
+                    return _eventPage.undoLastHighlight(tab.id);
+                });
+
+            case "copy_overview":
+                var tab, sortby, invert;
+
+                // use the sort defined by the popup
+                return _tabs.getActiveTab().then(function (_tab) {
+                    tab = _tab;
+                    return _storage.getValue("highlight_sort_by");
+                }).then(function (value) {
+                    sortby = value;
+                    return _storage.getValue("highlight_invert_sort");
+                }).then(function (invert) {
+                    const comparator = _tabs.getComparisonFunction(tab.id, sortby)
+                    return _eventPage.getOverviewText("markdown", tab, comparator, undefined, invert);
+                }).then(function (text) {
+                    // copy to clipboard
+                    _eventPage.copyText(text);
+                });
+
+            default:
+                // parse the command string to find the style's index
+                // 'apply_highlight_index.0'
+                var re = new RegExp("^apply_highlight\\.(\\d+)$");
+                var match = re.exec(command);
+
+                if (!match || match.length !== 2) {
+                    throw "unknown command " + command;
                 }
-            });
 
-		case "undo_last_create_highlight":
-			return _tabs.getActiveTab().then(function(tab) {
-				return _eventPage.undoLastHighlight(tab.id);
-			});
-			
-		case "copy_overview":
-			var tab, sortby, invert;
-			
-			// use the sort defined by the popup
-			return _tabs.getActiveTab().then(function(_tab) {
-				tab = _tab;
-				return _storage.getValue("highlight_sort_by");
-			}).then(function (value) {
-                sortby = value;
-                return _storage.getValue("highlight_invert_sort");
-			}).then(function (invert) {
-                const comparator = _tabs.getComparisonFunction(tab.id, sortby)
-                return _eventPage.getOverviewText("markdown", tab, comparator, undefined, invert);
-			}).then(function(text) {
-				// copy to clipboard
-				_eventPage.copyText(text);
-			});
-			
-		default:
-			// parse the command string to find the style's index
-	        // 'apply_highlight_index.0'
-	        var re = new RegExp("^apply_highlight\\.(\\d+)$");
-	        var match = re.exec(command);
+                var index = parseInt(match[1]);
+                var hd;
 
-	        if (!match || match.length !== 2) {
-	            throw "unknown command " + command;
-	        }
+                // convert to object
+                return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
+                    if (!items.highlightDefinitions || items.highlightDefinitions.length <= index) {
+                        return Promise.reject(new Error("Unable to match command index to definition"));
+                    }
 
-	        var index = parseInt(match[1]);
-			var hd;
-			
-	        // convert to object
-	        return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
-	            if (!items.highlightDefinitions || items.highlightDefinitions.length <= index) {
-	                return Promise.reject(new Error("Unable to match command index to definition"));
-	            }
+                    hd = items.highlightDefinitions[index];
 
-	            hd = items.highlightDefinitions[index];
+                    return _tabs.getActiveTab();
+                }).then(function (activeTab) {
+                    var match = _database.buildMatchString(activeTab.url);
+                    if (!match) {
+                        return Promise.reject(new Error());
+                    }
 
-				return _tabs.getActiveTab();
-			}).then(function(activeTab) {
-                var match = _database.buildMatchString(activeTab.url);
-                if (!match) {
-					 return Promise.reject(new Error());
-				}
+                    return _tabs.sendGetSelectionRangeMessage_Promise(activeTab.id).then(function (xpathRange) {
+                        if (!xpathRange) {
+                            return Promise.reject(new Error());
+                        }
 
-				return _tabs.sendGetSelectionRangeMessage_Promise(activeTab.id).then(function (xpathRange) {
-					if (!xpathRange) {
-						return Promise.reject(new Error());
-					}
-					
-                    // non collapsed selection means create new highlight
-                    if (!xpathRange.collapsed) {
-                        // requires selection text
-                        return _tabs.sendGetRangeTextMessage_Promise(activeTab.id, xpathRange).then(function (selectionText) {
-                            if (!selectionText) {
-								return Promise.reject(new Error());
-							}
-							
-                            // create new document for highlight,
-							// then update DOM
-                            return _eventPage.createHighlight(activeTab.id,
-                                xpathRange, _database.buildMatchString(activeTab.url),
-                                selectionText, hd.className);
-						}).then(function() {
-                            // remove selection?
-                            return _storage.getValue("unselectAfterHighlight").then(function (unselectAfterHighlight) {
-                                if (unselectAfterHighlight) {
-                                    // unselect all
-                                    _eventPage.selectHighlightText(activeTab.id);
+                        // non collapsed selection means create new highlight
+                        if (!xpathRange.collapsed) {
+                            // requires selection text
+                            return _tabs.sendGetRangeTextMessage_Promise(activeTab.id, xpathRange).then(function (selectionText) {
+                                if (!selectionText) {
+                                    return Promise.reject(new Error());
                                 }
+
+                                // create new document for highlight,
+                                // then update DOM
+                                return _eventPage.createHighlight(activeTab.id,
+                                    xpathRange, _database.buildMatchString(activeTab.url),
+                                    selectionText, hd.className);
+                            }).then(function () {
+                                // remove selection?
+                                return _storage.getValue("unselectAfterHighlight").then(function (unselectAfterHighlight) {
+                                    if (unselectAfterHighlight) {
+                                        // unselect all
+                                        _eventPage.selectHighlightText(activeTab.id);
+                                    }
+                                });
                             });
-                        });
-					} else {
-                        // collapsed selection range means update 
-						// the hovered highlight (if possible)
-                        return _tabs.getHoveredHighlightID(activeTab.id).then(function(documentId) {
-                            if (!documentId) {
-                                return Promise.resolve();
-                            }
-
-                            // if the hovered highlight has a different style to the shortcut request, update
-                            // it. If not, remove the highlight.
-
-                            /// get doc associated with highlight, identified by id
-                            return _database.getDocument_Promise(documentId).then(function(doc) {
-                                if (doc.className !== hd.className) {
-                                    // different class. update.
-                                    return _eventPage.updateHighlight(activeTab.id, documentId, hd.className);
-                                } else {
-                                    // return _storage.getValue("remove_highlight_if_shortcut_highlight_definition_equals_hovered").then(function(value) {
-                                    //     if (!value) {
-                                    //         return Promise.resolve();
-                                    //     }
-
-                                    //     // remove the highlight
-                                    //     return _eventPage.deleteHighlight(activeTab.id, documentId).then(function() {
-                                    //         // then select the text it spanned
-                                    //         return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
-                                    //     });
-                                    // });
-
-                                    // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
-                                    // Otherwise it's too easy to make multiple highlights over the same range.
-                                    return _storage.getValue("unselectAfterHighlight").then(function(unselectAfterHighlight) {
-                                        if (!unselectAfterHighlight) {
-                                            return Promise.resolve();
-                                        }
-
-                                        // remove the highlight
-                                        return _eventPage.deleteHighlight(activeTab.id, documentId).then(function() {
-                                            // then select the text it spanned
-                                            return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
-                                        });
-                                    });
+                        } else {
+                            // collapsed selection range means update 
+                            // the hovered highlight (if possible)
+                            return _tabs.getHoveredHighlightID(activeTab.id).then(function (documentId) {
+                                if (!documentId) {
+                                    return Promise.resolve();
                                 }
-                            })
-                        });
-					}
-				});
-			});
-		}	// end switch
+
+                                // if the hovered highlight has a different style to the shortcut request, update
+                                // it. If not, remove the highlight.
+
+                                /// get doc associated with highlight, identified by id
+                                return _database.getDocument_Promise(documentId).then(function (doc) {
+                                    if (doc.className !== hd.className) {
+                                        // different class. update.
+                                        return _eventPage.updateHighlight(activeTab.id, documentId, hd.className);
+                                    } else {
+                                        // return _storage.getValue("remove_highlight_if_shortcut_highlight_definition_equals_hovered").then(function(value) {
+                                        //     if (!value) {
+                                        //         return Promise.resolve();
+                                        //     }
+
+                                        //     // remove the highlight
+                                        //     return _eventPage.deleteHighlight(activeTab.id, documentId).then(function() {
+                                        //         // then select the text it spanned
+                                        //         return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
+                                        //     });
+                                        // });
+
+                                        // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
+                                        // Otherwise it's too easy to make multiple highlights over the same range.
+                                        return _storage.getValue("unselectAfterHighlight").then(function (unselectAfterHighlight) {
+                                            if (!unselectAfterHighlight) {
+                                                return Promise.resolve();
+                                            }
+
+                                            // remove the highlight
+                                            return _eventPage.deleteHighlight(activeTab.id, documentId).then(function () {
+                                                // then select the text it spanned
+                                                return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
+                                            });
+                                        });
+                                    }
+                                })
+                            });
+                        }
+                    });
+                });
+        }	// end switch
     },
 
     /**
@@ -471,7 +471,7 @@ var _eventPage = {
 
             // use the new document's id for the element id of the (first) highlight element
             try {
-                return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, resp.id) 
+                return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, resp.id)
             } catch (e) {
                 console.log("Exception creating highlight in DOM - Removing associated document");
 
@@ -503,117 +503,80 @@ var _eventPage = {
      */
     updateHighlight: function (tabId, documentId, className) {
         "use strict";
-        return _database.updateCreateDocument_Promise(documentId, {className: className}).then(response => {
-        	if (!response.ok) {
-        		return Promise.reject(new Error("Response not OK"));
-        	}
-			
+        return _database.updateCreateDocument_Promise(documentId, { className: className }).then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error("Response not OK"));
+            }
+
             // document updated - now update DOM
             return _tabs.sendUpdateHighlightMessage_Promise(tabId, documentId, className)
-		}).then(function (is_updated) {
+        }).then(function (is_updated) {
             if (!is_updated) {
-				return Promise.reject(new Error("Error updating highlight in DOM"));
+                return Promise.reject(new Error("Error updating highlight in DOM"));
             }
         });
     },
 
     /**
      * Delete a highlight in the database, and in the page DOM
-     * @param {number} tabId tab id of associated tab, whose DOM should contain the highlight. 
-     * If undefined, assume NOT in DOM. It will still be removed from database
-     * @param {string} documentId id of the document representing the highlight to remove
+     * @param {Array<Number>|Number} [tabIds] id or array of ids of tabs of associated tabs, whose DOM should contain the highlight. 
+     *  If undefined, query api for tab with match name.
+     * @param {string} docId id of the document representing the highlight to remove
      */
-    deleteHighlight: function (tabId, docId) {
+    deleteHighlight: function (tabIds, docId) {
         "use strict";
-        
-        // document to be removed
-        let _doc
-        // was highlight for DOC found in DOM
-        var _isInDOM;
-        
+
+        tabIds = (typeof tabIds === 'number' && [tabIds]) || tabIds
+
+        // match property of the document representing the highlight to be deleted
+        let _match
+
+        // make sure original document exists, and store its 'match' property
         return _database.getDocument_Promise(docId).then(doc => {
-            _doc = doc
-            
-            // promise to get whether highlight is in DOM. if no tabID, assume NO
-            return (typeof tabId !== 'undefined' && _eventPage.isHighlightInDOM(tabId, docId)) || false
-        }).then(function (isInDOM) {
-            _isInDOM = isInDOM;
-            
-            // check the number of 'create' and 'delete' documents.
-			// if equal, there are no highlights for the page,
-			// so the page action can be removed
-            if (isInDOM || typeof tabId === 'undefined') {
-                console.log("Highlight found in DOM, or tabId undefined. Posting 'delete' doc");
-                
-                // highlight was in DOM, so we post an 
-				// additional 'delete' document
-                return _database.postDeleteDocument_Promise(docId);//, _resultCallback);
-            } else {
-                // if the highlight isn't in the DOM, then deleting
-                // the 'create' document can be done directly,
-                // as create never had any effect
-                console.log("Highlight not in DOM. Directly removing 'create' doc");
+            _match = doc.match
 
-                return _database.removeDocument_Promise(_doc._id, _doc._rev)
+            // post an additional 'delete' document
+            return _database.postDeleteDocument_Promise(docId)
+        }).then(response => {
+            if (!response.ok) {
+                // 'delete' document wasn't posted
+                return Promise.reject(new Error(response))
             }
-        }).then(function (response) {
-			if (!response.ok) {
-				return Promise.reject(new Error(response))
-			}
-		
-			if (_isInDOM) {
-                console.assert(typeof tabId === 'number')
-                console.log("Successfully posted 'delete' document. Removing in DOM");
 
-                return _tabs.sendDeleteHighlightMessage_Promise(tabId, docId);
-            } 
-            // else {
-            //     console.log("Removed 'create' document");
-            // }
-        }).then(_ => {
-            // console.log("reevaluating page action visibility");
-
-            // check the number of 'create' and 'delete' documents. 
-			// if equal, there are no highlights for the page, 
-            // so the page action can be removed
-
-            // sum of +create-delete verbs for a specific match
-            return _database.getMatchSum_Promise(_doc.match)
+            // if the tab id is undefined, *try* to query it from the match title
+            if (typeof tabIds === 'undefined') {
+                return _tabs.query({
+                    url: _match,
+                    status: 'complete'
+                }).then(tabs => {
+                    tabIds = tabs.map(t => t.id).filter(tid => tid !== chrome.tabs.TAB_ID_NONE)
+                })
+            }
+        }).then(() => {
+            // if tab specified, try and remove highlight from DOM (result ignored)
+            if (Array.isArray(tabIds)) {
+                // discard errors
+                return Promise.all(tabIds.map(tid => _tabs.sendDeleteHighlightMessage_Promise(tid, docId))).catch(() => { })
+            }
+        }).then(() => {
+            // Get sum of create(+1) & delete(-1) verbs for a specific match
+            // If equal, there are no highlights for the page, so the page action can be removed,
+            // and the remaining documents are useless
+            return _database.getMatchSum_Promise(_match)
         }).then(sum => {
             if (sum > 0) {
                 return
             }
 
-            console.log(`Zero sum: removing all documents for ${_doc.match}`);
+            console.log(`Balanced create/delete documents: removing all for ${_match}`);
 
-            if (typeof tabId === 'number') {
-                chrome.pageAction.hide(tabId)
+            if (Array.isArray(tabIds)) {
+                tabIds.forEach(tid => chrome.pageAction.hide(tid))
             }
 
             // can delete all documents
-            return _database.removeDocuments_Promise(_doc.match)
+            return _database.removeDocuments_Promise(_match)
         })
-
-			// return new Promise(function(resolve, reject) {
-			// 	chrome.tabs.get(tabId, function (tab) {
-			// 		resolve(tab);
-			// 	});
-			// }).then(function (tab) {
-			// 	match = _database.buildMatchString(tab.url);
-
-            //     // sum of +create-delete verbs for a specific match
-			// 	return _database.getMatchSum_Promise(match);
-			// }).then(function (sum) {
-            //     if (sum <= 0) {					
-            //         chrome.pageAction.hide(tabId);
-					
-			// 		// can delete all documents
-			// 		return _database.removeDocuments_Promise(match);
-            //     }
-			// }).then(function () {
-			// 	return response;
-			// });
-        // });
     },
 
     /**
@@ -627,79 +590,79 @@ var _eventPage = {
             chrome.pageAction.hide(tabId);
 
             // Response is an array containing the id and 
-			// rev of each deleted document.
+            // rev of each deleted document.
             // We can use id to remove highlights in 
-			// the DOM (although some won't match)
-			response.filter(function(r) {
-				return r.ok;
-			}).forEach(function (r) {
+            // the DOM (although some won't match)
+            response.filter(function (r) {
+                return r.ok;
+            }).forEach(function (r) {
                 // remove in DOM - note that the result is ignored 
-				// (and also not awaited)
-				_tabs.sendDeleteHighlightMessage_Promise(tabId, r.id);
-			});
+                // (and also not awaited)
+                _tabs.sendDeleteHighlightMessage_Promise(tabId, r.id);
+            });
         });
     },
 
 	/**
 	 * Undo the last undoable document in the journal (by negating it)
 	 */
-	undoLastHighlight: function (tabId) {
-		return new Promise(resolve => {
-			// get tab object from tab id
-			chrome.tabs.get(tabId, tab => resolve(tab))
-		}).then(function (tab) {
-			// build match using tab's url, and get the last document
-			return _database.getDocuments_Promise(
+    undoLastHighlight: function (tabId) {
+        return new Promise(resolve => {
+            // get tab object from tab id
+            chrome.tabs.get(tabId, tab => resolve(tab))
+        }).then(function (tab) {
+            // build match using tab's url, and get the last document
+            return _database.getDocuments_Promise(
                 _database.buildMatchString(tab.url),
                 true
             )
-		}).then(function (docs) {
-			// find last 'undoable' document that has not already been
-			// negated 
-			let deletedDocumentIds = new Set();
-			
-			let i, len = docs.length;
-			for (i=0; i<len; ++i) {
-				var doc = docs[i];
-				
-				switch (doc.verb) {
-				case "delete":
-					deletedDocumentIds.add(doc.correspondingDocumentId);
-					break;
-					
-				case "create":
-					// is it already deleted?
-					if (deletedDocumentIds.has(doc._id) === false) {
-						// add a negating document
-						return _eventPage.deleteHighlight(tabId, doc._id);
-					}
-				}
-			}
-						
-			return Promise.reject("No create documents to undo.");
-			
-			// THIS CRASHES CHROME
-			
-			// var latestCreateDoc = docs.find(function (doc) {
-			// 	switch (doc.verb) {
-			// 	case "delete":
-			// 		deletedDocumentIds.add(doc.correspondingDocumentId);
-			// 		return false;
-			//
-			// 	case "create":
-			// 		// is it already deleted?
-			// 		return deletedDocumentIds.has(doc._id) === false
-			// 	}
-			// });
-			//
-			// if (lastCreateDoc) {
-			// 	// add a negating document
-			// 	return _eventPage.deleteHighlight(tabId, lastCreateDoc._id);
-			// } else {
-			// 	return Promise.reject("No create documents to undo.");
-			// }
-		});
-	},
+        }).then(function (docs) {
+            // find last 'undoable' document that has not already been
+            // negated 
+            let deletedDocumentIds = new Set();
+
+            let i, len = docs.length;
+            for (i = 0; i < len; ++i) {
+                var doc = docs[i];
+
+                switch (doc.verb) {
+                    case "delete":
+                        deletedDocumentIds.add(doc.correspondingDocumentId);
+                        break;
+
+                    case "create":
+                        // is it already deleted?
+                        if (deletedDocumentIds.has(doc._id) === false) {
+                            // add a negating document
+                            return _eventPage.deleteHighlight(tabId, doc._id);
+                        }
+                }
+            }
+
+            return Promise.reject("No create documents to undo.");
+
+            // THIS CRASHES CHROME
+
+            // var latestCreateDoc = docs.find(function (doc) {
+            // 	switch (doc.verb) {
+            // 	case "delete":
+            // 		deletedDocumentIds.add(doc.correspondingDocumentId);
+            // 		return false;
+            //
+            // 	case "create":
+            // 		// is it already deleted?
+            // 		return deletedDocumentIds.has(doc._id) === false
+            // 	}
+            // });
+            //
+            // if (lastCreateDoc) {
+            // 	// add a negating document
+            // 	return _eventPage.deleteHighlight(tabId, lastCreateDoc._id);
+            // } else {
+            // 	return Promise.reject("No create documents to undo.");
+            // }
+        });
+    },
 
     /**
      * Select the text associated with a highlight
@@ -720,53 +683,53 @@ var _eventPage = {
         "use strict";
         return _database.getDocument_Promise(documentId).then(function (doc) {
             if (doc.text) {
-				if (!_eventPage.copyText(doc.text)) {
-					return Promise.reject(new Error());
-				}
+                if (!_eventPage.copyText(doc.text)) {
+                    return Promise.reject(new Error());
+                }
             }
         });
     },
-	
+
 	/**
 	 * generic text copy function. copies text to clipboard
 	 */
-	copyText: function (text) {
-		// http://updates.html5rocks.com/2015/04/cut-and-copy-commands
-		// add temporary node which can contain our text
+    copyText: function (text) {
+        // http://updates.html5rocks.com/2015/04/cut-and-copy-commands
+        // add temporary node which can contain our text
         var pre = document.createElement('pre');
         pre.innerText = text;
 
         document.body.appendChild(pre);
 
-		var range = document.createRange();  
-	    range.selectNode(pre);  
+        var range = document.createRange();
+        range.selectNode(pre);
 
-		// make our node the sole selection
-		var selection = document.getSelection();
-		selection.removeAllRanges();
-		selection.addRange(range);  
+        // make our node the sole selection
+        var selection = document.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
 
-		var result = document.execCommand('copy'); 
+        var result = document.execCommand('copy');
 
-		selection.removeAllRanges();  
+        selection.removeAllRanges();
         document.body.removeChild(pre);
-		
-		return result;
-	},
+
+        return result;
+    },
 
     /**
      * Speak text
      * @param {string} documentId
      * @param {object} [options] if not supplied, use the storage value
      */
-    speakHighlightText: function(tabId, documentId, options) {
+    speakHighlightText: function (tabId, documentId, options) {
         "use strict";
         options = options || {};
 
-        return _tabs.sendGetDocumentElementAttributeNodeValue_Promise(tabId, "lang").then( function(lang) {
+        return _tabs.sendGetDocumentElementAttributeNodeValue_Promise(tabId, "lang").then(function (lang) {
             // navigator.language seems to produce weird-sounding results
             //options.lang = lang || navigator.language;
-            
+
             if (typeof lang === "string") {
                 options.lang = lang;
             }
@@ -801,7 +764,7 @@ var _eventPage = {
         "use strict";
         return _tabs.sendScrollToMessage_Promise(tabId, documentId);
     },
-	
+
 	/**
 	 * Get an overiew of the highlights for the current page
 	 * @param {Object} tab one of the available tabs, or active tab if undefined
@@ -811,81 +774,81 @@ var _eventPage = {
      * @param {Boolean} [invert] invert the document order
 	 * @returns: {Promise} overview correctly formatted as a string
 	 */
-	getOverviewText: function(format, tab, comparator, filterPredicate, invert) {
-		var titles = {};
-		var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
+    getOverviewText: function (format, tab, comparator, filterPredicate, invert) {
+        var titles = {};
+        var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
 
-		return promise.then(function(_tab) {
-			// the actual tab
-			tab = _tab;
+        return promise.then(function (_tab) {
+            // the actual tab
+            tab = _tab;
 
-			return _storage.highlightDefinitions.getAll_Promise();
-		}).then(function(items) {
-			return items.highlightDefinitions;
-		}).then(function(highlightDefinitions) {
-			// map the highlight class name to its display name, for later usage
-			highlightDefinitions.forEach(function(hd) {
-				titles[hd.className] = hd.title;
-			});
+            return _storage.highlightDefinitions.getAll_Promise();
+        }).then(function (items) {
+            return items.highlightDefinitions;
+        }).then(function (highlightDefinitions) {
+            // map the highlight class name to its display name, for later usage
+            highlightDefinitions.forEach(function (hd) {
+                titles[hd.className] = hd.title;
+            });
 
-			// get documents associated with the tab's url
-			var match = _database.buildMatchString(tab.url);
-			
-			return _database.getCreateDocuments_Promise(match);
-        }).then(function(docs) {
+            // get documents associated with the tab's url
+            var match = _database.buildMatchString(tab.url);
+
+            return _database.getCreateDocuments_Promise(match);
+        }).then(function (docs) {
             // filter
-            return (filterPredicate && docs.filter(filterPredicate)) || docs; 
-		}).then(function(docs) {
-			// sort - main promise (default to native order)
-			return (comparator && _database.sortDocuments(docs, comparator)) ||
-				Promise.resolve(docs);
-		}).then(function (docs) {
+            return (filterPredicate && docs.filter(filterPredicate)) || docs;
+        }).then(function (docs) {
+            // sort - main promise (default to native order)
+            return (comparator && _database.sortDocuments(docs, comparator)) ||
+                Promise.resolve(docs);
+        }).then(function (docs) {
             if (invert) {
                 docs.reverse()
             }
 
-			switch(format) {
-			case "markdown":
-            case "markdown-no-footer":
-				var markdown = "# [" + tab.title + "](" +  tab.url + ")";
-				var currentClassName;
+            switch (format) {
+                case "markdown":
+                case "markdown-no-footer":
+                    var markdown = "# [" + tab.title + "](" + tab.url + ")";
+                    var currentClassName;
 
-				// iterate each highlight
-				docs.forEach(function(doc) {
-					// only add a new heading when the class of the header changes
-					if (doc.className != currentClassName) {
-						markdown += ("\n\n## " + titles[doc.className]);
+                    // iterate each highlight
+                    docs.forEach(function (doc) {
+                        // only add a new heading when the class of the header changes
+                        if (doc.className != currentClassName) {
+                            markdown += ("\n\n## " + titles[doc.className]);
 
-						currentClassName = doc.className;
-					} else {
-						// only seperate subsequent list items
-						markdown += "\n"
-					}
+                            currentClassName = doc.className;
+                        } else {
+                            // only seperate subsequent list items
+                            markdown += "\n"
+                        }
 
-					// each highlight is an unordered list item
-					markdown += ("\n* " + doc.text)
-				});
+                        // each highlight is an unordered list item
+                        markdown += ("\n* " + doc.text)
+                    });
 
-				// footer
-                if (format !== "markdown-no-footer") {
-                    markdown += ("\n\n---\n" +
-                        chrome.i18n.getMessage("overview_footer", [
-                            chrome.i18n.getMessage("extension_name"),
-                            chrome.i18n.getMessage("extension_webstore_url"),
-                            chrome.i18n.getMessage("copyright_year"),
-                            chrome.i18n.getMessage("extension_author"),
-                            chrome.i18n.getMessage("extension_author_url")
-                        ])
-                    );
-                } 
+                    // footer
+                    if (format !== "markdown-no-footer") {
+                        markdown += ("\n\n---\n" +
+                            chrome.i18n.getMessage("overview_footer", [
+                                chrome.i18n.getMessage("extension_name"),
+                                chrome.i18n.getMessage("extension_webstore_url"),
+                                chrome.i18n.getMessage("copyright_year"),
+                                chrome.i18n.getMessage("extension_author"),
+                                chrome.i18n.getMessage("extension_author_url")
+                            ])
+                        );
+                    }
 
-				return Promise.resolve(markdown);
+                    return Promise.resolve(markdown);
 
-			default:
-				return Promise.reject(new Error());
-			}
-		});
-	}
+                default:
+                    return Promise.reject(new Error());
+            }
+        });
+    }
 };
 
 _eventPage.init();

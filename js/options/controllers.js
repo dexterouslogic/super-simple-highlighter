@@ -634,11 +634,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         
         // wait until transition on close button ends before updating model
         elm.addEventListener("transitionend", event => {
-            backgroundPage._eventPage.deleteHighlight(undefined, docId).then(result => {
-                // if (!result.ok) {
-                //     return Promise.reject(new Error());
-                // }
-
+            backgroundPage._eventPage.deleteHighlight(undefined, docId).then(() => {
                 const index = initialDoc.texts.findIndex(t => t.docId === docId)
                 console.assert(index !== -1)
 
