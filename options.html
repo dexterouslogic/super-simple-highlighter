@@ -262,7 +262,7 @@
 
                                     <!-- page title -->
                                     <h5 class="page-title">
-                                        <a href="{{doc.match}}" target="_blank">
+                                        <a href="{{doc.match}}" target="_blank" ng-class="{'no-title': !doc.title}">
                                         {{doc.title || ('untitled_page_group' | i18n) }}
                                     </a>
                                         <!-- Show a 'refresh' indicator for untitled pages -->

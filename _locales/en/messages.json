@@ -200,7 +200,7 @@
     "message": "Show highlights"
   },
   "page_action_title_not_in_dom": {
-    "message": "Unable to match all highlights on the page"
+    "message": "Some highlights couldn't be restored onto this page"
   },
   "pages": {
     "message": "Bookmarks"

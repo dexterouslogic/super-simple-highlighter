@@ -562,7 +562,7 @@ var _eventPage = {
             // if the tab id is undefined, *try* to query it from the match title
             if (typeof tabIds === 'undefined') {
                 return _tabs.query({
-                    url: _match,
+                    url: encodeURI(_match),
                     status: 'complete'
                 }).then(tabs => {
                     tabIds = tabs.map(t => t.id).filter(tid => tid !== chrome.tabs.TAB_ID_NONE)
