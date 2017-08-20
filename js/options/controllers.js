@@ -399,9 +399,12 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 
             // the key for each row (item in the array) is the 'match' for each document, 
             // and the value is the sum ('create'+1, 'delete'-1)
-            return Promise.all(rows
-                .filter(row => row.value > 0)
-                .map(row => backgroundPage._database.getDocuments_Promise(row.key, false, 1)))
+            return Promise.all(rows.filter(row => row.value > 0)
+                .map(row => backgroundPage._database.getDocuments_Promise(row.key, {
+                    descending: false,
+                    limit: 1   
+                }))
+            )
         }).then(a => {
             // each entry in docs array is an array containing at most one doc
             var docs = a.filter(a => a.length === 1).map(a => a[0])

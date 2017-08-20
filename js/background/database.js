@@ -266,30 +266,41 @@ var _database = {
 
     /**
      * Get all documents for a match, in ascending date order.
-     * @param {string} match
-     * @param {boolean} [descending] if true, return documents from latest to earliest
-     * @param {number} [limit] max number of documents to return
+     * @param {string} match - match string to search for in each doc
+     * @param {Object} [opt] - search options
      */
-	getDocuments_Promise: function (match, descending, limit) {
-		// descending = descending || false;
-		
-		let options = {
-            startkey: !descending ? [match] : [match, {}],
-            endkey: !descending ? [match, {}] : [match],
-            "descending": descending || false,
+    getDocuments_Promise: function (match, opt) {
+        opt = opt || {}
+        
+        // defaults
+        opt.descending = opt.descending || false
+        opt.verbs = (typeof opt.verbs === 'string' && [opt.verbs]) || opt.verbs
+
+        let queryOptions = {
+            startkey: !opt.descending ? [match] : [match, {}],
+            endkey: !opt.descending ? [match, {}] : [match],
+            descending: opt.descending,
             include_docs: true
         }
 
-        // optional
-        if (typeof limit === 'number') {
-            options.limit = limit;
+        if (typeof opt.limit === 'number') {
+            queryOptions.limit = opt.limit
         }
-		
-		// promise version
-		return _database.getDatabase().query("match_date_view", options).then(result => {
-			return result.rows.map(row => row.doc)
+
+        // promise version
+		return _database.getDatabase().query("match_date_view", queryOptions).then(result => {
+            let docs = result.rows.map(row => row.doc)
+            
+            // filter by verb
+            if (Array.isArray(opt.verbs)) {
+                const verbs = new Set(opt.verbs)
+
+                docs = docs.filter(doc => verbs.has(doc.verb))
+            }
+
+            return docs
         });
-	},
+    },
 	
     /**
      * Delete a specific document (any verb).
@@ -379,7 +390,7 @@ var _database = {
                 s.add(doc._id)
                 s.add(doc.correspondingDocumentId)
             })
-
+            
             return docs.filter(doc => !s.has(doc._id))
         })
 	},

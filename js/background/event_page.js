@@ -533,10 +533,26 @@ var _eventPage = {
 
         // make sure original document exists, and store its 'match' property
         return _database.getDocument_Promise(docId).then(doc => {
+            console.assert(doc.verb === 'create')
             _match = doc.match
 
-            // post an additional 'delete' document
-            return _database.postDeleteDocument_Promise(docId)
+            // if its also the last 'create' document we can delete it directly
+            return _database.getDocuments_Promise(_match, { 
+                descending: false, 
+                verbs: ['create'] 
+            }).then(docs => {
+                console.assert(docs.length >= 1)
+                const lastDoc = docs[docs.length - 1]
+
+                // if the last non-delete document was our 'create' doc we can delete directly
+                if (lastDoc._id === doc._id) {
+                    console.log('Highlight is the latest "create" document - removing directly')
+                    return _database.removeDocument_Promise(doc._id, doc._rev)
+                } else {
+                    // post an additional 'delete' document
+                    return _database.postDeleteDocument_Promise(docId)
+                }
+            })
         }).then(response => {
             if (!response.ok) {
                 // 'delete' document wasn't posted
@@ -564,11 +580,13 @@ var _eventPage = {
             // and the remaining documents are useless
             return _database.getMatchSum_Promise(_match)
         }).then(sum => {
+            console.log(`Sum: ${sum} [${_match}]`);
+
             if (sum > 0) {
                 return
             }
 
-            console.log(`Balanced create/delete documents: removing all for ${_match}`);
+            console.log(`Removing all documents for ${_match}`);
 
             if (Array.isArray(tabIds)) {
                 tabIds.forEach(tid => chrome.pageAction.hide(tid))
@@ -612,10 +630,9 @@ var _eventPage = {
             chrome.tabs.get(tabId, tab => resolve(tab))
         }).then(function (tab) {
             // build match using tab's url, and get the last document
-            return _database.getDocuments_Promise(
-                _database.buildMatchString(tab.url),
-                true
-            )
+            const match = _database.buildMatchString(tab.url)
+
+            return _database.getDocuments_Promise(match, { descending: true })
         }).then(function (docs) {
             // find last 'undoable' document that has not already been
             // negated 
