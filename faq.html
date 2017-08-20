@@ -1,99 +1,133 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta charset="utf-8">
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FAQ - Super Simple Highlight</title>
 </head>
+
 <body>
-<ol><li>
-    <strong>I just installed it, and nothing’s happened. What an I supposed to do?</strong>
-    
-    <p>Until a highlight is made on a page, no change will be visible. To highlight text, select it, right click on it, and choose a style to define it by. From now on, an icon will be shown in the URL bar, and clicking it will show the page’s highlights.</p>
-</li>
-
-<li>
-       <strong>The icon disappeared!</strong>
-       <p>Chrome seems to hide extensions at the top of the menu occasionally. You can move it back into the main bar by right-clicking on the icon.
-       </p>
-</li>
-
-<li>
-    <strong>Can I see a full page containing all my highlights (i.e an overview page)?</strong>
-    <p>From the popup box that opens when you click the icon in the URL bar, either click on the icon to the left of the title, or choose <i>Open Overview in New Tab</i> from the menu which appears when you click on the arrow at the end of the page title.</p>
-</li>
-
-<li>
-    <strong>When I reload the page the highlights don’t reappear!</strong>
-    <p>This happens sometimes. There are many ways that a page design is incompatible with how this extension works. The more fancy it is, the less likely it will work. Try a test highlight first, and if it restores next time, it should be OK.</p>
-</li>
-
-<li>
-    <strong>How are the highlights stored?</strong>
-    <p>A database is created, associating the URL (or the majority of it) with the structural position on the page of the highlight, its style, and its text. When the page is next reloaded, its URL is checked, and if it matches an existing record, it attempts to restore the highlights in the same position. If any part of this sequence is not possible, the highlights can’t be restored.</p>
-</li>
-
-<li>
-    <strong>How do I remove a page, and all its highlights, from the database?</strong>
-	<p>
-    Via the Options page. Click the close button next to the page. Pages are listed under the <i>Pages</i> tab.
-	</p>
-</li>
-
-
-
-<li>
-        <strong>I added highlights to a file I saved to my computer, but when I reload it they’re not there, and the icon has a red sign over it.</strong>
+    <section>
+        <h1>Frequently Asked Questions</h1>
+        
+        <h3>I just installed it, and nothing’s happened. What an I supposed to do?</h3>
         <p>
-        By default, extensions can’t make alterations (e.g. show highlights) for locally stored files. It only works for actual web sites. This is a security measure. To override this, and allow the extension to restore the highlights, go to the Chrome Extensions page, and enable ‘Allow access to file URLs’ for the ‘Super Simple Highlighter’ extension. 
-		</p>
-    </li>
-    
-    <li>
-        <strong>How can I make/restore highlights in Incognito mode?</strong>
-        <p>
-        As previously, by default Chrome disables extensions in Incognito mode unless explicitly allowed. You can enable it via the Chrome Extensions page, with the ‘Allow in incognito’ checkbox. Keep in mind that by making a highlight on a page whilst it is in Incognito mode, the URL of the page is stored in your list of highlighted pages. So make sure you’re OK with its URL potentially becoming public.
-		</p>
-    </li>
-    
-    <li>
-        <strong>How do I edit highlight styles, remove the text selection after highlighting, or see which pages I’ve highlighted?</strong>
-        <p>
-        All of these are accessible via the extension’s Options page. You access this page from either the Chrome Extensions page, or, if present, by right clicking on the highlighter icon in the url bar, and choosing <i>Options</i>.
-		</p>
-    </li>
-    <li>
-        <strong>How do I assign a keyboard shortcut to the act of creating a highlight?</strong>
-        <p>
-		Go to the Chrome Extensions page, and at the very bottom of the page is a <i>Keyboard shortcuts</i> link, which manages the shortcuts for all extensions. You can assign a shortcut to any of the first 10 highlight styles you may have defined. Note that there is hard limit of 10 items because Chrome fixes the number of items added beforehand.
-		</p>
-    </li>
-    <li>
-        <strong>Why are my highlights not synced between my computers?</strong>
-        <p>
-		Chrome offers automatic sync services for free, but only for small amounts of data, such as extension settings. Super Simple Highlighter uses this to sync highlight styles along with its other minor settings. If you define a new highlight style, it should eventually appear on your other computers. However, the actual highlight database (which stores the URL of highlighted pages and the location on the page of its highlights) is too large to use this service.</p>
-		<p>The ideal situation would be to use a central server to store highlights, but, frankly, I have no intention of funding, securing, and maintaining that service for free.</p>
-	   <p>Therefore, all I can offer is an option to export the database from one computer, and import the file onto another, like we're living in the dark ages again. Sorry :(.</p>
-	   <p>You can find this function in the <strong>Experimental</strong> section of the <i>options</i> page.</p>
-    </li>
-    
+            Until a highlight is made on a page, no change will be visible. To highlight text you must select it, then right click on it, and then choose
+            a style to define it by. From now on, an icon will be shown in the URL bar, and clicking it will show the page’s
+            highlights.
+        </p>
 
-	<li id="extension">
-			<strong>How do I access the Chrome Extensions page?</strong>
-	  
-	<p>        Via any one of these methods:
-			<ul><li>On the main menu (at the top right of the browser), in the <i>More Tools</i> section.</li>
-				<li>If you use a Mac, it’s on the <i>Windows</i> menu.</li>
-				<li>Enter <code>chrome://extensions</code> in the URL bar.</li>
-				<li>If the highlighter icon is present in the URL bar, right click on it and choose <i>Manage</i>.</li>
-			</ul>
-	</p>
-			</li>
+        <h3>The icon is grey!</h3>
+        <p>
+            If the icon is grey (or isn't visible at all), it means there are no records of highlights on the page. If there are records
+            of highlights, but they can't be located on the page, the icon is in full colour but is overlayed with a red
+            sign
+        </p>
 
-	<li><strong>Can I save the web page with the highlights on it?</strong>
-	<p>Yes (as of version 3.8.3), but you need to use <i>Save as Webpage</i> in the Save dialog box, <strong>NOT</strong> <i>Save as HTML</i>.
-	</li>
-	
-</ol>
+        <h3>The icon (with the blue pen) disappeared!</h3>
+        <p>
+            Chrome sometimes hides the icon of extensions at the top of the main menu. You can reveal it by opening the menu, and if
+            you desire move it back into the main bar by right-clicking on the icon.
+        </p>
+
+        <h3>Can I see a full page containing just the highlights on the page (i.e an overview/summary page)?</h3>
+        <p>From the popup box that opens when you click the icon in the URL bar, click the button with 3 lines on it (AKA the
+            hamburger menu), and choose <i>Open Overview in New Tab</i> from the menu.
+        </p>
+
+
+        <h3>When I reload the page the highlights don’t reappear!</h3>
+        <p>
+            This happens occasionally. There are many ways that a page design is incompatible with how this extension works. The more
+            fancy (i.e. dynamic) it is, the less likely it will work. Try a test highlight first, and if it restores next
+            time, it should be OK. But don't bank on it always working.
+        </p>
+
+
+        <h3>How are the highlights stored?</h3>
+        <p>
+            A database is created, associating the page's URL with the structural position on the page of the highlight, its style, and
+            its text. When the page is next reloaded, its URL is checked, and if it matches an existing record, it attempts
+            to restore the highlights in the same position. If any part of this sequence is not possible, the highlights
+            can’t be restored.
+        </p>
+        <p>Note the highlights are ONLY stored on the computer they're made on. They aren't sent anywhere, or backed up (other
+            than as part of a standard computer backup). So if they're lost there, they're lost everywhere
+        </p>
+
+        <h3>How do I change the title or colour of highlights, see which pages contain highlights, or remove a page from the database?</h3>
+        <p>
+            Via the Options page. Click the close button next to the page. Pages are listed under the <i>Pages</i> tab.
+        </p>
+
+        <h3>I added highlights to a file I saved to my computer, but when I reload it they’re not there, and the icon has a red
+            sign over it.</h3>
+        <p>
+            By default, extensions can’t make alterations (e.g. show highlights) for locally stored files. It only works for actual web
+            sites. This is a security measure. To override this, and allow the extension to restore the highlights, go to
+            the Chrome Extensions page, and enable ‘Allow access to file URLs’ for the ‘Super Simple Highlighter’ extension.
+        </p>
+
+
+        <h3>How can I make/restore highlights in Incognito mode?</h3>
+        <p>
+            As previously, by default Chrome disables extensions in Incognito mode unless explicitly allowed. You can enable it via the
+            Chrome Extensions page, with the ‘Allow in incognito’ checkbox. Keep in mind that by making a highlight on a
+            page whilst it is in Incognito mode, the URL of the page is stored in your list of highlighted pages. So make
+            sure you’re OK with its URL potentially becoming public.
+        </p>
+
+        <h3>How do I edit highlight styles, remove the text selection after highlighting, or see which pages I’ve highlighted?</h3>
+        <p>
+            All of these are accessible via the extension’s Options page. You access this page from either the Chrome Extensions page,
+            or, if present, by right clicking on the highlighter icon in the url bar, and choosing <i>Options</i>.
+        </p>
+
+        <h3>How do I assign a keyboard shortcut to the act of creating a highlight?</h3>
+        <p>
+            Go to the Chrome Extensions page, and at the very bottom of the page is a <i>Keyboard shortcuts</i> link, which
+            manages the shortcuts for all extensions. You can assign a shortcut to any of the first 10 highlight styles you
+            may have defined. There is a limit of 10 shortcuts because Chrome doesn't allow me to allocate or remove then
+            as you go. I have to reserve them upfront.
+        </p>
+
+        <h3>Why are my highlights not synced between my computers?</h3>
+        <p>
+            Chrome offers automatic sync services for free, but only for small amounts of data, such as extension settings. Super Simple
+            Highlighter uses this to sync highlight styles along with its other minor settings. If you define a new highlight
+            style, it should eventually appear on your other computers. However, the actual highlight database (which stores
+            the URL of highlighted pages and the location on the page of its highlights) is too large to use this service.
+        </p>
+        <p>
+            The ideal situation would be to use a central server to store highlights, but, frankly, I have no intention of funding, securing,
+            and maintaining that service for free.</p>
+        <p>
+            Therefore, I can only offer the option to export the database from one computer, and import the file onto another, like we're
+            living in the dark ages again. This is in the <i>Advanced</i> tab of the extension's Options page.</p>
+        <p>
+            You can find this function in the <strong>Experimental</strong> section of the <i>options</i> page.</p>
+
+
+
+        <h3 id="extension">How do I access the Chrome Extensions page?</h3>
+
+        <p> Via any one of these methods:
+            <ul>
+                <li>On the main menu (at the top right of the browser), in the <i>More Tools</i> section.</li>
+                <li>If you use a Mac, it’s on the <i>Windows</i> menu.</li>
+                <li>Enter <code>chrome://extensions</code> in the URL bar.</li>
+                <li>If the highlighter icon is present in the URL bar, right click on it and choose <i>Manage</i>.</li>
+            </ul>
+        </p>
+
+
+        <h3>Can I save the web page to a file, with the highlights on it?</h3>
+        <p>Yes (as of version 3.8.3), but you need to use <i>Web page, Complete</i> format in the Save dialog box, <strong>NOT</strong>            <i>Web page, HTML only</i> <strong>nor</strong> <i>Web page, Single File</i> (which shouldn't even be enabled
+            by default).</p>
+    </section>
 </body>
+
 </html>
-
-
