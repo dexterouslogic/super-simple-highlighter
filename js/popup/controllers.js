@@ -53,11 +53,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// by style and text of any document within group
 		group: (group) => {
 			const searchText = $scope.search.text && $scope.search.text.toLowerCase()
-			
+
 			return group.docs.some(doc => {
 				// delegate to search.text and styleFilterPredicate
 				return $scope.filters.style(doc)
-					&& (!searchText 
+					&& (!searchText
 						|| (typeof doc.text === 'string' && doc.text.toLowerCase().indexOf(searchText) != -1)
 					)
 			})
@@ -66,19 +66,19 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// by current text search string of document
 		text: (doc) => {
 			const searchText = $scope.search.text && $scope.search.text.toLowerCase()
-			
-			return (!searchText 
+
+			return (!searchText
 				|| (
 					typeof doc.text === 'string'
-						&& doc.text.toLowerCase().indexOf(searchText) != -1
+					&& doc.text.toLowerCase().indexOf(searchText) != -1
 				)
 			)
 		},
-		
+
 		// by current filter style of document
 		style: (doc) => {
 			const hd = $scope.styleFilterHighlightDefinition
-			
+
 			return (!hd || doc.className === hd.className)
 		},
 	}
@@ -94,8 +94,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 */
 	var updateDocs = function () {
 		const comparator = backgroundPage._tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
-			
-			// get all the documents (create & delete) associated with the match, then filter the deleted ones
+
+		// get all the documents (create & delete) associated with the match, then filter the deleted ones
 		return backgroundPage._database.getCreateDocuments_Promise($scope.match).then(function (docs) {
 			// if the highlight cant be found in DOM, flag that
 			return Promise.all(docs.map(function (doc) {
@@ -131,22 +131,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 					docs.forEach(doc => {
 						var date = new Date(doc.date)
 						var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
-		
+
 						// first, or different days since epoch of last group
 						if (groups.length === 0 || daysSinceEpoch !== groups[groups.length - 1].daysSinceEpoch) {
 							// each group defines its days since epoch and an ordered array of docs
 							groups.push({
 								daysSinceEpoch: daysSinceEpoch,
 								title: date.toLocaleDateString(undefined, {
-										weekday: 'long',
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric'
+									weekday: 'long',
+									year: 'numeric',
+									month: 'long',
+									day: 'numeric'
 								}),
 								docs: []
 							})
 						}
-		
+
 						groups[groups.length - 1].docs.push(doc)
 					})
 					break
@@ -171,7 +171,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 						groups[groups.length - 1].docs.push(doc)
 					})
 					break
-			
+
 				default:
 					console.assert(false)
 			}
@@ -288,7 +288,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				// this bullshit is done because if it finishes too quick the popup is the wrong height
 				setTimeout(() => {
 					$scope.$apply()
-					
+
 					// presumably the autofocus attribute effect gets overridden, so do it manually.
 					$('#input-search').focus()
 
@@ -425,8 +425,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 		// format all highlights as a markdown document
 		return backgroundPage._eventPage.getOverviewText(
-				"markdown", activeTab, comparator, $scope.styleFilterPredicate,
-				 $scope.sort.invert
+			"markdown", activeTab, comparator, $scope.styleFilterPredicate,
+			$scope.sort.invert
 		).then(function (text) {
 			// create a temporary anchor to navigate to data uri
 			var a = document.createElement("a");
@@ -448,10 +448,10 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 		// sort the docs using the sort value
 		const comparator = backgroundPage._tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
-		
+
 		return backgroundPage._eventPage.getOverviewText(
-				"markdown-no-footer", activeTab, comparator,
-				$scope.styleFilterPredicate, $scope.sort.invert
+			"markdown-no-footer", activeTab, comparator,
+			$scope.styleFilterPredicate, $scope.sort.invert
 		).then(function (text) {
 			// Create element to contain markdown
 			var pre = document.createElement('pre');
@@ -478,45 +478,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 	/**
 	 * Clicked 'remove' button for a highlight
-	 * @param {string} documentId highlight id
+	 * @param {string} docId highlight id
 	 */
-	$scope.onClickRemoveHighlight = function (event, documentId) {
+	$scope.onClickRemoveHighlight = function (event, docId) {
 		// don't scroll
 		event.stopPropagation();
 
-		const elm = event.currentTarget
-
-		// wait until button disappears before sending message to remove highlight
-		elm.addEventListener("transitionend", function (event) {
-			backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(() => updateDocs()).then(docs => {
-				// close popup on last doc removed
-				if (docs.length === 0) {
-					window.close();
-				} else {
-					$scope.$apply();
-				}
-			});
-		}, { capture: false, passive: true, once: true });
-
-		const style = elm.style
-
-		style.setProperty('opacity', 0)
-		// style.setProperty('transform', 'scale(5)')
-
-		// backgroundPage._eventPage.deleteHighlight(activeTab.id, documentId).then(function (result) {
-		//     if (result.ok ) {
-		//         return updateDocs();
-		// 	} else {
-		// 		return Promise.reject(new Error());
-		// 	}
-		// }).then(function (docs) {
-		//     // close popup on last doc removed
-		//     if (docs.length === 0) {
-		//         window.close();
-		//     } else {
-		// 		$scope.$apply();
-		//     }
-		// });
+		backgroundPage._eventPage.deleteHighlight(activeTab.id, docId).then(() => {
+			return updateDocs()
+		}).then(docs => {
+			// close popup on last doc removed
+			if (docs.length === 0) {
+				window.close();
+			} else {
+				$scope.$apply();
+			}
+		})
 	};
 
 	/**

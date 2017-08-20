@@ -632,25 +632,18 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
      * @param {Object} initialDoc - initial doc for the page, containing array of text objects for all the highlights
      */
     $scope.onClickRemoveHighlight = (docId, initialDoc) => {
-        // close button
-		const elm = event.currentTarget
-        
         // wait until transition on close button ends before updating model
-        elm.addEventListener("transitionend", event => {
-            backgroundPage._eventPage.deleteHighlight(undefined, docId).then(() => {
-                const index = initialDoc.texts.findIndex(t => t.docId === docId)
-                console.assert(index !== -1)
+        backgroundPage._eventPage.deleteHighlight(undefined, docId).then(() => {
+            const index = initialDoc.texts.findIndex(t => t.docId === docId)
+            console.assert(index !== -1)
 
-                // splice out of array of highlights (i.e. texts)
-                initialDoc.texts.splice(index, 1)
+            // splice out of array of highlights (i.e. texts)
+            initialDoc.texts.splice(index, 1)
 
-                // regroup
-                updateGroupedDocuments()
-                $scope.$apply()
-            })
-        }, { capture: false, passive: true, once: true });
-        
-        elm.style.setProperty('opacity', 0)
+            // regroup
+            updateGroupedDocuments()
+            $scope.$apply()
+        })
     }
 
     /**
