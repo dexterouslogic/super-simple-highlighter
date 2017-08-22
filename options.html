@@ -246,11 +246,8 @@
 
                     <ol class="list-unstyled list-grouped-pages">
                         <li ng-repeat="group in groupedDocs | filter:filters.group" class="page-group-list-item">
-                            <h3 class="page-group-header">
-                                {{ group.title || ('unknown_page_group' | i18n) }}
-                                <span ng-show="!group.title" class="small page-group-header-unknown">
-                                    {{ 'unknown_page_group_suggestion' | i18n }}
-                                </span>
+                            <h3 class="page-group-header" title="{{ !group.title ? ('untitled_page_group_tooltip' | i18n) : null }}">
+                                {{ group.title || ('untitled_page_title' | i18n) }}
                             </h3>
 
                             <ol class="list-unstyled">
@@ -265,7 +262,7 @@
 
                                     <!-- page title -->
                                     <h5 class="page-title">
-                                        <a href="{{doc.match}}" target="_blank" ng-class="{'no-title': !doc.title}">
+                                        <a href="{{doc.match}}" target="_blank">
                                             {{doc.title || ('untitled_page_title' | i18n) }}
                                         </a>
                                     </h5>

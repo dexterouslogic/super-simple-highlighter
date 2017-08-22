@@ -309,11 +309,8 @@
   "title_sort_direction": {
     "message": "Sort Direction"
   },
-  "unknown_page_group": {
-    "message": "Unknown"
-  },
-  "unknown_page_group_suggestion": {
-    "message": "open page to obtain title"
+  "untitled_page_group_tooltip": {
+    "message": "Pages for which the title has not yet been obtained, or is not specified."
   },
   "untitled_page_title": {
     "message": "Untitled"

@@ -110,10 +110,6 @@ input[type="color"] {
     opacity: 0.9;
 }
 
-.page-group-header-unknown::before {
-    content: '-'
-}
-
 .page {
     /* background-color: #f7f7f7; */
     margin-bottom: 8px;
@@ -129,10 +125,6 @@ input[type="color"] {
     margin-top: 0;
     margin-bottom: 0.5rem;
     font-weight: normal;
-}
-
-.no-title {
-    font-style: italic;
 }
 
 .page-link {
