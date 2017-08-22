@@ -407,22 +407,32 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             )
         }).then(a => {
             // each entry in docs array is an array containing at most one doc
-            var docs = a.filter(a => a.length === 1).map(a => a[0])
+            const docs = a.filter(a => a.length === 1).map(a => a[0])
             // first doc should always be a 'create'
             console.assert(docs.every(doc => doc.verb === 'create'))
 
             // if we're grouping by last_date (date of the last non-deleted 'create' document),
             // or showing text for each highlight, we need to get all create documents too
             return Promise.all(docs.map(doc => {
-                return backgroundPage._database.getCreateDocuments_Promise(doc.match)
+                return backgroundPage._database.getCreateDocuments_Promise(doc.match).then(a => {
+                    // if the first create document has a corresponding delete document, then the title (stored only
+                    // on the first document) will be removed along with the create document.
+                    console.assert(a.length >= 1)
+                    
+                    // So we go through this dance.
+                    if (a.length >= 1 && a[0]._id !== doc._id) {
+                        a[0].title = doc.title
+                    }
+
+                    return a
+                })
             }))
         }).then(createDocs => {
             // we have an array of array of createDocs
 
             // add temporary properties to first doc of each
+            createDocs = createDocs.filter(a => a.length >= 1)
             createDocs.forEach(a => {
-                console.assert(a.length >= 1)
-
                 // numeric date of creation of latest 'create' doc
                 a[0].lastDate = a[a.length - 1].date
                 // array of each text item for the page's 'create' docs, and its className (aka highlight style)
