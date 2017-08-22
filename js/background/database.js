@@ -32,7 +32,7 @@ var _database = {
         if (!_database.db) {
             _database.db = new PouchDB(_database.dbname, {
                 auto_compaction: true,
-                adapter: 'idb',
+                // adapter: 'idb',
             });
         }
 

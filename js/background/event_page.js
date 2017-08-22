@@ -26,9 +26,6 @@ var _eventPage = {
      */
     init: function () {
         "use strict";
-        /*jshint evil:true */
-        console.log("init");
-
         chrome.runtime.onInstalled.addListener(_eventPage.onRuntimeInstalled);
         chrome.runtime.onStartup.addListener(_eventPage.onRuntimeStartup);
         chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
@@ -56,21 +53,14 @@ var _eventPage = {
      */
     onRuntimeInstalled: function (details) {
         "use strict";
-        console.log("onRuntimeInstalled: " + JSON.stringify(details));
-
         // one time initialization
-        return _database.putDesignDocuments().then(function () {
-            // error param might indicate a conflict, which is ok
-
+        return _database.putDesignDocuments().then(() => {
+            // error param might indicate a conflict, which is ok.
             // delete stale views associated with design docs
-            console.log("Cleaning stale views associated with design docs");
-
             return _database.viewCleanup_Promise();
-        }).then(function () {
+        }).then(() => {
             _contextMenus.recreateMenu();
-        });
-
-        //        _eventPage.onRuntimeStartup();
+        })
     },
 
     /**
@@ -80,22 +70,15 @@ var _eventPage = {
      */
     onRuntimeStartup: function () {
         "use strict";
-        console.log("onRuntimeStartup");
-
         _contextMenus.recreateMenu();
 
         // remove entries in which the number of 'create' doc == number of 'delete' docs
-        return _database.getMatchSums_Promise().then(function (rows) {
-            return Promise.all(rows.filter(function (row) {
-                return row.value === 0;
-            }).map(function (row) {
-                return _database.removeDocuments_Promise(row.key);
-            }));
-        }).then(function () {
-            _database.compact()
-        }).then(function () {
-            console.log("Compacted database");
-        });
+        return _database.getMatchSums_Promise().then(rows => {
+            return Promise.all(rows
+                .filter(row => row.value === 0)
+                .map(row => _database.removeDocuments_Promise(row.key))
+            )
+        }).then(() => _database.compact())
     },
 
     /**
@@ -106,8 +89,6 @@ var _eventPage = {
      */
     onCompleted: function (details) {
         "use strict";
-        console.log("onCompleted");
-        //        console.log(details);
 
         // 0 indicates the navigation happens in the tab content window
         if (details.frameId !== 0) {
@@ -159,15 +140,10 @@ var _eventPage = {
             } else {
                 return Promise.resolve()
             }
-        }).then(() => {
-            console.log("Injecting scripts into top level frames...");
-            return _tabs.executeAllScripts_Promise(details.tabId, false);
-        }).then(() => {
-            console.log("Replaying documents into DOM");
-
+        }).then(() => _tabs.executeAllScripts_Promise(details.tabId, false)).then(() => {
             return _tabs.replayDocuments_Promise(details.tabId, matchedDocs, function (errorDoc) {
                 // method only called if there's an error. called multiple times
-                console.log("Error:" + JSON.stringify(errorDoc));
+                console.error("Error:" + JSON.stringify(errorDoc));
 
                 // update page action
                 if (errorDoc.verb === "create") {
@@ -175,13 +151,12 @@ var _eventPage = {
                 }
             })
         }).then((sum) => {
-            console.log("Create/Delete document sum is " + sum);
-
-            if (sum > 0) {
-                console.log("Showing page action");
-                chrome.pageAction.show(details.tabId);
+            if (sum <= 0) {
+                return
             }
-        });
+
+            chrome.pageAction.show(details.tabId);
+        })
     },
 
     /**
@@ -245,20 +220,6 @@ var _eventPage = {
             default:
                 throw "Unhandled message: sender=" + sender + ", id=" + message.id;
         }
-    },
-
-    /**
-     * Fires when the active tab in a window changes. Note that the tab's URL may not be set at the time this event
-     * fired, but you can listen to onUpdated events to be notified when a URL is set.
-	 * DISABLED UNTIL MOUSE EVENT BUG IS FIXED
-     * @param activeInfo
-     */
-    onTabActivated: function (activeInfo) {
-        "use strict";
-        console.log("onTabActivated");
-
-        // default to not being over a highlight
-        // _contextMenus.setHoveredHighlightId(null);
     },
 
     /**
@@ -473,7 +434,7 @@ var _eventPage = {
             try {
                 return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, resp.id)
             } catch (e) {
-                console.log("Exception creating highlight in DOM - Removing associated document");
+                console.error("Exception creating highlight in DOM - Removing associated document");
 
                 // always rejects
                 return _database.removeDocument_Promise(resp.id, resp.rev)
@@ -483,7 +444,7 @@ var _eventPage = {
             // a false response means something went wrong.
             // Delete document from db
             if (!didCreate) {
-                console.log("Error creating highlight in DOM - Removing associated document");
+                console.error("Error creating highlight in DOM - Removing associated document");
 
                 // always rejects
                 return _database.removeDocument_Promise(_newDoc.id, _newDoc.rev)
