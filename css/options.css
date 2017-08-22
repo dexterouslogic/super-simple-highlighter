@@ -110,6 +110,10 @@ input[type="color"] {
     opacity: 0.9;
 }
 
+.page-group-header-unknown::before {
+    content: '-'
+}
+
 .page {
     /* background-color: #f7f7f7; */
     margin-bottom: 8px;

@@ -309,11 +309,14 @@
   "title_sort_direction": {
     "message": "Sort Direction"
   },
-  "untitled_page_group": {
-    "message": "Untitled"
+  "unknown_page_group": {
+    "message": "Unknown"
   },
-  "untitled_page_tooltip": {
-    "message": "Refresh page to update its title"
+  "unknown_page_group_suggestion": {
+    "message": "open page to obtain title"
+  },
+  "untitled_page_title": {
+    "message": "Untitled"
   },
   "group_by_title": {
     "message": "By Title"

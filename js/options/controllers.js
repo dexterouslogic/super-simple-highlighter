@@ -477,7 +477,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         // grouped by property name (section title)
         var groups = {},
             untitledGroup = {
-                value: chrome.i18n.getMessage('untitled_page_group'),
+                // value: chrome.i18n.getMessage('untitled_page_group'),
                 docs: []
             },
             numberGroup = { 
@@ -560,6 +560,9 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             // currently groups only have a raw value - format it as text
             group.title = (() => {
                 switch (typeof group.value) {
+                    case 'undefined':
+                        // untitled
+                        return undefined
                     case 'string':
                         // value is the first letter of group title
                         return group.value
