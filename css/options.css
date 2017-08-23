@@ -15,7 +15,7 @@ input[type="color"] {
 }
 
 .token {
-    margin: 0 0 3px 1rem;
+    margin: 0 0 6px 1rem;
     font-size: 2rem !important;
  /*   padding: 10px 0 10px 0.3em !important;*/
     cursor: pointer;
@@ -112,11 +112,17 @@ input[type="color"] {
 
 .page {
     /* background-color: #f7f7f7; */
-    margin-bottom: 8px;
+    /* margin-bottom: 8px; */
+    border-radius: 4px;
 }
 
-.page cite {
+.page:hover {
+    background-color: #eee;
+}
+
+.page-link {
     font-style: normal;
+    color: #006621;
 }
 
 .page-title {
@@ -127,15 +133,12 @@ input[type="color"] {
     font-weight: normal;
 }
 
-.page-link {
-    /* font-size: 0.9em; */
-    color: #006621;
-    display: block;
-}
-
 .page-text-list {
-    margin-top: 1rem;
-    margin-left: 0;
+    max-height: 480px;
+    overflow-y: scroll;
+    padding-left: 6px;
+    padding-top: 6px;
+    /* padding-bottom: 6px; */
 }
 
 .page-text-list-item {

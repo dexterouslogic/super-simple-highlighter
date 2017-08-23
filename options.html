@@ -69,7 +69,7 @@
 
         <div class="row" ng-controller="PagesController">
             <!--Nav Pills-->
-            <div class="col-xs-3">
+            <div class="col-xs-2">
                 <ul class="nav nav-pills nav-stacked" role="tablist">
                     <li class="active"><a href="#styles" role="tab" data-toggle="pill">{{ 'styles' | i18n }}</a></li>
                     <li><a href="#pages" role="tab" data-toggle="pill">{{ 'pages' | i18n }}</a></li>
@@ -267,7 +267,7 @@
                                         </a>
                                     </h5>
                                     <!-- page link -->
-                                    <a href="{{doc.match}}" target="_blank" class="small page-link">{{doc.match}}</a>
+                                    <cite class="page-link">{{doc.match}}</cite>
 
                                     <!-- text for all highlights -->
                                     <ul class="list-inline page-text-list" ng-show="options.showPageText">
