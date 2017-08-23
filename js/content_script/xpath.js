@@ -1,4 +1,5 @@
 /*global Node, XPathEvaluator, document, documentelement, XPathResult*/
+"use strict"
 
 /*
  * This file is part of Super Simple Highlighter.
@@ -19,68 +20,80 @@
 
 var _xpath = {
     /**
-     * Gets an XPath for an node which describes its hierarchical location.
-     * http://stackoverflow.com/questions/3454526/how-to-calculate-the-_xpath-position-of-an-element-using-javascript
+     * Get the XPath of a node within its hierarchy
+     * @param {Object} node - node to process within its owner document
+     * @return {string} xpath of node, or empty string if no tests could be identified
      */
-    _getXPathFromNode: function (node) {
-        "use strict";
-        // if (node && node.id) {
-        //     return '//*[@id="' + node.id + '"]';
-        // }
+    _getPath: (node) => {
+        let nodeTests = []
 
-        var paths = [];
-
-        // Use nodeName (instead of localName) so namespace prefix is included (if any).
-        for (; node && (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE); node = node.parentNode)  {
-            var index = 0;
-
-            if (node.id) {
-                // if the document illegally re-uses an id, then we can't use it as a unique identifier
-                var selector = '[id="' + node.id + '"]';
-
-                // no jquery
-                var length = document.querySelectorAll(selector).length;
-                if (length === 1) {
-                    // because the first item of the path array is prefixed with '/', this will become 
-                    // a double slash (select all elements). But as there's only one result, we can use [1]
-                    // eg: //*[@id='something'][1]/div/text()
-                    paths.splice(0, 0, '/*[@id="' + node.id + '"][1]');
-                    break;
-                }
-
-                console.log("document contains " + length + " elements with selector " + selector + ". Ignoring");
+        // if the chain contains a non-(element|text) node type, we can go no further
+        for (; node && (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE); node = node.parentNode) {
+            // if the node is an element with a specific, unique id, it can become the root of the path,
+            // and since we're going from node to document root, we have all we need.
+            if (node.nodeType === Node.ELEMENT_NODE &&
+                node.id.length > 0 &&
+                node.ownerDocument.querySelectorAll(`#${node.id}`).length === 1) {
+                // because the first item of the path array is prefixed with '/', this will become 
+                // a double slash (select all elements). But as there's only one result, we can use [1]
+                // eg: //*[@id='something'][1]/div/text()
+                nodeTests.unshift(`/*[@id="${node.id}"][1]`)
+                break
             }
 
-            for (var sibling = node.previousSibling; sibling; sibling = sibling.previousSibling) {
-                // Ignore document type declaration.
-                if (sibling.nodeType === Node.DOCUMENT_TYPE_NODE) {
-                    continue;
+            // Get node index by counting previous siblings of the same name & type
+            let index = 1
+
+            for (let siblingNode = node.previousSibling; siblingNode; siblingNode = siblingNode.previousSibling) {
+                // Skip DTD,
+                // Skip nodes of differing type AND name (tagName for elements, #text for text),
+                // as they are indexed by node type
+                if (siblingNode.nodeType === Node.DOCUMENT_TYPE_NODE ||
+                    node.nodeType !== siblingNode.nodeType ||
+                    siblingNode.nodeName !== node.nodeName) {
+                    continue
                 }
 
-                if (sibling.nodeName === node.nodeName) {
-                    index++;
-                }
+                index++
             }
 
-            var tagName = (node.nodeType === Node.ELEMENT_NODE ? node.nodeName.toLowerCase() : "text()");
-            var pathIndex = (index ? "[" + (index+1) + "]" : "");
-            paths.splice(0, 0, tagName + pathIndex);
-        }
+            // format node test for current node
+            let nodeTest = (() => {
+                switch (node.nodeType) {
+                    case Node.ELEMENT_NODE:
+                        // naturally uppercase. I forget why I force it lower.
+                        return node.nodeName.toLowerCase()
+                
+                    case Node.TEXT_NODE:
+                        return 'text()'
 
-        return paths.length ? "/" + paths.join("/") : null;
+                    default:
+                        console.error(`invalid node type: ${node.nodeType}`)
+                }
+            })()
+
+            // nodes at index 1 (1-based) are implicitly selected
+            if (index > 1) {
+                nodeTest += `[${index}]`
+            }
+
+            nodeTests.unshift(nodeTest)
+        } // end for
+
+        // return empty path string if unable to create path
+        return nodeTests.length === 0 ? "" : `/${nodeTests.join('/')}`
     },
 
     /**
      * Convert a standard Range object to an XPathRange
-     * @param {object} range Range object
-     * @return {object} (identifies containers by their _xpath)
+     * @param {Object} range Range object
+     * @return {Object} (identifies containers by their _xpath)
      */
     createXPathRangeFromRange: function (range) {
-        "use strict";
         return {
-            startContainerPath: this._getXPathFromNode(range.startContainer),
+            startContainerPath: this._getPath(range.startContainer),
             startOffset: range.startOffset,
-            endContainerPath: this._getXPathFromNode(range.endContainer),
+            endContainerPath: this._getPath(range.endContainer),
             endOffset: range.endOffset,
             collapsed: range.collapsed
         };
