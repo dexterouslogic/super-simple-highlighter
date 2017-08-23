@@ -141,16 +141,38 @@ var _eventPage = {
                 return Promise.resolve()
             }
         }).then(() => _tabs.executeAllScripts_Promise(details.tabId, false)).then(() => {
-            return _tabs.replayDocuments_Promise(details.tabId, matchedDocs, function (errorDoc) {
-                // method only called if there's an error. called multiple times
-                console.error("Error:" + JSON.stringify(errorDoc));
+            // set of ids of 'create' documents that reported errors, and did NOT have a corresponding
+            // 'delete' document (i.e. implying it's not really an error)
+            const unmatchedCreateDocIds = new Set()
 
-                // update page action
+            return _tabs.replayDocuments_Promise(details.tabId, matchedDocs, errorDoc => {
+                // method only called if there's an error. called multiple times
                 if (errorDoc.verb === "create") {
-                    _eventPage.setPageActionStatus(details.tabId, true);
+                    unmatchedCreateDocIds.add(errorDoc._id)
                 }
+            }).then(sum => {
+                if (unmatchedCreateDocIds.size > 0) {
+                    // remove 'create' docs for which a matching 'delete' doc exists
+                    for (const doc of matchedDocs) {
+                        if (doc.verb === 'delete') {
+                            unmatchedCreateDocIds.delete(doc.correspondingDocumentId)
+
+                            if (unmatchedCreateDocIds.size === 0) {
+                                break
+                            }
+                        }
+                    }
+
+                    // any remaining entries are genuinely invalid
+                    if (unmatchedCreateDocIds.size > 0) {
+                        _eventPage.setPageActionStatus(details.tabId, true)
+                        console.warn(`Error replaying ${unmatchedCreateDocIds.size} 'create' document(s)`)
+                    }
+                }
+
+                return sum
             })
-        }).then((sum) => {
+        }).then(sum => {
             if (sum <= 0) {
                 return
             }
