@@ -1,4 +1,4 @@
-/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _xpath, _storage*/
+/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _storage*/
 
 /*
  * This file is part of Super Simple Highlighter.
@@ -162,24 +162,24 @@ var _contentScript = {
 
     /**
      * Highlight part of the DOM, identified by the selection
-     * @param xpathRange
+     * @param xrange object containing properties of Range, with containers defined by XPath instead of node
      * @param id id to set on the first span of the highlight
-     * @param className
+     * @param className class defining the highlight style
      * @return {*} span of highlight list, or null on error
      */
-    createHighlight: function (xpathRange, id, className) {
+    createHighlight: function (xrange, id, className) {
         "use strict";
         let range;
 
         // this is likely to cause exception when the underlying DOM has changed
         try {
-            range = _xpath.createRangeFromXPathRange(xpathRange);
+            range = RangeUtils.parseXRange(xrange, document)
             if (!range) {
-                throw new Error(`error parsing xpathRange: ${xpathRange}`)
+                throw new Error(`Unable to parse xrange`)
             }
         } catch (err) {
-            console.log("Exception parsing xpath range: " + err.message);
-            return null;
+            console.error(`Exception parsing xpath range ${xrange}: ${err.message}`)
+            return null
         }
 
         // create span(s), with 2 class names
@@ -345,25 +345,28 @@ var _contentScript = {
                 response = _contentScript.deleteHighlight(message.highlightId);
                 break;
 
-            case "select_highlight":
-                response = (function(){
+            case 'select_highlight':
+                response = (() => {
                     // if highlightId is null, selection is cleared (no result)
-                    let range = _contentScript.selectHighlight(message.highlightId)
+                    if (!message.highlightId) {
+                        return // undefined
+                    }
                     
-                    return message.highlightId ? 
-                        _xpath.createXPathRangeFromRange(range) :
-                        undefined
+                    // get xrange from range
+                    const range = _contentScript.selectHighlight(message.highlightId)
+                    return RangeUtils.toXRange(range)
                 })()
                 break;
 
             case "select_range":
-                // if range is null, selection is cleared
-                response = (function(){
-                    let range = message.range && _xpath.createRangeFromXPathRange(message.range);
+                response = (document => {
+                    // select range defined by xrange, or clear if undefined
+                    const range = message.xrange && RangeUtils.parseXRange(message.xrange, document)
                     _contentScript.selectRange(range);
 
-                    return range && _xpath.createXPathRangeFromRange(range);
-                })()
+                    // return xrange of selection
+                    return range && RangeUtils.toXRange(range)
+                })(document)
                 break;
 
             case "is_highlight_in_dom":
@@ -371,14 +374,18 @@ var _contentScript = {
                 break;
 
             case "get_selection_range":
-                response = _xpath.createXPathRangeFromRange(_contentScript.getSelectionRange());
+                response = (() => {
+                    // convert current selection range to xrange
+                    const range = _contentScript.getSelectionRange()
+                    return RangeUtils.toXRange(range)
+                })()
                 break;
 
             case "get_range_text":
-                response = (function () {
-                    let range = _xpath.createRangeFromXPathRange(message.range);
+                response = (document => {
+                    const range = RangeUtils.parseXRange(message.xrange, document)
                     return range ? range.toString() : null;
-                })()
+                })(document)
                 break;
 
             case "scroll_to":

@@ -87,7 +87,7 @@ var _tabs = {
             "js/storage.js",
             "js/string_utils.js",
             "js/stylesheet.js",
-            "js/content_script/xpath.js",
+            "js/content_script/range_utils.js",
             "js/content_script/highlighter.js",
             "js/content_script/content_script.js"
         ].forEach(function (file) {
@@ -189,9 +189,9 @@ var _tabs = {
 	
 
     /**
-     * Get the selected text range, as an xpath range object
-     * @param {number} tabId
-     * @param [responseCallback]
+     * Get the currently selected text range
+     * @param {number} tabId id of tab to target message towards
+     * @return {Promise<string>} xrange of selection
      */
     sendGetSelectionRangeMessage_Promise: function (tabId) {
         "use strict";
@@ -202,15 +202,14 @@ var _tabs = {
 
     /**
      * Get the text defined by a specific range
-     * @param {number} tabId
-     * @param {object} xpathRange
-     * @param {function} [responseCallback] function(text)
+     * @param {number} tabId id of tab to target message towards
+     * @param {Object} xrange range of text in document to get
+     * @return {Promise<string>} text of selection, or null if not found
      */
-    sendGetRangeTextMessage_Promise: function (tabId, xpathRange) {
-        "use strict";
+    sendGetRangeTextMessage_Promise: function (tabId, xrange) {
         return _tabs.sendMessage_Promise(tabId, {
             id: "get_range_text",
-            range: xpathRange
+            xrange: xrange
         });
     },
 
@@ -237,17 +236,17 @@ var _tabs = {
     /**
      * Ask the content script to select a range of text
      * @param {number} tabId
-     * @param {Object} [xpathRange] if undefined, remove selection
+     * @param {Object} [xrange] if undefined, remove selection
      * @param {function} [responseCallback] function(xpathRange)
      */	
-    sendSelectRangeMessage_Promise: function (tabId, xpathRange) {
+    sendSelectRangeMessage_Promise: function (tabId, xrange) {
         "use strict";
         var message = {
             id: "select_range"
         };
 
-        if (xpathRange) {
-            message.range = xpathRange;
+        if (xrange) {
+            message.xrange = xrange;
         }
 
         return _tabs.sendMessage_Promise(tabId, message);
