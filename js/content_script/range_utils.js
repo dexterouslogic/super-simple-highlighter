@@ -24,11 +24,11 @@ class RangeUtils {
 	 * @returns {Object} as `Range`, but container identified by XPath
 	 * @memberof RangeUtils
 	 */
-	static toXRange(range) {
+	static toObject(range) {
 		return {
-			startContainerPath: RangeUtils._getXPath(range.startContainer),
+			startContainerPath: NodeUtils.path(range.startContainer),
 			startOffset: range.startOffset,
-			endContainerPath: RangeUtils._getXPath(range.endContainer),
+			endContainerPath: NodeUtils.path(range.endContainer),
 			endOffset: range.endOffset,
 			collapsed: range.collapsed,
 		}
@@ -38,12 +38,12 @@ class RangeUtils {
 	 * Convert XRange object into a Range object in a document
 	 * 
 	 * @static
-	 * @param {Object} xrange - XRange object to parse
+	 * @param {Object} object - XRange object to parse
 	 * @param {Object} [document=window.document] - document from which to create the Range
 	 * @returns {Range} - Parsed range object, or null on error
 	 * @memberof RangeUtils
 	 */
-	static parseXRange(xrange, document) {
+	static toRange(object, document) {
 		let endContainer, endOffset
 		const evaluator = new XPathEvaluator()
 		
@@ -51,7 +51,7 @@ class RangeUtils {
 
 		// must have legal start and end container nodes
 		const startContainer = evaluator.evaluate(
-			xrange.startContainerPath,
+			object.startContainerPath,
 			document.documentElement,
 			null,
 			XPathResult.FIRST_ORDERED_NODE_TYPE,
@@ -62,12 +62,12 @@ class RangeUtils {
 			return null
 		}
 		
-		if (xrange.collapsed || !xrange.endContainerPath) {
+		if (object.collapsed || !object.endContainerPath) {
 			endContainer = startContainer
-			endOffset = xrange.startOffset
+			endOffset = object.startOffset
 		} else {
 			endContainer = evaluator.evaluate(
-				xrange.endContainerPath,
+				object.endContainerPath,
 				document.documentElement, 
 				null,
 				XPathResult.FIRST_ORDERED_NODE_TYPE, 
@@ -78,30 +78,31 @@ class RangeUtils {
 				return null;
 			}
 
-			endOffset = xrange.endOffset;
+			endOffset = object.endOffset;
 		}
 		
 		// map to range object
 		const range = document.createRange()
 
-		range.setStart(startContainer.singleNodeValue, xrange.startOffset)
+		range.setStart(startContainer.singleNodeValue, object.startOffset)
 		range.setEnd(endContainer.singleNodeValue, endOffset)
 
 		return range
 	}
+}
 
+class NodeUtils {
 	// Private
 	
 	/**
 	 * Get the XPath of a node within its hierarchy
 	 * 
-	 * @private
 	 * @static
 	 * @param {Object} node - node to process within its owner document
 	 * @returns {string} xpath of node, or empty string if no tests could be identified
 	 * @memberof RangeUtils
 	 */
-	static _getXPath(node) {
+	static path(node) {
 		let tests = []
 		
 		// if the chain contains a non-(element|text) node type, we can go no further

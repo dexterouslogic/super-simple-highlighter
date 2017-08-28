@@ -173,7 +173,7 @@ var _contentScript = {
 
         // this is likely to cause exception when the underlying DOM has changed
         try {
-            range = RangeUtils.parseXRange(xrange, document)
+            range = RangeUtils.toRange(xrange, document)
             if (!range) {
                 throw new Error(`Unable to parse xrange`)
             }
@@ -354,18 +354,18 @@ var _contentScript = {
                     
                     // get xrange from range
                     const range = _contentScript.selectHighlight(message.highlightId)
-                    return RangeUtils.toXRange(range)
+                    return RangeUtils.toObject(range)
                 })()
                 break;
 
             case "select_range":
                 response = (document => {
                     // select range defined by xrange, or clear if undefined
-                    const range = message.xrange && RangeUtils.parseXRange(message.xrange, document)
+                    const range = message.xrange && RangeUtils.toRange(message.xrange, document)
                     _contentScript.selectRange(range);
 
                     // return xrange of selection
-                    return range && RangeUtils.toXRange(range)
+                    return range && RangeUtils.toObject(range)
                 })(document)
                 break;
 
@@ -377,13 +377,13 @@ var _contentScript = {
                 response = (() => {
                     // convert current selection range to xrange
                     const range = _contentScript.getSelectionRange()
-                    return RangeUtils.toXRange(range)
+                    return RangeUtils.toObject(range)
                 })()
                 break;
 
             case "get_range_text":
                 response = (document => {
-                    const range = RangeUtils.parseXRange(message.xrange, document)
+                    const range = RangeUtils.toRange(message.xrange, document)
                     return range ? range.toString() : null;
                 })(document)
                 break;
@@ -590,17 +590,6 @@ var _contentScript = {
 
 };
 
-/**
- * Listener for change events in storage
- */
-
 // script is run at 'document_idle' (see manifest), which is some time between
 // 'DOMContentLoaded' and immediately after 'load'
 _contentScript.init();
-
-// $().ready(function () {
-//     "use strict";
-// 	_contentScript.init();
-
-//     //_contentScript.onReady();
-// });
