@@ -1,5 +1,3 @@
-/*global _storage, _stringUtils*/
-
 /*
  * This file is part of Super Simple Highlighter.
  * 
@@ -97,7 +95,7 @@ var _stylesheet = {
     },
 
     /**
-     * 
+     * TODO
      * 
      * @param {Object} dfn - highlight definition object
      * @returns {Promise}
@@ -122,28 +120,21 @@ var _stylesheet = {
         const match = re.exec(backgroundColor);
 
         if (match && match.length >= 4) {
-            return _storage.getValue("highlightBackgroundAlpha").then(a => {
-                style["background-color"] = "rgba(" +
-                    parseInt(match[1], 16) + ", " +
-                    parseInt(match[2], 16) + ", " +
-                    parseInt(match[3], 16) + ", " +
-                    (a || 1.0) +
-                ")";
-
+            return new ChromeStorage().get(ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA).then(a => {
+                // format CSS background color in rgba format
+                style["background-color"] = `rgba(${[
+                    match[1],
+                    match[2],
+                    match[3],
+                    a || 1
+                ].map(i => (typeof i === 'string' ? parseInt(i, 16) : i)).join(', ')})`
+                
                 // shared CSSStyleSheet containing all styles
-                const sheet = document.getElementById(_stylesheet.getStyleElementId()).sheet
+                const styleElement = document.getElementById(_stylesheet.getStyleElementId())
                 const selectorText = `.${dfn.className}`
                 
                 // delete existing rule in sheet (if possible)
                 const ruleIndex = _stylesheet.clearHighlightStyle(dfn.className)
-                // for (var ruleIndex=0; ruleIndex < sheet.cssRules.length; ruleIndex++) {
-                //     const cssRule = sheet.cssRules[ruleIndex]
-
-                //     if (cssRule.type === CSSRule.STYLE_RULE && cssRule.selectorText === selectorText) {
-                //         sheet.deleteRule(ruleIndex)
-                //         break
-                //     }
-                // }
 
                 const rule = `${selectorText}
                     ${JSON.stringify(style, null, '\t')
@@ -153,7 +144,10 @@ var _stylesheet = {
                     }
                 `
                 // try to insert replacement rule at same index
-                sheet.insertRule(rule, ruleIndex == -1 ? sheet.cssRules.length : ruleIndex)// Math.min(ruleIndex, sheet.cssRules.length))
+                styleElement.sheet.insertRule(rule, ruleIndex == -1 ? 
+                    styleElement.sheet.cssRules.length :
+                    ruleIndex
+                )// Math.min(ruleIndex, sheet.cssRules.length))
             });
         } else {
             console.log("highlight style background colour not in #RRGGBB format");

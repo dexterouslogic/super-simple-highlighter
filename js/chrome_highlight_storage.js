@@ -209,8 +209,6 @@ class ChromeHighlightStorage extends ChromeStorage {
 Object.assign(ChromeHighlightStorage.KEYS, {
   HIGHLIGHT_DEFINITIONS: 'highlightDefinitions',
   SHARED_HIGHLIGHT_STYLE: 'sharedHighlightStyle',
-
-  HIGHLIGHT_BACKGROUND_ALPHA: 'highlightBackgroundAlpha',
 })
 
 ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
