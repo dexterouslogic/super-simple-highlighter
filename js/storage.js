@@ -111,9 +111,7 @@ var _storage = {
             }
 
             if (!className) {
-                className = _stringUtils.createUUID({
-                    beginWithLetter: true
-                });
+                className = StringUtils.newUUID({ beginWithLetter: true })
             }
 
             if (!textColor) {

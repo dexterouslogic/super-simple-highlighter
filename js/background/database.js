@@ -170,7 +170,7 @@ var _database = {
         "use strict";
         // required
         let doc = {
-            _id: _stringUtils.createUUID({ beginWithLetter: true }),
+            _id: StringUtils.newUUID({ beginWithLetter: true }),
             // _rev: undefined,
 
             match: match,

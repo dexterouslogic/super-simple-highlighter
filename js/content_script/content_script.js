@@ -1,5 +1,3 @@
-/*global _stringUtils, _stylesheet, _storage, document, window, _highlighter, _storage*/
-
 /*
  * This file is part of Super Simple Highlighter.
  * 
@@ -18,7 +16,8 @@
  */
 
 // disable console log
-console.log = function () { }
+// console.log = function () { }
+"use strict"
 
 var _contentScript = {
     /**
@@ -33,7 +32,7 @@ var _contentScript = {
     init: function () {
         "use strict";
         // create a random class name
-        _contentScript.highlightClassName = _stringUtils.createUUID({ beginWithLetter: true });
+        _contentScript.highlightClassName = StringUtils.newUUID({ beginWithLetter: true })
 
         // the rules for the close button, which must be a child of this class
         _stylesheet.setCloseButtonStyle(_contentScript.highlightClassName);
@@ -125,12 +124,6 @@ var _contentScript = {
             });
             // target.style.setProperty('transform', 'scale(5)')
         }, { capture: true, passive: false })
-
-        // OLD ROUTINE (not used because we don't want to wake event page')
-        // $(document).on({
-        //     mouseenter: _contentScript.onMouseEnterHighlight,
-        //     mouseleave: _contentScript.onMouseLeaveHighlight,
-        // }, "span." + _contentScript.highlightClassName);
     },
 
 
@@ -498,94 +491,99 @@ var _contentScript = {
     },
 
     /**
-     * A value in the storage changed
-     * @param changes
-     * @param namespace
+     * Callback called when a value in storage changes
+     * 
+     * @callback
+     * @param {Object} changes - chrome.storage.StorageChange object
+     * @param {string} areaName - storage area (sync|local|managed) - Must be 'sync'
+     * @returns {Promise}
      */
-    onStorageChanged: function (changes, namespace) {
-        "use strict";
-        if (namespace === "sync") {
-            // changes is an Object mapping each key that changed to its
-            // corresponding storage.StorageChange for that item.
-
-            // this applies to all styles
-            _storage.getValue("enableHighlightBoxShadow").then(enableBoxShadow => {
-                // default FIRST
-                if (changes.sharedHighlightStyle) {
-                    var c1 = changes.sharedHighlightStyle;
-
-                    if (c1.oldValue) {
-                        _stylesheet.clearHighlightStyle(_contentScript.highlightClassName).then(function () {
-                            _stylesheet.updateInnerTextForHighlightStyleElement();
-                        });
-
-                    }
-
-                    if (c1.newValue) {
-                        _stylesheet.setHighlightStyle({
-                            className: _contentScript.highlightClassName,
-                            style: c1.newValue,
-                            disableBoxShadow: !enableBoxShadow,
-                        }).then(function () {
-                            _stylesheet.updateInnerTextForHighlightStyleElement();
-                        });
-                    }
-                }
-
-                // specific last
-                if (changes.highlightDefinitions) {
-                    var c2 = changes.highlightDefinitions;
-                    var promises = [];
-
-                    //                // Remove all event handlers in the ".hotkeys" namespace
-                    //                $(document).off('keypress.hotkeys');
-
-                    if (c2.oldValue) {
-                        c2.oldValue.forEach(function (h) {
-                            _stylesheet.clearHighlightStyle(h.className);
-                        });
-
-                        _stylesheet.updateInnerTextForHighlightStyleElement();
-                    }
-
-                    if (c2.newValue) {
-                        var promises = c2.newValue.map(function (h) {
-                            h.disableBoxShadow = !enableBoxShadow;
-                            return _stylesheet.setHighlightStyle(h);
-                        });
-
-                        Promise.all(promises).then(function () {
-                            _stylesheet.updateInnerTextForHighlightStyleElement();
-                        });
-                    }
-                }
-
-                // alpha
-                if (changes.highlightBackgroundAlpha) {
-                    _contentScript.resetStylesheetHighlightStyle();
-                }
-            });
+    onStorageChanged: function (changes, areaName) {
+        if (areaName !== 'sync') {
+            return Promise.reject(new Error('unknown area name'))
         }
+
+        return new ChromeStorage().get(ChromeStorage.KEYS.ENABLE_HIGHLIGHT_BOX_SHADOW).then(enableHighlightBoxShadow => {
+            return new Promise(resolve => {
+                // default FIRST
+                const c = changes[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
+
+                if (!c) {
+                    resolve()
+                    return
+                }
+
+                if (c.oldValue) {
+                    _stylesheet.clearHighlightStyle(_contentScript.highlightClassName)
+                    _stylesheet.updateInnerTextForHighlightStyleElement()
+                }
+
+                if (c.newValue) {
+                    return _stylesheet.setHighlightStyle({
+                        [HighlightDefinitionFactory.KEYS.CLASS_NAME]: _contentScript.highlightClassName,
+                        [HighlightDefinitionFactory.KEYS.STYLE]: c.newValue,
+                        [HighlightDefinitionFactory.KEYS.DISABLE_BOX_SHADOW]: !enableHighlightBoxShadow,
+                    }).then(() => {
+                        _stylesheet.updateInnerTextForHighlightStyleElement()
+                        resolve()
+                    })
+                } 
+
+                resolve()
+            }).then(() => {
+                // specific last
+                const c = changes[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+
+                if (!c) {
+                    return
+                }
+
+                if (c.oldValue) {
+                    for (const {className} of c.oldValue) {
+                        _stylesheet.clearHighlightStyle(className)
+                    }
+
+                    _stylesheet.updateInnerTextForHighlightStyleElement()
+                }
+
+                if (c.newValue) {
+                    for (const d of c.newValue) {
+                        d[HighlightDefinitionFactory.KEYS.DISABLE_BOX_SHADOW] = !enableHighlightBoxShadow
+                    }
+
+                    return Promise.all(c.newValue.map(d => _stylesheet.setHighlightStyle(d))).then(() => {
+                        _stylesheet.updateInnerTextForHighlightStyleElement()
+                    })
+                }
+            }).then(() => {
+                // alpha
+                if (!changes[ChromeHighlightStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA]) {
+                    return
+                }
+
+                return _contentScript.resetStylesheetHighlightStyle()
+            })
+        }) // end ChromeStorage().get()
     },
 
     /**
      * Read all the current highlight styles, and apply to stylesheet.
      * If they already exist in stylesheet, clear them first
      * @private
+     * @returns {Promise}
      */
     resetStylesheetHighlightStyle: function () {
-        "use strict";
         // fake a change for initial update
-        return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
-            _contentScript.onStorageChanged({
-                sharedHighlightStyle: {
-                    newValue: result.sharedHighlightStyle
+        return new ChromeHighlightStorage().getAll().then(items => {
+            return _contentScript.onStorageChanged({
+                [ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]: {
+                    newValue: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
                 },
-                highlightDefinitions: {
-                    newValue: result.highlightDefinitions
-                }
-            }, "sync");
-        });
+                [ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]: {
+                    newValue: items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+                },
+            }, 'sync')
+        })
     }
 
 };

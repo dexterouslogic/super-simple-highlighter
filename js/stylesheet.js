@@ -33,7 +33,7 @@ var _stylesheet = {
             var style = document.createElement("style");
 
             style.type = "text/css";
-            style.id = _stringUtils.createUUID({ beginWithLetter: true });
+            style.id = StringUtils.newUUID({ beginWithLetter: true })
 
             const defaultRules = `
                 @keyframes fontbulger {
@@ -80,12 +80,12 @@ var _stylesheet = {
 
         return cssText;
     },
-
+    
     /**
-	 * get *every* rule for *every* class of our style element as text,
+     * get *every* rule for *every* class of our style element as text,
 	 * and apply to the style element's innerText property. This should
-	 * evaluate to the same thing, but allow the element to be saved
-	 */
+	 * evaluate to the same thing, but allow the element to be saved     * 
+     */
     updateInnerTextForHighlightStyleElement: function () {
         "use strict";
         var id = _stylesheet.getStyleElementId();
@@ -96,6 +96,12 @@ var _stylesheet = {
         }
     },
 
+    /**
+     * 
+     * 
+     * @param {Object} dfn - highlight definition object
+     * @returns {Promise}
+     */
     setHighlightStyle: function (dfn) {
         "use strict"
         // new style (not a CSSRule)
@@ -159,19 +165,22 @@ var _stylesheet = {
     /**
      * Remove rules for a single style
      * @param className
+     * @return {number} index of deleted rule in sheet, or -1 if not found
      */
     clearHighlightStyle: function (className) {
         // shared CSSStyleSheet containing all styles
-        const sheet = document.getElementById(_stylesheet.getStyleElementId()).sheet
+        const styleElement = document.getElementById(_stylesheet.getStyleElementId())
+        const sheet = styleElement.sheet
+
         const selectorText = `.${className}`
 
         // delete existing rule in sheet (if possible)
-        for (var ruleIndex=0; ruleIndex < sheet.cssRules.length; ruleIndex++) {
-            const cssRule = sheet.cssRules[ruleIndex]
+        for (let i=0; i < sheet.cssRules.length; i++) {
+            const cssRule = sheet.cssRules[i]
 
             if (cssRule.type === CSSRule.STYLE_RULE && cssRule.selectorText === selectorText) {
-                sheet.deleteRule(ruleIndex)
-                return ruleIndex
+                sheet.deleteRule(i)
+                return i
             }
         }
 
