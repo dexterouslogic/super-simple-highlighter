@@ -8,7 +8,7 @@ class HighlightDefinitionFactory {
    * Create a new highlight definition object
    * 
    * @static
-   * @param {string} title - highlight title
+   * @param {string} [title] - highlight title (note that definition shouldn't be stored with undefined title)
    * @param {Object} [options] {
    *     title,
    *     className = StringUtils.newUUID({ beginWithLetter: true }),
@@ -20,8 +20,8 @@ class HighlightDefinitionFactory {
    */
   static createObject(title, {
     className = StringUtils.newUUID({ beginWithLetter: true }),
-    backgroundColor = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.INHERIT_STYLE]['background-color'],
-    color = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.INHERIT_STYLE]['color']
+    backgroundColor = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['background-color'],
+    color = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['color']
   } = {}) {
     return {
       [HighlightDefinitionFactory.KEYS.TITLE]: title,
@@ -149,13 +149,13 @@ class ChromeHighlightStorage extends ChromeStorage {
    * @memberof HighlightStorage
    */
   set(definitions) {
+    // should we add or update? Get index of definition
+    if (!Array.isArray(definitions)) {
+      definitions = [definitions]
+    }
+
     // we update the array of definitions, so we get it first
     return this.getAll().then(({ highlightDefinitions }) => {
-      // should we add or update? Get index of definition
-      if (!Array.isArray(definitions)) {
-        definitions = [definitions]
-      }
-
       for (const d of definitions) {
         const index = highlightDefinitions.findIndex(x => x.className === d.className)
 

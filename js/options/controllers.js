@@ -1,4 +1,5 @@
 /*global angular, _storage, _stylesheet, _stringUtils, _i18n, _changelog, _libraries, _licenses*/
+'use strict'
 
 /*
  * This file is part of Super Simple Highlighter.
@@ -31,311 +32,301 @@ var optionsControllers = angular.module('optionsControllers', []);
 
 // array this is something to do with minification
 optionsControllers.controller('StylesController', ["$scope", "$timeout", function ($scope, $timeout) {
-    'use strict';
-
     // modal dialog div
-    var modalElement;
+    const $modal = $('#myModal')//document.getElementById('myModal')
+
+    // always ignore shadow on options page
+    const DISABLE_BOX_SHADOW = true
+            
+    /** 
+     * Object to contain all other objects in the scope of this controller
+     * @typedef {Object} StylesControllerScope
+     * @prop {string} highlightClassName - class name used by each list item definining a highlight (only on options page)
+     * @prop {Object} command - copy of current chrome commands
+     * @prop {Object} options - watched options specific to scope
+     * @prop {Object} definitions - watched and bound highlight definitions
+     */
+   
+    /** @type {StylesControllerScope} */
+    $scope.stylesController = {
+        highlightClassName: StringUtils.newUUID()
+    }
 
     // model
-    // $scope.unselectAfterHighlight = true;
-    $scope.highlightClassName = "highlight";
-    //    $scope.html_highlight_keyboard_shortcut_help = $sce.trustAsHtml(
-    //        chrome.i18n.getMessage("html_highlight_keyboard_shortcut_help"));
+    // $scope.highlightClassName = // "highlight";
 
-    function onInit() {
-        // cache
-        modalElement = document.getElementById('myModal')
+    // unhanled promise to initialize controller
+    init()
 
-        // 1 - get storage value, and set up a watch on it
-        _storage.getValue("unselectAfterHighlight").then(function (unselect) {
-            $scope.unselectAfterHighlight = unselect;
+    /**
+     * Initializer
+     * 
+     * @returns {Promise} resolved on successful init
+     */
+    function init() {
+        // 1 - add event listener to document for mouseover on page-text-list-item (highlight texts)
+        const pagesElm = document.querySelector('#pages')
+        const timeoutName = 'hysteresisTimeoutId'
 
-            $scope.$watch('unselectAfterHighlight', function (newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    console.log(newVal);
-
-                    _storage.setValue(newVal, "unselectAfterHighlight")
-                }
-            });
-        });
-
-        // 1b - same, but for disable box shadow
-        _storage.getValue("enableHighlightBoxShadow").then(isEnabled => {
-            $scope.isHighlightBoxShadowEnabled = isEnabled;
-
-            $scope.$watch('isHighlightBoxShadowEnabled', function (newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    console.log(newVal);
-
-                    _storage.setValue(newVal, "enableHighlightBoxShadow")
-                }
-            });
-        });
-
-        // 2
-        _storage.getValue("highlightBackgroundAlpha").then(opacity => {
-            if (opacity === undefined) {
-                return;
+        pagesElm.addEventListener('mouseenter', function (event) {
+            const elm = event.target
+            
+            if (!(elm.classList && elm.classList.contains('page-text-list-item'))) {
+                return
             }
 
-            $scope.opacity = opacity;
+            // remove hysteresis timer
+            if (typeof elm[timeoutName] === 'number') {
+                clearTimeout(elm[timeoutName])
+                delete elm[timeoutName]
+            }
 
-            // watch our model, sync on change
-            var timeout = null;     // debounce
+            // show close button
+            const closeElm = elm.querySelector('.list-item-close')
+            closeElm.style.setProperty('opacity', '1')
+        }, { capture: true, passive: true })
 
-            $scope.$watch('opacity', function (newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    // save the new value. debounce for 1 second
-                    if (timeout) {
-                        $timeout.cancel(timeout);
+        // add event listener for leaving highlight text
+        pagesElm.addEventListener('mouseleave', function (event) {
+            const elm = event.target
+            
+            if (!(elm.classList && elm.classList.contains('page-text-list-item'))) {
+                return
+            }
+
+            const closeElm = elm.querySelector('.list-item-close')
+
+            // add a timeout once we leave the element. If we return we cancel the transition out
+            elm[timeoutName] = setTimeout(() => {
+                // transition out wasn't cancelled
+                delete elm[timeoutName]
+
+                closeElm.style.setProperty('opacity', '0')
+            }, 500);
+        }, { capture: true, passive: true })
+
+        // 2 - add listener for changes to storage (sync area only)
+        chrome.storage.onChanged.addListener((changes, areaName) => {
+            if (areaName !== 'sync') {
+                return
+            }
+
+            // returns an unused promise
+            onStorageChanged(changes)
+        })
+
+        // copy all shortcut command info into scoped object
+        return new Promise(resolve => {
+            chrome.commands.getAll(commands => resolve(commands))
+        }).then(commands => {
+            $scope.stylesController.commands = commands
+
+            // get existing storage values for options
+            return new ChromeStorage().get([
+                ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT,
+                ChromeStorage.KEYS.ENABLE_HIGHLIGHT_BOX_SHADOW,
+                ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA,
+            ])
+        }).then(items => {
+            !function () {
+                const TIMEOUT = 1000
+                const name = 'options'
+                
+                // copy to options object in scope
+                $scope.stylesController[name] = Object.assign({}, items)
+    
+                let debounceTimerID = null
+    
+                // update storage when scoped options object changes
+                $scope.$watchCollection(`stylesController.${name}`, (newOptions, oldOptions) => {
+                    if (newOptions == oldOptions) {
+                        return
                     }
-
-                    timeout = $timeout(function () {
-                        console.log(newVal);
-
-                        _storage.setValue(newVal, "highlightBackgroundAlpha")
-                    }, 1000);
+                    
+                    // debounce storage setting because there is a quota, and slider has no tracking options
+                    if (debounceTimerID) {
+                        $timeout.cancel(debounceTimerID)
+                    }
+                    
+                    debounceTimerID = $timeout(() => {
+                        // unhandled promise
+                        new ChromeStorage().set(newOptions).then(() => debounceTimerID = null)
+                    }, TIMEOUT);
+    
+                })
+            }()
+        }).then(() => {
+            const name = 'definitions'
+            $scope.stylesController[name] = {}
+            
+            // watch for changes to scoped definitions collection
+            $scope.$watchCollection(`stylesController.${name}`, (newDefinitions, oldDefinitions) => {
+                for (const d of newDefinitions) {
+                    d.disableBoxShadow = DISABLE_BOX_SHADOW
+                    _stylesheet.setHighlightStyle(d)
                 }
-            });
-        });
+            })
 
-        // shortcut commands array
-        chrome.commands.getAll(function (commands) {
-            $scope.commands = commands;
-        });
+            // initial update via onStorageChange()
+            return new ChromeHighlightStorage().getAll().then(items => {
+                // define a change that resets styles to stored values
+                const changes = {
+                    [ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]: { 
+                        newValue: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE] 
+                    },
+                    [ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]: { 
+                        newValue: items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS] 
+                    }, 
+                }
 
-        // listen for edit modal close
-        //        $modal.on('hidden.bs.modal', onModalHidden);
-
-        // listen for changes to styles
-        chrome.storage.onChanged.addListener(onStorageChanged);
-
-        // fake a change for initial update
-        resetStylesheetHighlightStyle();
+                onStorageChanged(changes)
+            })
+        })
     }
 
     /**
-     * Get the current highlight definitions, and (re)create the stylesheet for us using them
-     * @private
+     * Handler for click on 'add new style' button
+     * 
      */
-    function resetStylesheetHighlightStyle() {
-        return _storage.highlightDefinitions.getAll_Promise().then(function (result) {
-            onStorageChanged({
-                sharedHighlightStyle: {
-                    newValue: result.sharedHighlightStyle
-                },
-                highlightDefinitions: {
-                    newValue: result.highlightDefinitions
-                }
-            }, "sync");
-        });
-
-    }
-
-    $scope.onClickModalSave = function () {
-        $(modalElement).modal('hide');
-
-        // set contents of selectedDefintion into storage
-        if ($scope.modalDefinition) {
-            return _storage.highlightDefinitions.set_Promise($scope.modalDefinition);
-        } else {
-            return Promise.reject(new Error());
-        }
-    };
-
-    /**
-     * Clicked the 'add new definition' button
-     */
-    $scope.onClickAdd = function () {
+    $scope.onClickAddNewStyle = function () {
         // default new definition
         $scope.modalTitle = chrome.i18n.getMessage("create_new_style");
         $scope.modalSaveButtonTitle = chrome.i18n.getMessage("create");
 
-        $scope.modalDefinition = _storage.highlightDefinitions.create();
-        //        $scope.$apply();
-
+        // new definition, to be altered and stored later
+        $scope.modalDefinition = HighlightDefinitionFactory.createObject()
+            
         // activate the 'edit' model
-        $(modalElement).modal();
-    };
+        $modal.modal();
+    }
+    
+    /**
+     * Handler for click on 'reset all styles' button
+     * 
+     * @returns {Promise} resolved when all highlight definitions removed from storage
+     */
+    $scope.onClickResetAllStyles = function () {
+        if (!window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
+            return Promise.resolve()
+        }
+
+        return new ChromeHighlightStorage().removeAll()
+    }
 
     /**
-     * Clicked the 'reset styles' button
+     * Handler for click on 'save' button of new highlight definition dialog
+     * 
+     * @returns {Promise} resolved when definition is stored, and $scope.modalDefinition is deleted
      */
-    $scope.onClickReset = function () {
-        if (window.confirm(chrome.i18n.getMessage("confirm_reset_default_styles"))) {
-            return _storage.highlightDefinitions.removeAll_Promise();
-        } else {
-            return Promise.resolve();
+    $scope.onClickModalSave = function () {
+        $modal.modal('hide');
+
+        // set contents of selectedDefintion into storage
+        if (!$scope.modalDefinition) {
+            return Promise.reject(new Error())
         }
-    };
+
+        // storage object and delete property value
+        return new ChromeHighlightStorage().set($scope.modalDefinition)
+            .then(() => delete $scope.modalDefinition)
+    }
 
     /**
      * Clicked an existing definition
      * @param {number} index index of definition in local array
      */
-    $scope.onClickEdit = function (index) {
+    $scope.onClickEditDefinition = function (index) {
         $scope.modalTitle = chrome.i18n.getMessage("edit_style");
         $scope.modalSaveButtonTitle = chrome.i18n.getMessage("update");
 
         // deep copy
-        $scope.modalDefinition = angular.copy($scope.definitions[index]);//   _highlightDefinitions.copy($scope.definitions[index]);
+        $scope.modalDefinition = angular.copy($scope.stylesController.definitions[index]);//   _highlightDefinitions.copy($scope.definitions[index]);
 
         // activate the 'edit' model
-        $(modalElement).modal();
-    };
+        $modal.modal();
+    }
 
     /**
      * Clicked the per-definition 'delete' button
-     * @param className
+     * @param {string} definitionClassName class name for definition in storage
+     * @returns {Promise} resolves if storage updated or cancelled
      */
-    $scope.onClickDelete = function (className) {
-        if (window.confirm(chrome.i18n.getMessage("confirm_remove_style"))) {
-            // delete from storage. model should update automatically
-            return _storage.highlightDefinitions.remove_Promise(className);
-        } else {
-            return Promise.resolve();
+    $scope.onClickRemoveDefinition = function (definitionClassName) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        if (!window.confirm(chrome.i18n.getMessage("confirm_remove_style"))) {
+            return Promise.resolve()
         }
-    };
+
+        // delete from storage. model should update automatically
+        return new ChromeHighlightStorage().remove(definitionClassName)
+    }
 
     /**
-     * A value in the storage changed
-     * @param changes
-     * @param namespace
+     * Handler for changes to sync storage
+     * 
+     * @param {Object} changes Object mapping each key that changed to its corresponding storage.StorageChange for that item.
+     * @returns {Promise} promise resolved when storage change handled
      */
-    var onStorageChanged = function (changes, namespace) {
-        if (namespace === "sync") {
-            // changes is an Object mapping each key that changed to its
-            // corresponding storage.StorageChange for that item.
-            var change;
+    var onStorageChanged = function (changes) {
+        // if the opacity storage value changed, we can reflect that by adding a change for HIGHLIGHT_DEFINITIONS
+        // where there is no oldValue (nothing to clear), and the undefined newValue means 'read storage values'
+        if (changes[ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA]) {
+            const name = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
+            changes[name] = changes[name] || {}
+        }
+        
+        // first update common (shared) style
+        if (changes[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
+            const c = changes[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
+            const className = $scope.stylesController.highlightClassName
 
-            if (changes.highlightBackgroundAlpha) {
-                change = changes.highlightBackgroundAlpha;
-
-                if (change.newValue) {
-                    $scope.opacity = change.newValue;
-
-                    // get all the highlights using the new opacity, and set them
-                    resetStylesheetHighlightStyle();
-                }
+            if (c.oldValue) {
+                _stylesheet.clearHighlightStyle(className)
             }
 
-            var disableBoxShadow = true;
-
-            // default FIRST
-            if (changes.sharedHighlightStyle) {
-                change = changes.sharedHighlightStyle;
-
-                if (change.oldValue) {
-                    _stylesheet.clearHighlightStyle($scope.highlightClassName);
-                }
-
-                if (change.newValue) {
-                    _stylesheet.setHighlightStyle({
-                        className: $scope.highlightClassName,
-                        style: change.newValue,
-                        disableBoxShadow: disableBoxShadow,
-                    });
-                }
-            }
-
-            // specific last
-            if (changes.highlightDefinitions) {
-                change = changes.highlightDefinitions;
-
-                if (change.oldValue) {
-                    change.oldValue.forEach(function (h) {
-                        _stylesheet.clearHighlightStyle(h.className);
-                    });
-                }
-
-                // if we remove all teh styles (with reset button), newValue will be undefined.
-                // so in that case, get the default styles
-                var setDefinitions = function (definitions) {
-                    // update model
-                    $scope.definitions = definitions;
-                    $scope.$apply();
-
-                    // update stylesheet
-                    definitions.forEach(function (definition) {
-                        definition.disableBoxShadow = disableBoxShadow;
-                        _stylesheet.setHighlightStyle(definition);
-                    });
-                };
-
-                if (!change.newValue) {
-                    // get defaults
-                    _storage.highlightDefinitions.getAll_Promise().then(function (items) {
-                        setDefinitions(items.highlightDefinitions);
-                    });
-                } else {
-                    setDefinitions(change.newValue);
-                }
+            if (c.newValue) {
+                _stylesheet.setHighlightStyle({
+                    className: className,
+                    style: c.newValue,
+                    disableBoxShadow: DISABLE_BOX_SHADOW,
+                })
             }
         }
-    };
+        
+        // then update specific definitions
+        if (changes[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+            const c = changes[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
 
-    onInit();
+            if (c.oldValue) {
+                for (const {className} of c.oldValue) {
+                    _stylesheet.clearHighlightStyle(className)
+                }
+            }
+
+            // name of property of `stylesController` containing definitions object
+            const name = 'definitions'
+
+            // if we remove all teh styles (with reset button), newValue will be undefined.
+            // so in that case, get the default styles
+            if (!c.newValue) {
+                return new ChromeHighlightStorage().getAll().then(items => {
+                    $scope.stylesController[name] = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+                    $scope.$apply()
+                })
+            }
+
+            $scope.stylesController[name] = c.newValue
+            $scope.$apply()
+        }
+
+        return Promise.resolve()
+    }
 }]);
 
-
-    // add event listener to document for mouseover on page-text-list-item (highlight texts)
-    document.addEventListener('mouseenter', function (event) {
-        const elm = event.target
-        
-        if (!(elm.classList && elm.classList.contains('page-text-list-item'))) {
-            return
-        }
-
-        // remove hysteresis timer
-        if (typeof elm.hysteresisTimeoutID === 'number') {
-            clearTimeout(elm.hysteresisTimeoutID)
-            delete elm.hysteresisTimeoutID
-        }
-
-        // show close button
-        const closeElm = elm.querySelector('.list-item-close')
-        closeElm.style.setProperty('opacity', '1')
-
-        // // the handler applies to all spans of the highlight, so first look for 'firstSpan' (which should
-        // // have the 'closeable' class)
-        // const span = target.firstSpan;// $(this).prop('firstSpan');
-
-        // // remove hysteresis timer from the first span
-        // if (span.mouseLeaveHysteresisTimeoutID != null) {
-        //     // cancel scheduled out transition
-        //     clearTimeout(span.mouseLeaveHysteresisTimeoutID);
-        //     span.mouseLeaveHysteresisTimeoutID = null;
-        // }
-
-        // const style = span.querySelector('.close').style;
-
-        // // transition in
-        // style.setProperty('opacity', '1')
-        // style.setProperty('transform', 'scale(1.0)')
-    }, { capture: true, passive: true })
-
-    // add event listener for leaving highlight text
-    document.addEventListener('mouseleave', function (event) {
-        const elm = event.target
-        
-        if (!(elm.classList && elm.classList.contains('page-text-list-item'))) {
-            return
-        }
-
-        const closeElm = elm.querySelector('.list-item-close')
-
-        // add a timeout once we leave the element. If we return we cancel the transition out
-        elm.hysteresisTimeoutID = setTimeout(() => {
-            // transition out wasn't cancelled
-            delete elm.mouseLeaveHysteresisTimeoutID
-
-            closeElm.style.setProperty('opacity', '0')
-        }, 500);
-    }, { capture: true, passive: true })
-
-
 /**
- * Controller for Sites pane
+ * 3 - Controller for Pages pane
  */
 optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     'use strict';

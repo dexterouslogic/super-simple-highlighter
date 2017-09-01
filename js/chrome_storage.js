@@ -17,7 +17,7 @@ class ChromeStorage {
    * Get value(s) for storage key(s)
    * 
    * @param {string|[string]|Object} keys - keys to get. If object, the name is the key name, and value is its default
-   * @returns {Promise<*>} promise resolving to an object (if single key requested), else object
+   * @returns {Promise<*>} promise resolving to a value (if single key requested), else object where property name is key
    * @memberof ChromeStorage
    */
   get(keys) {
@@ -59,8 +59,8 @@ class ChromeStorage {
   /**
    * Set value(s) for storage key(s)
    * 
-   * @param {*|Object[]} value - value for key param, or Object specifying each key/value to set
-   * @param {string} [key] - optional key implying value param is its value, and only one value is to be set 
+   * @param {*|Object[]} value value for key param, or Object specifying each key/value to set
+   * @param {string} [key] optional key implying value param is its value, and only one value is to be set 
    * @returns {Promise} promise that rejects on runtime error
    * @memberof ChromeStorage
    */

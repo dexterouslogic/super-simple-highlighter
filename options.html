@@ -19,6 +19,9 @@
     <script src="static/js/memorystream.js"></script>
 
     <script src="js/storage.js"></script>
+    <script src="js/chrome_storage.js"></script>
+    <script src="js/chrome_highlight_storage.js"></script>
+
     <script src="js/stylesheet.js"></script>
     <script src="js/string_utils.js"></script>
     <!-- <script src="js/changelog.js"></script> -->
@@ -103,7 +106,7 @@
                                         <div class="form-group" ng-class="{'has-error': myForm.title.$invalid}">
 
                                             <label class="control-label" for="myTitle">{{ 'highlight_title' | i18n }}</label>
-                                            <input class="form-control" name="title" id="myTitle" type="text" ng-model="modalDefinition.title" required autofocus>
+                                            <input class="form-control" name="title" id="myTitle" type="text" ng-model="modalDefinition.title" required>
 
                                             <span ng-show="myForm.title.$error.required" class="help-block">
                                             {{ 'required_highlight_title' | i18n }}
@@ -151,18 +154,19 @@
                     <!--<h4>Predefined Highlight Styles</h4>-->
                     <h4 class="lead">{{ 'options_tab_page_header_sites' | i18n }}</h4>
                     <ul class="list-unstyled">
-                        <li ng-repeat="d in definitions" class="token well-sm {{highlightClassName}} {{d.className}}" ng-click="onClickEdit($index)">
+                        <li ng-repeat="d in stylesController.definitions" 
+                            class="token well-sm {{stylesController.highlightClassName}} {{d.className}}" ng-click="onClickEditDefinition($index)">
                             <!--Number (index+1)-->
                             <span class="number">{{$index + 1}}</span>
                             <!--title-->
                             <span>{{d.title}}</span>
                             <!--hotkey-->
-                            <kbd class="shortcut" ng-show="{{$index < commands.length && commands[$index].shortcut.length > 0}}">
-                            {{commands[$index].shortcut}}
+                            <kbd class="shortcut" ng-show="{{$index < stylesController.commands.length && stylesController.commands[$index].shortcut.length > 0}}">
+                            {{ stylesController.commands[$index].shortcut }}
                         </kbd>
 
-                            <!--Delete Button-->
-                            <button type="button" class="close" title="Remove Style" ng-click="onClickDelete(d.className); $event.preventDefault(); $event.stopPropagation();">
+                        <!--Delete Button-->
+                        <button type="button" class="close" title="Remove Style" ng-click="onClickRemoveDefinition(d.className)">
                             <span aria-hidden="true">&times;</span>
                             <span class="sr-only">{{'close' | i18n}}</span>
                         </button>
@@ -174,14 +178,15 @@
                         <!--Opacity-->
                         <div class="row">
                             <h5>{{ 'highlight_opacity' | i18n }}</h5>
-                            <div range-slider min="0.3" max="1.0" model-max="opacity" attach-handle-values="true" step="0.1" decimal-places="2" pin-handle="min"
+                            <div range-slider min="0.3" max="1.0" model-max="stylesController.options.highlightBackgroundAlpha"
+                                attach-handle-values="true" step="0.1" decimal-places="2" pin-handle="min"
                                 filter="alphaPercent"></div>
                         </div>
 
                         <!--Unselect after highlight-->
                         <div class="checkbox">
                             <label>
-                            <input type="checkbox" ng-model="unselectAfterHighlight">
+                            <input type="checkbox" ng-model="stylesController.options.unselectAfterHighlight">
                             {{ 'highlight_unselect' | i18n }}
                         </label>
                         </div>
@@ -189,7 +194,7 @@
                         <!--Highlight box shadow enabled-->
                         <div class="checkbox">
                             <label>
-                            <input type="checkbox" ng-model="isHighlightBoxShadowEnabled">
+                            <input type="checkbox" ng-model="stylesController.options.enableHighlightBoxShadow">
                             {{ 'highlight_box_shadow' | i18n }}
                         </label>
                         </div>
@@ -198,10 +203,10 @@
 
                     <!-- Buttons -->
                     <div class="row row-buttons">
-                        <button type="button" class="btn btn-danger" ng-click="onClickReset()">
+                        <button type="button" class="btn btn-danger" ng-click="onClickResetAllStyles()">
                         {{ 'reset_default_styles' | i18n }}
                     </button>
-                        <button type="button" class="btn btn-default pull-right" ng-click="onClickAdd()">
+                        <button type="button" class="btn btn-default pull-right" ng-click="onClickAddNewStyle()">
                         {{ 'create_new_style' | i18n }}
                     </button>
                     </div>
