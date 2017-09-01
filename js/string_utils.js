@@ -26,7 +26,7 @@ class StringUtils {
      * @returns {string} new UUID
      * @memberof StringUtils
      */
-    static newUUID({ beginWithLetter=false } = {}) {
+    static newUUID({ beginWithLetter=true } = {}) {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c, index) => {
             let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
 
