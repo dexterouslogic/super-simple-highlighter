@@ -329,95 +329,106 @@ optionsControllers.controller('StylesController', ["$scope", "$timeout", functio
  * 3 - Controller for Pages pane
  */
 optionsControllers.controller('PagesController', ["$scope", function ($scope) {
-    'use strict';
-    var backgroundPage
+    /** 
+     * Object to contain all other objects in the scope of this controller
+     * @typedef {Object} Options
+     * @prop {string} groupBy
+     * @prop {boolean} ascendingOrder
+     * @prop {boolean} showPageText
+     */
 
-    // docs before grouping
-    let _docs = []
-
-    $scope.options = {
-        // groupBy: {string}
-        // ascendingOrder: {Boolean}
-        // showPageText: {Boolean}
-    }
-
-    // text of the filter
-    $scope.documentFilterText = ""
-
-    // filter predicates
-    $scope.filters = {
-        // filter predicate called on individual groups
-        // (delegates to document filter)
-        group: (group) => group.docs.some(doc => $scope.filters.document(doc)),
-
-        // filter predicate called on individual documents of a group
-        document: (doc) => {
-            const t = $scope.documentFilterText.toLowerCase()
-
-            // always check title & match (url), optionally check page text objects
-            return t.length === 0 ||
-                (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
-                (doc.match.toLowerCase().indexOf(t) != -1) || (
-                    $scope.options.showPageText &&
-                    doc.texts.some(o => {
-                        // text may have introduced undefined (see context_menus)
-                        return typeof o.text === 'string' && o.text.toLowerCase().indexOf(t) != -1
-                    })
-                )
+    /** 
+     * Object to contain all other objects in the scope of this controller
+     * @typedef {Object} PagesControllerScope
+     * @prop {string} documentFilterText - text currently entered in document filter input text
+     * @prop {Object} filters - filter predicate functions
+     * @prop {Options} options - watched options specific to scope
+     */
+   
+    /** @type {PagesControllerScope} */
+    $scope.pagesController = {
+        documentFilterText: "",
+        filters: {
+            // filter predicate called on individual groups
+            // (delegates to document filter)
+            group: (group) => group.docs.some(doc => $scope.pagesController.filters.document(doc)),
+        
+            // filter predicate called on individual documents of a group
+            document: (doc) => {
+                const t = $scope.pagesController.documentFilterText.toLowerCase()
+    
+                // always check title & match (url), optionally check page text objects
+                return t.length === 0 ||
+                    (typeof doc.title === 'string' && doc.title.toLowerCase().indexOf(t) != -1) ||
+                    (doc.match.toLowerCase().indexOf(t) != -1) || (
+                        $scope.pagesController.options.showPageText &&
+                        doc.texts.some(o => {
+                            // text may have introduced undefined (see context_menus)
+                            return typeof o.text === 'string' && o.text.toLowerCase().indexOf(t) != -1
+                        })
+                    )
+            }
         }
     }
 
+    // docs before grouping
+    let ungroupedDocs = []
 
     // starter
-    chrome.runtime.getBackgroundPage(bp => {
-        backgroundPage = bp;
+    init()
 
+    function init() {
         // build default options object
-        _storage.getValue("options_bookmarks_group_by").then(groupBy => {
-            $scope.options.groupBy = groupBy
-            return _storage.getValue("options_bookmarks_ascending_order")
-        }).then(ascendingOrder => {
-            $scope.options.ascendingOrder = ascendingOrder
-            return _storage.getValue("options_bookmarks_show_page_text")
-        }).then(showPageText => {
-            $scope.options.showPageText = showPageText
-
+        return new ChromeStorage().get([
+            ChromeStorage.KEYS.OPTIONS.BOOKMARKS_GROUP_BY,
+            ChromeStorage.KEYS.OPTIONS.BOOKMARKS_ASCENDING_ORDER,
+            ChromeStorage.KEYS.OPTIONS.BOOKMARKS_SHOW_PAGE_TEXT,
+        ]).then(items => {
+            // initialize options of scope
+            $scope.pagesController.options = {
+                groupBy: items[ChromeStorage.KEYS.OPTIONS.BOOKMARKS_GROUP_BY],
+                ascendingOrder: items[ChromeStorage.KEYS.OPTIONS.BOOKMARKS_ASCENDING_ORDER],
+                showPageText: items[ChromeStorage.KEYS.OPTIONS.BOOKMARKS_SHOW_PAGE_TEXT], 
+            }
+            
+            return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b)))
+        }).then(({_database}) => {
             // get an array of each unique match, and the number of associated documents (which is of no use)
-            return backgroundPage._database.getMatchSums_Promise()
-        }).then(rows => {
-            // $scope.rows = rows.filter(row => row.value > 0)
-            // $scope.$apply();
+            return _database.getMatchSums_Promise().then(rows => {
+                // $scope.rows = rows.filter(row => row.value > 0)
+                // $scope.$apply();
 
-            // the key for each row (item in the array) is the 'match' for each document, 
-            // and the value is the sum ('create'+1, 'delete'-1)
-            return Promise.all(rows.filter(row => row.value > 0)
-                .map(row => backgroundPage._database.getDocuments_Promise(row.key, {
-                    descending: false,
-                    limit: 1   
+                // the key for each row (item in the array) is the 'match' for each document, 
+                // and the value is the sum ('create'+1, 'delete'-1)
+                return Promise.all(rows.filter(row => row.value > 0)
+                    .map(row => _database.getDocuments_Promise(row.key, {
+                        descending: false,
+                        limit: 1   
+                    }))
+                )
+            }).then(a => {
+                // each entry in docs array is an array containing at most one doc
+                const docs = a.filter(a => a.length === 1).map(a => a[0])
+                // first doc should always be a 'create'
+                console.assert(docs.every(doc => doc.verb === 'create'))
+    
+                // if we're grouping by last_date (date of the last non-deleted 'create' document),
+                // or showing text for each highlight, we need to get all create documents too
+                return Promise.all(docs.map(doc => {
+                    return _database.getCreateDocuments_Promise(doc.match).then(a => {
+                        // if the first create document has a corresponding delete document, then the title (stored only
+                        // on the first document) will be removed along with the create document.
+                        console.assert(a.length >= 1)
+                        
+                        // So we go through this dance.
+                        if (a.length >= 1 && a[0]._id !== doc._id) {
+                            a[0].title = doc.title
+                        }
+    
+                        return a
+                    })
                 }))
-            )
-        }).then(a => {
-            // each entry in docs array is an array containing at most one doc
-            const docs = a.filter(a => a.length === 1).map(a => a[0])
-            // first doc should always be a 'create'
-            console.assert(docs.every(doc => doc.verb === 'create'))
-
-            // if we're grouping by last_date (date of the last non-deleted 'create' document),
-            // or showing text for each highlight, we need to get all create documents too
-            return Promise.all(docs.map(doc => {
-                return backgroundPage._database.getCreateDocuments_Promise(doc.match).then(a => {
-                    // if the first create document has a corresponding delete document, then the title (stored only
-                    // on the first document) will be removed along with the create document.
-                    console.assert(a.length >= 1)
-                    
-                    // So we go through this dance.
-                    if (a.length >= 1 && a[0]._id !== doc._id) {
-                        a[0].title = doc.title
-                    }
-
-                    return a
-                })
-            }))
+            })
         }).then(createDocs => {
             // we have an array of array of createDocs
 
@@ -438,20 +449,20 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 })
             })
 
-            _docs = createDocs.map(a => a[0])
+            ungroupedDocs = createDocs.map(a => a[0])
 
             // group the documents by their title (if possible), and get a sorted array
             updateGroupedDocuments()
             $scope.$apply()
 
             // After the initial update, watch for changes to options object
-            $scope.$watchCollection('options', (newValue, oldValue) => {
+            $scope.$watchCollection('pagesController.options', (newOptions, oldOptions) => {
                 // update storage
-                _storage.setValue(newValue.groupBy, "options_bookmarks_group_by").then(() =>
-                    _storage.setValue(newValue.ascendingOrder, "options_bookmarks_ascending_order")
-                ).then(() =>
-                    _storage.setValue(newValue.showPageText, "options_bookmarks_show_page_text")
-                ).then(() => {
+                return new ChromeStorage().set({
+                    [ChromeStorage.KEYS.OPTIONS.BOOKMARKS_GROUP_BY]: newOptions.groupBy,
+                    [ChromeStorage.KEYS.OPTIONS.BOOKMARKS_ASCENDING_ORDER]: newOptions.ascendingOrder,
+                    [ChromeStorage.KEYS.OPTIONS.BOOKMARKS_SHOW_PAGE_TEXT]: newOptions.showPageText,
+                }).then(() => {
                     // only these need to cause update
                     // if (newValue.groupBy === oldValue.groupBy &&
                     //     newValue.ascendingOrder === oldValue.ascendingOrder) {
@@ -460,12 +471,11 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 
                     // rebuild group documents array based on new options
                     updateGroupedDocuments()
-
                     $scope.$apply()
                 })
             })
         })
-    }) // end
+    }
 
     /**
      * Group an array of documents by a common property
@@ -624,9 +634,9 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
 
     function updateGroupedDocuments() {
         // group the documents by their title (if possible), and get a sorted array
-        $scope.groupedDocs = groupDocuments(_docs, {
-            groupBy: $scope.options.groupBy,
-            reverse: !$scope.options.ascendingOrder,
+        $scope.groupedDocs = groupDocuments(ungroupedDocs, {
+            groupBy: $scope.pagesController.options.groupBy,
+            reverse: !$scope.pagesController.options.ascendingOrder,
         })
     }
 
@@ -637,7 +647,9 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
      */
     $scope.onClickRemoveHighlight = (docId, initialDoc) => {
         // wait until transition on close button ends before updating model
-        backgroundPage._eventPage.deleteHighlight(undefined, docId).then(() => {
+        return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_eventPage}) => {
+            return _eventPage.deleteHighlight(undefined, docId)
+        }).then(() => {
             const index = initialDoc.texts.findIndex(t => t.docId === docId)
             console.assert(index !== -1)
 
@@ -659,8 +671,9 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         }
 
         // var match = $scope.rows[index].key;
-
-        return backgroundPage._database.removeDocuments_Promise(doc.match).then(result => {
+        return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
+            return _database.removeDocuments_Promise(doc.match)
+        }).then(result => {
             // remove the corresponding doc from our '$scope.groupedDocs' via the handy reference
             const index = group.docs.indexOf(doc)
             if (index === -1) {
@@ -676,20 +689,22 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
      * Clicked 'remove all pages' button.
      */
     $scope.onClickRemoveAllPages = function () {
-        if (window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
-            // destroy and re-create the database
-            return backgroundPage._database.reset().then(function () {
-                $scope.groupedDocs = [];
-                $scope.$apply();
-            });
-        } else {
-            return Promise.reject(new Error());
+        if (!window.confirm(chrome.i18n.getMessage("confirm_remove_all_pages"))) {
+            return Promise.resolve()
         }
-    };
+
+        // destroy and re-create the database
+        return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
+            return _database.reset()
+        }).then(() => {
+            $scope.groupedDocs = []
+            $scope.$apply()
+        });
+    }
 }]);
 
 /**
- * Controller for Experimental pane
+ * 3 - Controller for Experimental pane
  */
 optionsControllers.controller('ExperimentalController', ["$scope", function ($scope) {
     'use strict';
@@ -827,21 +842,23 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
 }]);
 
 /**
- * Controller for About pane
+ * 4 - Controller for About pane
  */
 optionsControllers.controller('AboutController', ["$scope", function ($scope) {
-    'use strict';
-    $scope.manifest = chrome.runtime.getManifest();
-    //    $scope.changelog = _changelog;
-    $scope.libraries = _libraries;
-    $scope.cc = _licenses;
+    // TODO: move up a level
+    $scope.manifest = chrome.runtime.getManifest()
+    
+    // scope access to array of libraries
+    $scope.aboutController = {
+        libraries: _libraries,
+        cc: _licenses
+    }
 
 	/**
-	 * Clicked 'restore all warnings' button. Clears the 'dismissed' property for all warning dialogs
-	 * @type function
+	 * Handler for 'restore all warnings' button.
+     * @returns {Promise} resolved on storage update
 	 */
     $scope.onClickRestoreAllWarnings = function () {
-        // TODO: remember to keep all property setters in sync with this method
-        return _storage.setValue(false, "fileAccessRequiredWarningDismissed")
+        return new ChromeStorage().set(false, ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED)
     };
 }]);

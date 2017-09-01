@@ -83,7 +83,7 @@
 
             <!--Nav Content-->
             <div class="col-xs-9 tab-content">
-                <!--Styles Pane-->
+                <!-- 1 - Styles Pane-->
                 <div class="tab-pane active fade in" id="styles" ng-controller="StylesController">
                     <!-- Shared Modal Dialog-->
                     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
@@ -212,33 +212,33 @@
                     </div>
                 </div>
 
-                <!--Pages Pane-->
+                <!-- 2 - Pages Pane-->
                 <div class="tab-pane fade" id="pages" ng-controller="PagesController">
                     <form class="header form-inline">
                         <!-- Show page text -->
                         <div class="checkbox" style="margin-right: auto;">
                             <label>
-                            <input type="checkbox" ng-model="options.showPageText">
+                            <input type="checkbox" ng-model="pagesController.options.showPageText">
                             {{ 'show_page_highlight_text' | i18n }}
                         </label>
                         </div>
 
                         <!-- Grouping & Direction -->
                         <div class="header-control header-control-group">
-                            <select class="form-control" ng-model="options.groupBy">
+                            <select class="form-control" ng-model="pagesController.options.groupBy">
                             <option value="title">{{'group_by_title' | i18n}}</option>
                             <option value="first_date">{{'group_by_first_date' | i18n}}</option>
                             <option value="last_date">{{'group_by_last_date' | i18n}}</option>
                         </select>
 
-                            <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner button-animate-transition" ng-class="{'sort-inverted': !options.ascendingOrder }"
-                                type="button" title="{{'title_sort_direction' | i18n}}" ng-click="options.ascendingOrder = !options.ascendingOrder">
+                            <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner button-animate-transition" ng-class="{'sort-inverted': !pagesController.options.ascendingOrder }"
+                                type="button" title="{{'title_sort_direction' | i18n}}" ng-click="pagesController.options.ascendingOrder = !pagesController.options.ascendingOrder">
                             <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
                         </button>
                         </div>
 
                         <div class="header-control header-control-group">
-                            <input type="search" class="form-control search" ng-model="documentFilterText" placeholder="{{(options.showPageText ? 'placeholder_filter_highlights' : 'placeholder_filter_titles') | i18n}}"
+                            <input type="search" class="form-control search" ng-model="pagesController.documentFilterText" placeholder="{{(pagesController.options.showPageText ? 'placeholder_filter_highlights' : 'placeholder_filter_titles') | i18n}}"
                                 autofocus>
                         </div>
 
@@ -250,13 +250,13 @@
                     </h2>
 
                     <ol class="list-unstyled list-grouped-pages">
-                        <li ng-repeat="group in groupedDocs | filter:filters.group" class="page-group-list-item">
+                        <li ng-repeat="group in groupedDocs | filter:pagesController.filters.group" class="page-group-list-item">
                             <h3 class="page-group-header" title="{{ !group.title ? ('untitled_page_group_tooltip' | i18n) : null }}">
                                 {{ group.title || ('untitled_page_title' | i18n) }}
                             </h3>
 
                             <ol class="list-unstyled">
-                                <li ng-repeat="doc in group.docs | filter:filters.document" id="{{doc._id}}" class="well-sm page" ng-mouseenter="doc.hover=true"
+                                <li ng-repeat="doc in group.docs | filter:pagesController.filters.document" id="{{doc._id}}" class="well-sm page" ng-mouseenter="doc.hover=true"
                                     ng-mouseleave="doc.hover=false">
                                     <!-- button to remove all highlights on this page -->
                                     <button type="button" class="close" ng-click="onClickRemoveAllHighlights(doc, group)" title="{{ 'remove_all_highlights' | i18n }}"
@@ -275,7 +275,7 @@
                                     <cite class="page-link">{{doc.match}}</cite>
 
                                     <!-- text for all highlights -->
-                                    <ul class="list-inline page-text-list" ng-show="options.showPageText">
+                                    <ul class="list-inline page-text-list" ng-show="pagesController.options.showPageText">
                                         <li ng-repeat="t in doc.texts" class="list-inline page-text-list-item {{t.className}}" title="{{ t.date | date:'medium' }}">
                                             {{ t.text || "&nbsp" }}
 
@@ -305,7 +305,7 @@
                     </div>
                 </div>
 
-                <!--Experimental Pane-->
+                <!-- 3 - Experimental Pane-->
                 <div class="tab-pane fade" id="experimental" ng-controller="ExperimentalController">
                     <!-- <h4 class="lead">{{ 'experimental_header' | i18n }}</h4> -->
 
@@ -342,7 +342,7 @@
                 </div>
 
 
-                <!--About Pane-->
+                <!-- 4 - About Pane-->
                 <div class="tab-pane fade" id="about" data-ng-controller="AboutController">
                     <img data-ng-src="{{manifest.icons['256']}}" />
                     <h1>{{manifest.name}}</h1>
@@ -364,14 +364,15 @@
 
                     <h4>{{'libraries' | i18n}}</h4>
                     <ul>
-                        <li ng-repeat="library in libraries">
+                        <li ng-repeat="library in aboutController.libraries">
                             <a href="{{library.href}}">{{library.text}}</a>
                         </li>
                     </ul>
 
                     <h4>{{'licenses' | i18n}}</h4>
-                    <div ng-repeat="item in cc" class="cc">
-                        "<a href="{{item.work.href}}">{{item.work.text}}</a>" by <a href="{{item.author.href}}">{{item.author.text}}</a>                        is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
+                    <div ng-repeat="item in aboutController.cc" class="cc">
+                        "<a href="{{item.work.href}}">{{item.work.text}}</a>" by <a href="{{item.author.href}}">{{item.author.text}}</a> 
+                        is licensed under <a href="{{item.license.href}}">{{item.license.text}}</a>
                     </div>
 
                     <div class="row row-buttons">
