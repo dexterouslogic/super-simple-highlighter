@@ -18,6 +18,8 @@
 var _tabs = {
 	/** 
 	 * Promise version of chrome's active tab getter
+     * 
+     * @returns {Promise<chrome.Tab>} promising resolving to active tab object
 	 */
     getActiveTab: () => {
         return _tabs.query({

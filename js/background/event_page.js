@@ -261,145 +261,142 @@ var _eventPage = {
 
     /**
      * Fired when a registered command is activated using a keyboard shortcut.
+     * 
+     * @param {Object} command - chrome command object
+     * @returns {Promise}
      */
     onCommandsCommand: function (command) {
         "use strict";
         // parse well-known command strings, but default to the formatted kind
         switch (command) {
             case "delete_hovered_highlight":
-                var _tab;
-
-                return _tabs.getActiveTab().then(function (tab) {
-                    _tab = tab;
-
-                    return _tabs.getHoveredHighlightID(tab.id);
-                }).then(function (documentId) {
-                    if (documentId) {
-                        _eventPage.deleteHighlight(_tab.id, documentId);
-                    }
-                });
+                return _tabs.getActiveTab().then(tab => {
+                    return _tabs.getHoveredHighlightID(tab.id).then(docID => {
+                        if (!docID) {
+                            return
+                        }
+                         
+                        _eventPage.deleteHighlight(tab.id, docID)
+                    })
+                })
 
             case "undo_last_create_highlight":
-                return _tabs.getActiveTab().then(function (tab) {
-                    return _eventPage.undoLastHighlight(tab.id);
-                });
+                return _tabs.getActiveTab().then(tab => _eventPage.undoLastHighlight(tab.id))
 
             case "copy_overview":
-                var tab, sortby, invert;
-
                 // use the sort defined by the popup
-                return _tabs.getActiveTab().then(function (_tab) {
-                    tab = _tab;
-                    return _storage.getValue("highlight_sort_by");
-                }).then(function (value) {
-                    sortby = value;
-                    return _storage.getValue("highlight_invert_sort");
-                }).then(function (invert) {
-                    const comparator = _tabs.getComparisonFunction(tab.id, sortby)
-                    return _eventPage.getOverviewText("markdown", tab, comparator, undefined, invert);
-                }).then(function (text) {
-                    // copy to clipboard
-                    _eventPage.copyText(text);
-                });
+                return new ChromeStorage().get([
+                    ChromeStorage.KEYS.HIGHLIGHT.SORT_BY,
+                    ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT
+                ]).then(items => {
+                    return _tabs.getActiveTab().then(tab => {
+                        const comparator = _tabs.getComparisonFunction(
+                            tab.id,
+                            items[ChromeStorage.KEYS.HIGHLIGHT.SORT_BY]
+                        )
+
+                        return _eventPage.getOverviewText(
+                            "markdown", tab, comparator,
+                            undefined, items[ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT]
+                        )
+                    })
+                }).then(text => _eventPage.copyText(text))
 
             default:
                 // parse the command string to find the style's index
                 // 'apply_highlight_index.0'
-                var re = new RegExp("^apply_highlight\\.(\\d+)$");
-                var match = re.exec(command);
+                const re = new RegExp("^apply_highlight\\.(\\d+)$");
+                const match = re.exec(command);
 
                 if (!match || match.length !== 2) {
-                    throw "unknown command " + command;
+                    return Promise.reject(new Error("unknown command " + command))
                 }
 
-                var index = parseInt(match[1]);
-                var hd;
+                // name of class that new highlight should adopt
+                let highlightClassName
+
+                const index = parseInt(match[1])
 
                 // convert to object
-                return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
-                    if (!items.highlightDefinitions || items.highlightDefinitions.length <= index) {
+                return new ChromeHighlightStorage().getAll().then(items => {
+                    const highlightDefinitions = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+
+                    if (!highlightDefinitions || highlightDefinitions.length <= index) {
                         return Promise.reject(new Error("Unable to match command index to definition"));
                     }
 
-                    hd = items.highlightDefinitions[index];
-
-                    return _tabs.getActiveTab();
-                }).then(function (activeTab) {
-                    var match = _database.buildMatchString(activeTab.url);
+                    highlightClassName = highlightDefinitions[index].className
+                    
+                    return _tabs.getActiveTab()
+                }).then(tab => {
+                    const match = _database.buildMatchString(tab.url);
                     if (!match) {
                         return Promise.reject(new Error());
                     }
 
-                    return _tabs.sendGetSelectionRangeMessage_Promise(activeTab.id).then(function (xpathRange) {
+                    return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
                         if (!xpathRange) {
                             return Promise.reject(new Error());
                         }
 
+                        const storage = new ChromeStorage()
+
                         // non collapsed selection means create new highlight
                         if (!xpathRange.collapsed) {
                             // requires selection text
-                            return _tabs.sendGetRangeTextMessage_Promise(activeTab.id, xpathRange).then(function (selectionText) {
+                            return _tabs.sendGetRangeTextMessage_Promise(tab.id, xpathRange).then(function (selectionText) {
                                 if (!selectionText) {
                                     return Promise.reject(new Error());
                                 }
 
                                 // create new document for highlight,
                                 // then update DOM
-                                return _eventPage.createHighlight(activeTab.id,
-                                    xpathRange, _database.buildMatchString(activeTab.url),
-                                    selectionText, hd.className);
-                            }).then(function () {
+                                return _eventPage.createHighlight(tab.id,
+                                    xpathRange, _database.buildMatchString(tab.url),
+                                    selectionText, highlightClassName)
+                            }).then(() => {
                                 // remove selection?
-                                return _storage.getValue("unselectAfterHighlight").then(function (unselectAfterHighlight) {
-                                    if (unselectAfterHighlight) {
-                                        // unselect all
-                                        _eventPage.selectHighlightText(activeTab.id);
+                                return storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT).then(unselectAfterHighlight => {
+                                    if (!unselectAfterHighlight) {
+                                        return
                                     }
-                                });
-                            });
+
+                                    // unselect all
+                                    _eventPage.selectHighlightText(tab.id);
+                                })
+                            })
                         } else {
                             // collapsed selection range means update 
                             // the hovered highlight (if possible)
-                            return _tabs.getHoveredHighlightID(activeTab.id).then(function (documentId) {
-                                if (!documentId) {
-                                    return Promise.resolve();
+                            return _tabs.getHoveredHighlightID(tab.id).then(docId => {
+                                if (!docId) {
+                                    return
                                 }
 
                                 // if the hovered highlight has a different style to the shortcut request, update
                                 // it. If not, remove the highlight.
 
                                 /// get doc associated with highlight, identified by id
-                                return _database.getDocument_Promise(documentId).then(function (doc) {
-                                    if (doc.className !== hd.className) {
+                                return _database.getDocument_Promise(docId).then(doc => {
+                                    if (doc.className !== highlightClassName) {
                                         // different class. update.
-                                        return _eventPage.updateHighlight(activeTab.id, documentId, hd.className);
-                                    } else {
-                                        // return _storage.getValue("remove_highlight_if_shortcut_highlight_definition_equals_hovered").then(function(value) {
-                                        //     if (!value) {
-                                        //         return Promise.resolve();
-                                        //     }
+                                        return _eventPage.updateHighlight(tab.id, docId, highlightClassName);
+                                    } 
 
-                                        //     // remove the highlight
-                                        //     return _eventPage.deleteHighlight(activeTab.id, documentId).then(function() {
-                                        //         // then select the text it spanned
-                                        //         return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
-                                        //     });
-                                        // });
+                                    // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
+                                    // Otherwise it's too easy to make multiple highlights over the same range.
+                                    return storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT).then(unselectAfterHighlight => {
+                                        if (!unselectAfterHighlight) {
+                                            return
+                                        }
 
-                                        // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
-                                        // Otherwise it's too easy to make multiple highlights over the same range.
-                                        return _storage.getValue("unselectAfterHighlight").then(function (unselectAfterHighlight) {
-                                            if (!unselectAfterHighlight) {
-                                                return Promise.resolve();
-                                            }
-
-                                            // remove the highlight
-                                            return _eventPage.deleteHighlight(activeTab.id, documentId).then(function () {
-                                                // then select the text it spanned
-                                                return _tabs.sendSelectRangeMessage_Promise(activeTab.id, doc.range);
-                                            });
+                                        // remove the highlight
+                                        return _eventPage.deleteHighlight(tab.id, docId).then(function () {
+                                            // then select the text it spanned
+                                            return _tabs.sendSelectRangeMessage_Promise(tab.id, doc.range);
                                         });
-                                    }
+                                    });
+                                    
                                 })
                             });
                         }
@@ -410,16 +407,18 @@ var _eventPage = {
 
     /**
      * Create a highlight in the database and on the page DOM
+     * 
      * @param tabId id of tab to send message to, to create highlight in DOM
      * @param xpathRange range of highlight
      * @param match match string to identify related highlights. Usually processed from url
      * @param selectionText associated text
      * @param className class name to apply to DOM element, and in database also
+     * @returns {Promise}
      */
     createHighlight: function (tabId, xpathRange, match, selectionText, className) {
         "use strict";
         if (xpathRange.collapsed) {
-            return Promise.reject(new Error("Ignoring collapsed range"));
+            return Promise.reject(new Error("Collapsed range"));
         }
 
         // shared between promises
@@ -767,12 +766,13 @@ var _eventPage = {
 
 	/**
 	 * Get an overiew of the highlights for the current page
+     * 
 	 * @param {Object} tab one of the available tabs, or active tab if undefined
 	 * @param {string} format one of [markdown]
 	 * @param {Function} [comparator] function that returns a promise that resolves to a comparible value
      * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
      * @param {Boolean} [invert] invert the document order
-	 * @returns: {Promise} overview correctly formatted as a string
+	 * @returns {Promise} overview correctly formatted as a string
 	 */
     getOverviewText: function (format, tab, comparator, filterPredicate, invert) {
         var titles = {};
@@ -782,19 +782,17 @@ var _eventPage = {
             // the actual tab
             tab = _tab;
 
-            return _storage.highlightDefinitions.getAll_Promise();
-        }).then(function (items) {
-            return items.highlightDefinitions;
-        }).then(function (highlightDefinitions) {
+            return new ChromeHighlightStorage().getAll().then(items => items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS])
+        }).then(highlightDefinitions => {
             // map the highlight class name to its display name, for later usage
-            highlightDefinitions.forEach(function (hd) {
-                titles[hd.className] = hd.title;
-            });
+            for (const d of highlightDefinitions) {
+                titles[d.className] = d.title
+            }
 
             // get documents associated with the tab's url
-            var match = _database.buildMatchString(tab.url);
+            const match = _database.buildMatchString(tab.url)
 
-            return _database.getCreateDocuments_Promise(match);
+            return _database.getCreateDocuments_Promise(match)
         }).then(function (docs) {
             // filter
             return (filterPredicate && docs.filter(filterPredicate)) || docs;

@@ -45,26 +45,29 @@ var _contextMenus = {
 
     /**
      * Remove and recreate menus, based on current state
+     * 
+     * @returns {Promise}
      */
     recreateMenu: function () {
-        "use strict";
         // do all the async work beforehand, to prepare for the actual update
-        return _storage.highlightDefinitions.getAll_Promise().then(function (items) {
+        return new ChromeHighlightStorage().getAll().then(({highlightDefinitions}) => {
             // if we're hovering over a highlight, we need the corresponding class to check the radio item
             if (_contextMenus.hoveredHighlightId) {
-                return _database.getDocument_Promise(_contextMenus.hoveredHighlightId).then(function (doc) {
-                    _contextMenus._recreateMenu(items.highlightDefinitions, doc);
-                });
-            } else {
-                return _contextMenus._recreateMenu(items.highlightDefinitions);
+                return _database.getDocument_Promise(_contextMenus.hoveredHighlightId).then(doc => {
+                    _contextMenus._recreateMenu(highlightDefinitions, doc)
+                })
             }
-        });
+
+            return _contextMenus._recreateMenu(highlightDefinitions)            
+        })
     },
 
     /**
      * Worker function for {@link recreateMenu}
+     * 
      * @param {Array} highlightDefinitions
-     * @param {object} [doc]
+     * @param {Object} [doc]
+     * @returns {Promise}
      * @private
      */
     _recreateMenu: function (highlightDefinitions, doc) {
@@ -174,8 +177,10 @@ var _contextMenus = {
 
     /**
      * Fired when our context menu on the page is clicked
-     * @param info
-     * @param tab
+     * 
+     * @param {Object} info
+     * @param {Object} tab
+     * @returns {Promise}
      */
     onClicked: function (info, tab) {
         "use strict";
@@ -190,17 +195,17 @@ var _contextMenus = {
             case "create_highlight":
                 if (info.editable) {
                     window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"));
-                    return
+                    break
                 }
 
                 // can't create highlight in frames that aren't top level frames, or in editable textareas
                 if (info.frameUrl && info.frameUrl !== tab.url){
                     window.alert(chrome.i18n.getMessage("alert_create_highlight_in_subframe"));
-                    return
+                    break
                 }
 
                 // get the selection range (_xpath) from content script
-				_tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
+				return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
 					if (xpathRange.collapsed) {
 						return Promise.reject(new Error());
 					}
@@ -208,30 +213,27 @@ var _contextMenus = {
                     // create new document for highlight, then update DOM
                     return _eventPage.createHighlight(tab.id,
                         xpathRange, _database.buildMatchString(tab.url, info.frameUrl),
-                        info.selectionText, className);
-				}).then(function () {
-                    // remove selection?
-                    return _storage.getValue("unselectAfterHighlight")
-				}).then(function (unselect) {
-                   if (unselect) {
-                       // unselect all
-                      return _eventPage.selectHighlightText(tab.id);
+                        info.selectionText, className
+                    )
+				}).then(() => new ChromeStorage().get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(unselectAfterHighlight => {
+                   if (!unselectAfterHighlight) {
+                       return
                    }
+
+                   return _eventPage.selectHighlightText(tab.id);
                 })
-                break
 
             case "update_highlight":
                 if (_contextMenus.hoveredHighlightId) {
-                    _eventPage.updateHighlight(tab.id,
-                        _contextMenus.hoveredHighlightId, className);
+                    return _eventPage.updateHighlight(tab.id, _contextMenus.hoveredHighlightId, className)
                 } 
                 break
 
             default:
                 throw "Unhandled menu item id: " + info.menuItemId;
-            }
+            } // end switch
 
-            return
+            return Promise.resolve()
         }
 
         // default (constant ids)
@@ -263,7 +265,7 @@ var _contextMenus = {
         default:
             throw "Unhandled menu item. id=" + info.menuItemId;
         }
-		
-		// return Promise.reject(new Error());
+        
+        return Promise.resolve()
     }
 };
