@@ -34,7 +34,7 @@
             "static/js/pouchdb-6.3.4.min.js",
 			"static/js/pouchdb.replication-stream.min.js",
 			"static/js/pouchdb.load.min.js",
-            "js/storage.js",
+            "js/storage.js", "js/chrome_storage.js", "js/chrome_highlight_storage.js",
             "js/string_utils.js",
             "js/background/database.js",
             "js/background/tabs.js",

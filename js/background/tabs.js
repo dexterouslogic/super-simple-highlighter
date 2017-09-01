@@ -373,6 +373,7 @@ var _tabs = {
 	/**
 	 * Get a sort comparison function, which takes a document and returns a
 	 * promise that resolves to a comparable value
+     * 
 	 * @param {number} tabId tab id upon which our resolution depends
 	 * @return {Function} Function that returns a promise that gets a comparable value
 	 */
@@ -394,34 +395,20 @@ var _tabs = {
 
         case "style":
             // items are ordered by the index of its associated style. Build a map for faster lookup
-            // return doc => {
-            //     let map = new Map()
-                
-            //     return _storage.highlightDefinitions.getAll_Promise().then(o => {
-            //         // key is definition className, value is the index that occupies
-            //         o.highlightDefinitions.forEach((dfn, idx) => {
-            //             map.set(dfn.className, idx)
-            //         })
-            //     }).then(() => map.get(doc.className)) 
-            // }
-
             let map = new Map()
 
             return doc => {
                 if (map.size === 0) {
-                    return _storage.highlightDefinitions.getAll_Promise().then(o => {
+                    return new ChromeHighlightStorage().getAll().then(items => {
                         // key is definition className, value is the index that occupies
-                        o.highlightDefinitions.forEach((dfn, idx) => {
-                            map.set(dfn.className, idx)
+                        items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS].forEach(({className}, index) => {
+                            map.set(className, index)
                         })
-                    }).then(() => map.get(doc.className)) 
-                } else {
-                    return Promise.resolve(map.get(doc.className))
+                    }).then(() => map.get(doc.className))
                 }
+
+                return Promise.resolve(map.get(doc.className))
             }
-
-
-
 
 		default:
 			throw "Unknown type";
