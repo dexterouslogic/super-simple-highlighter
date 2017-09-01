@@ -1,4 +1,4 @@
-/*global angular, _storage, _stylesheet, _stringUtils, _i18n, _changelog, _libraries, _licenses*/
+/*global angular, _stylesheet, _stringUtils, _i18n, _changelog, _libraries, _licenses*/
 'use strict'
 
 /*
@@ -707,24 +707,21 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
  * 3 - Controller for Experimental pane
  */
 optionsControllers.controller('ExperimentalController', ["$scope", function ($scope) {
-    'use strict';
-    var backgroundPage;
-
+    // keys in exported db file
     const KEYNAMES = {
         magic: 'magic',
         version: 'version'
     };
 
+    // magic string added to exported db
     const VALUE_MAGIC = "Super Simple Highlighter Exported Database";
 
-    function utf8_to_b64(str) {
-        return window.btoa(unescape(encodeURIComponent(str)));
-    }
+    init()
 
-    function b64_to_utf8(str) {
-        return decodeURIComponent(escape(window.atob(str)));
+    function init() {
+         // add event listener to files input element
+         document.getElementById('files').addEventListener('change', onFileSelect, false);
     }
-
 
     function onFileSelect(evt) {
         var file = evt.target.files[0];	// FileList object
@@ -733,14 +730,38 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
         // Closure to capture the file information.
         reader.onload = function (e) {
             // newline delimited json
-            var dumpedString = e.target.result;
-
-            load(dumpedString).then(function () {
+            const ldjson = e.target.result
+            const jsonObjects = ldjson.split('\n')
+            
+            // newline delimited json
+            return new Promise((resolve, reject) => {
+                // validate header
+                const header = JSON.parse(jsonObjects.shift())
+    
+                if (header[KEYNAMES.magic] !== VALUE_MAGIC || header[KEYNAMES.version] !== 1) {
+                    reject({
+                        status: 403,
+                        message: "Invalid File"
+                    });
+                } else {
+                    resolve()
+                }
+            }).then(function () {
+                // the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
+                const items = JSON.parse(jsonObjects.shift())
+    
+                // remainder is the database
+                return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
+                    return _database.load(jsonObjects.join('\n'))
+                }).then(() => {
+                    // set associated styles. null items are removed (implying default should be used)
+                    return new ChromeHighlightStorage().setAll(items)
+                })
+            }).then(() => {
                 location.reload();
             }).catch(function (err) {
                 // error loading or replicating tmp db to main db
-                var text = "Status: " + err.status + "\nMessage: " + err.message;
-                alert(text);
+                alert(`Status: ${err.status}\nMessage: ${err.message}`)
             });
         };
 
@@ -750,48 +771,49 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
     }
 
     /**
-     * Init
-     * @param {object} _backgroundPage
+     * Dump DB to line delimited json string, and simulate a click on an anchor with it as its data url (i.e. save it)
+     * 
+     * @returns {Promise} resolved on click dispatch
      */
-    function onInit(_backgroundPage) {
-        backgroundPage = _backgroundPage;
-
-        // add event listener to files input element
-        document.getElementById('files').addEventListener('change', onFileSelect, false);
-    }
-
-	/**
-	 * dump database to text, copy to clipboard
-	 */
     $scope.onClickDump = function () {
         // header
-        var header = {};
+        const header = {
+            [KEYNAMES.magic]: VALUE_MAGIC,
+            [KEYNAMES.version]: 1,
+        }
 
-        header[KEYNAMES.magic] = VALUE_MAGIC;
-        header[KEYNAMES.version] = 1;
+        let ldjson = JSON.stringify(header)
 
-        var dumpedString = JSON.stringify(header);
-
-        return _storage.highlightDefinitions.getAll_Promise({
-            defaults: false
-        }).then(function (items) {
+        return new ChromeHighlightStorage().getAll({defaults: false}).then(items => {
             // the first item is always the highlights object
-            dumpedString += '\n' + JSON.stringify(items) + '\n';
+            ldjson += '\n' + JSON.stringify(items) + '\n';
 
             // the remainder is the dumped database
-            var stream = new window.memorystream();
+            const stream = new window.memorystream();
 
             stream.on('data', function (chunk) {
-                dumpedString += chunk.toString();
+                ldjson += chunk.toString();
             });
 
-            return backgroundPage._database.dump(stream);
-        }).then(function () {
-            // create a temporary anchor to navigate to data uri
-            var a = document.createElement("a");
+            return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
+                return _database.dump(stream)
+            })
+        }).then(() => {
+            function utf8_to_b64(str) {
+                return window.btoa(unescape(encodeURIComponent(str)));
+            }
+        
+            // function b64_to_utf8(str) {
+            //     return decodeURIComponent(escape(window.atob(str)));
+            // }
+        
+        
 
-            a.download = chrome.i18n.getMessage("experimental_database_export_file_name");
-            a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+            // create a temporary anchor to navigate to data uri
+            const elm = document.createElement("a")
+
+            elm.download = chrome.i18n.getMessage("experimental_database_export_file_name")
+            elm.href = "data:text;base64," + utf8_to_b64(ldjson)
 
             // a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
             // a.href = "data:text;base64," + utf8_to_b64(dumpedString);
@@ -799,46 +821,12 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
             //window.btoa(dumpedString);
 
             // create & dispatch mouse event to hidden anchor
-            var mEvent = document.createEvent("MouseEvent");
-            mEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            const event = document.createEvent("MouseEvent")
 
-            a.dispatchEvent(mEvent);
+            event.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+            elm.dispatchEvent(event)
         });
     };
-
-    function load(dumpedString) {
-        var jsonObjects = dumpedString.split('\n');
-        var highlightDefinitions;
-
-        // newline delimited json
-        return new Promise(function (resolve, reject) {
-            // validate header
-            var header = JSON.parse(jsonObjects.shift());
-
-            if (header[KEYNAMES.magic] === VALUE_MAGIC || header[KEYNAMES.version] === 1) {
-                resolve()
-            } else {
-                reject({
-                    status: 403,
-                    message: "Invalid File"
-                });
-            }
-        }).then(function () {
-            // the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
-            highlightDefinitions = JSON.parse(jsonObjects.shift());
-
-            // remainder is the database
-            return backgroundPage._database.load(jsonObjects.join('\n'));
-        }).then(function () {
-            // set associated styles. null items are removed (implying default should be used)
-            return _storage.highlightDefinitions.setAll_Promise(highlightDefinitions);
-        });
-    }
-
-    // starter
-    chrome.runtime.getBackgroundPage(function (backgroundPage) {
-        onInit(backgroundPage);
-    });
 }]);
 
 /**
