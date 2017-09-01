@@ -28,23 +28,22 @@ var popupApp = angular.module('popupApp', [
 ]);
 
 $().ready(function () {
-    "use strict";
     // 1 - get current highlight styles, and apply to DOM
     // Note that we share this script with the content page (directly)
-    _storage.highlightDefinitions.getAll_Promise().then(function (items) {
+    return new ChromeHighlightStorage().getAll().then(items => {
         // shared highlight styles
-        if (items.sharedHighlightStyle) {
+        if (items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
             _stylesheet.setHighlightStyle({
                 className: "highlight",
-                style: items.sharedHighlightStyle
+                style: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
             });
         }
 
         // must apply per-style rules last
-        if (items.highlightDefinitions) {
-            items.highlightDefinitions.forEach(function (definition) {
-                _stylesheet.setHighlightStyle(definition);
-            });
+        if (items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+            for (const d of items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+                _stylesheet.setHighlightStyle(d);
+            }
         }
     });
 });

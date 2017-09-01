@@ -1,219 +1,174 @@
 <!DOCTYPE html>
 <html ng-app="popupApp" ng-csp>
-<head lang="en" >
+
+<head lang="en">
     <meta charset="UTF-8">
+    <title>something/anything</title>
     <link href="static/css/angular-csp.css" rel="stylesheet">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/popup.css" rel="stylesheet">
 
-    <!-- <link href='http://fonts.googleapis.com/css?family=Roboto:400italic,400,300,600' rel='stylesheet' type='text/css'> -->
-    
-  <script src="static/js/jquery-3.2.1.min.js"></script>
-  <script src="static/js/angular.min.js"></script>
-  <script src="static/js/bootstrap.min.js"></script>
-  <script src="static/js/purl.min.js"></script>
+    <script src="static/js/jquery-3.2.1.min.js"></script>
+    <script src="static/js/angular.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/purl.min.js"></script>
 
-  <script src="js/storage.js"></script>
-  <script src="js/stylesheet.js"></script>
-  <script src="js/string_utils.js"></script>
+    <script src="js/chrome_storage.js"></script>
+    <script src="js/chrome_highlight_storage.js"></script>
 
-  <script src="js/popup/app.js"></script>
-  <script src="js/popup/controllers.js"></script>
-  <script src="js/i18n_filters.js"></script>
+    <script src="js/stylesheet.js"></script>
+    <script src="js/string_utils.js"></script>
+
+    <script src="js/popup/app.js"></script>
+    <script src="js/popup/controllers.js"></script>
+    <script src="js/i18n_filters.js"></script>
 
 </head>
 
 <body>
-<div style="min-height: 140px" class="container-fluid" ng-controller="DocumentsController">
-    <!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
-    <!--Header-->
-    <div class="clearfix header">
-        <div class="dropdown header-brand btn-group">
-            <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" 
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <div style="min-height: 140px" class="container-fluid" ng-controller="DocumentsController">
+        <!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
+        <!--Header-->
+        <div class="clearfix header">
+            <div class="dropdown header-brand btn-group">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">
                  <span class="glyphicon glyphicon-menu-hamburger"></span> 
                 <!-- <span class="caret" style="margin-left: 6px;"></span> -->
             </button>
 
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                <li role="presentation">
-                    <a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
-                        <!-- <span class="glyphicon glyphicon-arrow-left"></span> -->
-                        {{'undo' | i18n}}
-                        
-                        <!--hotkey-->
-                        <kbd ng-show="{{commands.undo_last_create_highlight.shortcut}}">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
+                            <!-- <span class="glyphicon glyphicon-arrow-left"></span> -->
+                            {{'undo' | i18n}}
+
+                            <!--hotkey-->
+                            <kbd ng-show="{{commands.undo_last_create_highlight.shortcut}}">
                             {{commands.undo_last_create_highlight.shortcut}}
                         </kbd>
-                    </a>
-                </li>
-                
-                <li role="presentation" class="divider"></li>
+                        </a>
+                    </li>
 
-                <li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
-                <li role="presentation">
-                    <a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()">
-                        <!-- <span class="glyphicon glyphicon-list-alt"></span> -->
-                        {{'open_overview_in_new_tab' | i18n}}
-                    </a>
-                </li>
+                    <li role="presentation" class="divider"></li>
 
-                <li role="presentation">
-                    <a role="menuitem" tabindex="-1" href=""
-                            ng-click="onClickSaveOverview((docs | filter:search | filter:styleFilterPredicate))">
-                        <!-- <span class="glyphicon glyphicon-save"></span> -->
-                        {{'save_overview' | i18n}}
-                    </a>
-                </li>
+                    <li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverviewInNewTab()">
+                            <!-- <span class="glyphicon glyphicon-list-alt"></span> -->
+                            {{'open_overview_in_new_tab' | i18n}}
+                        </a>
+                    </li>
 
-                <li role="presentation" >
-                    <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview((docs | filter:search | filter:styleFilterPredicate))">
-                        <!-- <span class="glyphicon glyphicon-copy"></span> -->
-                        {{'copy_overview' | i18n}}
-                        <!--hotkey-->
-                        <kbd ng-show="{{commands.copy_overview.shortcut}}">
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickSaveOverview()">
+                            <!-- <span class="glyphicon glyphicon-save"></span> -->
+                            {{'save_overview' | i18n}}
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview()">
+                            <!-- <span class="glyphicon glyphicon-copy"></span> -->
+                            {{'copy_overview' | i18n}}
+                            <!--hotkey-->
+                            <kbd ng-show="{{commands.copy_overview.shortcut}}">
                             {{commands.copy_overview.shortcut}}
                         </kbd>
-                    </a>
-                </li>
+                        </a>
+                    </li>
 
-                <li role="presentation" class="divider"></li>
+                    <li role="presentation" class="divider"></li>
 
-                <li role="presentation">
-                    <a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target=".bs-example-modal-sm">
-                        <!-- <span class="glyphicon glyphicon-remove"></span> -->
-                        <span class="text-danger">{{'remove_all_highlights' | i18n}}</span>
-                    </a>
-                </li>
-            </ul>
-			
-			<!-- Count of number of documents (highlights) and number of docs actually shown -->
-			<!-- <div ng-hide="styleFilterHighlightDefinition == null && (search == null || search.text.length == 0)">
-				<small>{{filteredDocs.length}} / {{docs.length}}</small>
-			</div> -->
-        </div>
-       
-        <div class="header-control header-control-group">
-			   <!-- <label for="sel1" styl>Sort By</label>  -->
-			  <select class="form-control input-sm" id="sel1"
-			  	 	ng-model="sort.value">
+                    <li role="presentation">
+                        <a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target=".bs-example-modal-sm">
+                            <!-- <span class="glyphicon glyphicon-remove"></span> -->
+                            <span class="text-danger">{{'remove_all_highlights' | i18n}}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="header-control header-control-group">
+                <!-- <label for="sel1" styl>Sort By</label>  -->
+                <select class="form-control input-sm" id="sel1" ng-model="sort.value">
                 <option value="time">{{'sort_by_time' | i18n}}</option>
                 <option value="location">{{'sort_by_location' | i18n}}</option>
                 <option value="style">{{'sort_by_style' | i18n}}</option>
               </select>
-              
-                <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner" 
-                    ng-class="{'sort-inverted': sort.invert === true}"
-                    type="button" title="{{'title_sort_direction' | i18n}}"
-                    ng-click="sort.invert = !sort.invert">
-                    <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
-                </button>	
-        </div>
-            
-        <div class="header-control">
-            <input id="input-search" type="search" class="form-control input-sm search" ng-model="search.text"
-                   placeholder="{{'placeholder_filter' | i18n}}" autofocus>
-<!-- 
-			<div class="dropdown pull-right" style="display: inline">
-			   <button class="btn btn-sm btn-default button-partner" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-expanded="true"
-			   		ng-class="styleFilterHighlightDefinition.className"
-					style="box-shadow: none"
-					title="{{'title_filter_style' | i18n}}">
-				   <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
-			  </button>				
-				
-			    <ol class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu3">
-					<li role="presentation" class="dropdown-header">{{'visible_style' | i18n}}</li>
-					
-                    <li ng-repeat="d in highlightDefinitions" role="presentation">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickStyleFilter($event, d)">
-							<span class="redefinition-well-sm {{highlightClassName}} {{d.className}}">{{$index + 1}}</span>
-                    		<span>{{d.title}}</span>
-				
-							<span ng-hide="styleFilterHighlightDefinition.className != d.className" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                        </a>								
-                    </li>
-                   
-                    <li role="presentation" class="divider"></li>
 
-                    <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickStyleFilter($event, null)">
-                            <span class="redefinition-well-sm"><span class="invisible">1</span></span>
-							{{'visible_stylename_all' | i18n}}
-							<span ng-hide="styleFilterHighlightDefinition != null" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                        </a>	
-					</li>
-                </ol>
-            </div> -->
+                <button id="btn-sort-invert" class="btn btn-sm btn-default button-partner" ng-class="{'sort-inverted': sort.invert === true}"
+                    type="button" title="{{'title_sort_direction' | i18n}}" ng-click="sort.invert = !sort.invert">
+                    <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="header-control">
+                <input id="input-search" type="search" class="form-control input-sm search" ng-model="search.text" placeholder="{{'placeholder_filter' | i18n}}"
+                    autofocus>
+            </div>
         </div>
-    </div>
-	
-	<!-- Confirmation dialog for 'remove all highlights' -->
-	<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-	  <div class="modal-dialog modal-sm">
-	    <div class="modal-content">
-			<div class="modal-body">
-				<p>{{'confirm_remove_all_highlights' | i18n}}</p>
-			</div>
-			
-			<!-- Add styles to footer to remove top border and padding, making it more likely to fit into the popup without clipping -->
-			<div class="modal-footer" style="padding-top: 0px; border-top: 0px;">
-				<button type="button" class="btn btn-default" data-dismiss="modal">{{'close' | i18n}}</button> 
-				<button type="button" class="btn btn-danger" data-ng-click="onClickRemoveAllHighlights()">
+
+        <!-- Confirmation dialog for 'remove all highlights' -->
+        <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <p>{{'confirm_remove_all_highlights' | i18n}}</p>
+                    </div>
+
+                    <!-- Add styles to footer to remove top border and padding, making it more likely to fit into the popup without clipping -->
+                    <div class="modal-footer" style="padding-top: 0px; border-top: 0px;">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">{{'close' | i18n}}</button>
+                        <button type="button" class="btn btn-danger" data-ng-click="onClickRemoveAllHighlights()">
 					{{'remove_all_highlights' | i18n}}
 				</button>
-			</div>
-	    </div>
-	  </div>
-	</div>
-							
-	<!-- optional file protocol warning. Only show if url protocol is 'file' -->
-	<div class="row" ng-show="fileAccessRequiredWarningVisible">
-		<div class="col-xs-12">
-			<div id="file-access-required-alert" class="alert alert-warning" role="alert">
-				<!-- <button type="button" class="close" data-dismiss="alert">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- optional file protocol warning. Only show if url protocol is 'file' -->
+        <div class="row" ng-show="fileAccessRequiredWarningVisible">
+            <div class="col-xs-12">
+                <div id="file-access-required-alert" class="alert alert-warning" role="alert">
+                    <!-- <button type="button" class="close" data-dismiss="alert">
 					<span aria-hidden="true">&times;</span>
 					<span class="sr-only">Close</span>
 				</button>
 				 -->
-				<small>
+                    <small>
 					{{'warning_file_access_required' | i18n}}
 				</small>
-				
-				<button type="button" class="btn btn-warning btn-sm btn-block" data-dismiss="alert" 
-					ng-click="onClickDismissFileAccessRequiredWarning()">
+
+                    <button type="button" class="btn btn-warning btn-sm btn-block" data-dismiss="alert" ng-click="onClickDismissFileAccessRequiredWarning()">
 					{{'ok_got_it' | i18n}}
 				</button>
-			</div>
-		</div>
-	</div>
+                </div>
+            </div>
+        </div>
 
 
-    <ol class="list-unstyled"> 
-        <li ng-repeat="group in groupedDocs | filter:filters.group">
-            <h5 class="group-header" ng-show="group.title">
-                {{ group.title }}
-            </h5>
+        <ol class="list-unstyled">
+            <li ng-repeat="group in groupedDocs | filter:filters.group">
+                <h5 class="group-header" ng-show="group.title">
+                    {{ group.title }}
+                </h5>
 
-            <ol class="list-unstyled">
-                <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
-                <!--isInDOM defaults to undefined-->
-                <li ng-repeat="doc in filteredDocs = (group.docs | filter:filters.style | filter:filters.text)"
-                    id="{{doc._id}}"
-                    class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
-                    ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
-                    <!--Text and floating button-->
-                    <div class="highlight {{doc.className}} highlight-text-container pointer"
-                        ng-click="onClickHighlight(doc)">
-                        <!--Delete Button-->
-                        <button type="button" class="close"  title="Remove Highlight"
-                                ng-click="onClickRemoveHighlight($event, doc._id)"
-                                ng-class="{'sr-only sr-only-focusable': !doc.hover}">
+                <ol class="list-unstyled">
+                    <!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
+                    <!--isInDOM defaults to undefined-->
+                    <li ng-repeat="doc in filteredDocs = (group.docs | filter:filters.text)" id="{{doc._id}}" class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
+                        ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
+                        <!--Text and floating button-->
+                        <div class="highlight {{doc.className}} highlight-text-container pointer" ng-click="onClickHighlight(doc)">
+                            <!--Delete Button-->
+                            <button type="button" class="close" title="Remove Highlight" ng-click="onClickRemoveHighlight($event, doc._id)" ng-class="{'sr-only sr-only-focusable': !doc.hover}">
                             <span aria-hidden="true">&times;</span>
                             <span class="sr-only"> {{ 'close' | i18n }}</span>
                         </button>
-                        <!--text-->
-                        <span class="highlight-text">
+                            <!--text-->
+                            <span class="highlight-text">
                             {{doc.text && doc.text.substring(0, popupHighlightTextMaxLength) || "&nbsp;"}}
                             <span ng-show="doc.text && doc.text.length > popupHighlightTextMaxLength">
                                 &#8230;
@@ -221,16 +176,16 @@
                                     {{ 'more' | i18n }}
                                 </a>
                             </span>
-                        </span>
+                            </span>
 
-                    </div>
+                        </div>
 
-                    <!--InfoBar-->
-                    <div class="actions">
-                        <span class="date">{{ doc.date | date:(sort.value === 'time'? 'mediumTime' : 'medium') }}</span>
+                        <!--InfoBar-->
+                        <div class="actions">
+                            <span class="date">{{ doc.date | date:(sort.value === 'time'? 'mediumTime' : 'medium') }}</span>
 
-                        <!--Only show these if hovering. Individual to allow sr focus-->
-                        <span class="pull-right">
+                            <!--Only show these if hovering. Individual to allow sr focus-->
+                            <span class="pull-right">
                             <!--Copy-->
                             <a href="" ng-click="onClickCopy(doc._id)" title="{{ 'tooltip_copy_highlight' | i18n }}"
                                 class="highlight-link"
@@ -240,57 +195,54 @@
                             <!-- <span class="separator"></span> -->
 
                             <!--Select-->
-                            <a href="" ng-click="onClickSelect(doc)" title="{{ 'tooltip_select_highlight' | i18n }}"
-                                    class="select highlight-link"
-                                    ng-class="{'sr-only sr-only-focusable': !doc.hover}">
+                            <a href="" ng-click="onClickSelect(doc)" title="{{ 'tooltip_select_highlight' | i18n }}" class="select highlight-link" ng-class="{'sr-only sr-only-focusable': !doc.hover}">
                                 {{'select_highlight_text' | i18n}}
                             </a>
                             <!-- <span class="separator"></span> -->
 
                             <!--Speak-->
-                            <a href="" ng-click="onClickSpeak(doc._id)" title="{{ 'tooltip_speak_highlight' | i18n }}"
-                                class="highlight-link"
-                                ng-class="{'sr-only sr-only-focusable': !doc.hover}">
+                            <a href="" ng-click="onClickSpeak(doc._id)" title="{{ 'tooltip_speak_highlight' | i18n }}" class="highlight-link" ng-class="{'sr-only sr-only-focusable': !doc.hover}">
                                 {{'speak_highlight_text' | i18n}}
                             </a>
                             <!-- <span class="separator"></span> -->
-                            
+
                             <!-- Definition -->
                             <span class="dropdown highlight-link">
                                 <a href="" class="dropdown-toggle" id="dropdownMenu2" data-toggle="dropdown" 
                                     ng-class="{'sr-only sr-only-focusable': !doc.hover}">
                                     {{'redefine_highlight' | i18n}}
                                     <span class="caret"></span>
-                                </a>
-                            
-                                <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu2">
-                                    <li ng-repeat="d in highlightDefinitions" role="presentation">
-                                        <!-- Index - title -->
-                                        <a role="menuitem" tabindex="-1" href="" ng-click="onClickRedefinition($event, doc, $index)">
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu2">
+                                <li ng-repeat="d in highlightDefinitions" role="presentation">
+                                    <!-- Index - title -->
+                                    <a role="menuitem" tabindex="-1" href="" ng-click="onClickRedefinition($event, doc, $index)">
                                             <span class="redefinition-well-sm {{highlightClassName}} {{d.className}}">{{$index + 1}}</span>
                                             <span>{{d.title}}</span>
                                             
                                             <span ng-hide="doc.className != d.className" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                                        </a>								
+                                        </a>
 
-                                    </li>
-                                </ul>
+                                </li>
+                            </ul>
                             </span>
-                            
-                        </span>
-                    </div>
-                </li>
-            </ol>
-        </li>
-    </ol>
 
-    <!--Remove All-->
-<!--
+                            </span>
+                        </div>
+                    </li>
+                </ol>
+            </li>
+        </ol>
+
+        <!--Remove All-->
+        <!--
     <button id="remove-all" class="btn btn-danger pull-right" ng-click="onClickRemoveAll(doc.match)"
             title="Remove every highlight from the page">
         <span class="glyphicon glyphicon-remove" style="vertical-align: text-top"></span> Remove All
     </button>
 -->
-</div>
+    </div>
 </body>
+
 </html>
