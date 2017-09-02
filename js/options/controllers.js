@@ -744,6 +744,8 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
                     resolve()
                 }
             }).then(() => {
+            //     return new Promise(resolve => { chrome.runtime.getBackgroundPage(p => resolve(p)) })
+            // }).then(({factory}) => {
                 // the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
                 // remainder is the database
                 return new DB().loadDB(jsonObjects.join('\n'))

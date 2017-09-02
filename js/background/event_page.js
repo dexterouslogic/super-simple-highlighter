@@ -1,3 +1,11 @@
+// class Factory {
+//     newDB() {
+//         return new DB()
+//     }
+// }
+
+// var factory = new Factory()
+
 /*global _database, _contextMenus, _tabs, _storage*/
 
 /*
@@ -16,9 +24,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-// disable console log
-// console.log = function() {}
 
 var _eventPage = {
     /**
@@ -52,15 +57,16 @@ var _eventPage = {
      * @param {function} details function(object details) {...}
      */
     onRuntimeInstalled: function (details) {
-        "use strict";
+        _contextMenus.recreateMenu()
+
         // one time initialization
-        return _database.putDesignDocuments().then(() => {
-            // error param might indicate a conflict, which is ok.
-            // delete stale views associated with design docs
-            return _database.viewCleanup_Promise();
-        }).then(() => {
-            _contextMenus.recreateMenu();
-        })
+        // return _database.putDesignDocuments().then(() => {
+        //     // error param might indicate a conflict, which is ok.
+        //     // delete stale views associated with design docs
+        //     return _database.viewCleanup_Promise();
+        // }).then(() => {
+        //     _contextMenus.recreateMenu();
+        // })
     },
 
     /**
@@ -69,16 +75,20 @@ var _eventPage = {
      * extension is operating in 'split' incognito mode.
      */
     onRuntimeStartup: function () {
-        "use strict";
         _contextMenus.recreateMenu();
 
         // remove entries in which the number of 'create' doc == number of 'delete' docs
-        return _database.getMatchSums_Promise().then(rows => {
-            return Promise.all(rows
-                .filter(row => row.value === 0)
-                .map(row => _database.removeDocuments_Promise(row.key))
-            )
-        }).then(() => _database.compact())
+        const db = new DB()
+
+        return db.removeAllSuperfluousDocuments().then(() => {
+            return db.compactDB()
+        })
+        // return _database.getMatchSums_Promise().then(rows => {
+        //     return Promise.all(rows
+        //         .filter(row => row.value === 0)
+        //         .map(row => _database.removeDocuments_Promise(row.key))
+        //     )
+        // }).then(() => _database.compact())
     },
 
     /**
@@ -92,7 +102,7 @@ var _eventPage = {
 
         // 0 indicates the navigation happens in the tab content window
         if (details.frameId !== 0) {
-            return Promise.resolve();//reject();
+            return Promise.resolve()
         }
 
         // default (ok)
@@ -107,34 +117,37 @@ var _eventPage = {
 
         // get all the documents with our desired highlight key, in increasing order
         // query for all documents with this key
-        let matchString = _database.buildMatchString(details.url);
-        let matchedDocs;
+        const db = new DB()
 
-        return _database.getDocuments_Promise(matchString).then(function (docs) {
-            matchedDocs = docs;
+        let match = DB.formatMatch(details.url)
+        let matchedDocs
+
+        return db.getMatchingDocuments(match).then(docs => {
+            matchedDocs = docs
+            console.log("Matched " + matchedDocs.length + " document(s) with '" + match + "'");
 
             // configure and show page action
-            console.log("Matched " + matchedDocs.length + " document(s) with '" + matchString + "'");
             if (matchedDocs.length === 0) {
                 return;
             }
 
-            const firstDoc = matchedDocs[0]
+            const doc = matchedDocs[0]
 
             // if the first document is a 'create' document without a title, update it now
-            if (firstDoc.verb === 'create' && typeof firstDoc.title === 'undefined') {
+            if (doc[DB.DOCUMENT.NAME.VERB] === 'create' &&
+                 typeof doc[DB.DOCUMENT.NAME.TITLE] === 'undefined') {
                 // promise resolves when tab title obtained
                 return new Promise((resolve) => {
-                    chrome.tabs.get(details.tabId, tab => {
+                    chrome.tabs.get(details.tabId, ({title, url}) => {
                         // ignore tabs where the title == url (i.e. not explicity defined)
-                        if (tab.title === tab.url) {
+                        if (title === url) {
                             resolve()
                             return
                         }
 
-                        _database.updateCreateDocument_Promise(firstDoc._id, {
-                            title: tab.title
-                        }).then(() => resolve())
+                        db.updateCreateDocument(doc._id, { title: title }).then(() => {
+                            resolve()
+                        })
                     })
                 })
             } else {
@@ -329,31 +342,35 @@ var _eventPage = {
                     
                     return _tabs.getActiveTab()
                 }).then(tab => {
-                    const match = _database.buildMatchString(tab.url);
+                    const match = DB.formatMatch(tab.url)
+
                     if (!match) {
                         return Promise.reject(new Error());
                     }
 
-                    return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
-                        if (!xpathRange) {
+                    return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xrange) {
+                        if (!xrange) {
                             return Promise.reject(new Error());
                         }
 
                         const storage = new ChromeStorage()
 
                         // non collapsed selection means create new highlight
-                        if (!xpathRange.collapsed) {
+                        if (!xrange.collapsed) {
                             // requires selection text
-                            return _tabs.sendGetRangeTextMessage_Promise(tab.id, xpathRange).then(function (selectionText) {
+                            return _tabs.sendGetRangeTextMessage_Promise(tab.id, xrange).then(function (selectionText) {
                                 if (!selectionText) {
                                     return Promise.reject(new Error());
                                 }
 
                                 // create new document for highlight,
                                 // then update DOM
-                                return _eventPage.createHighlight(tab.id,
-                                    xpathRange, _database.buildMatchString(tab.url),
-                                    selectionText, highlightClassName)
+                                return _eventPage.createHighlight(
+                                    tab.id,
+                                    xrange,
+                                    DB.formatMatch(tab.url),
+                                    selectionText, highlightClassName
+                                )
                             }).then(() => {
                                 // remove selection?
                                 return storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT).then(unselectAfterHighlight => {
@@ -377,7 +394,7 @@ var _eventPage = {
                                 // it. If not, remove the highlight.
 
                                 /// get doc associated with highlight, identified by id
-                                return _database.getDocument_Promise(docId).then(doc => {
+                                return new DB().getDocument(docId).then(doc => {
                                     if (doc.className !== highlightClassName) {
                                         // different class. update.
                                         return _eventPage.updateHighlight(tab.id, docId, highlightClassName);
@@ -408,24 +425,25 @@ var _eventPage = {
     /**
      * Create a highlight in the database and on the page DOM
      * 
-     * @param tabId id of tab to send message to, to create highlight in DOM
-     * @param xpathRange range of highlight
+     * @param {number} tabId - id of tab to send message to, to create highlight in DOM
+     * @param {Object} xrange - range of highlight
      * @param match match string to identify related highlights. Usually processed from url
      * @param selectionText associated text
      * @param className class name to apply to DOM element, and in database also
      * @returns {Promise}
      */
-    createHighlight: function (tabId, xpathRange, match, selectionText, className) {
+    createHighlight: function (tabId, xrange, match, selectionText, className) {
         "use strict";
-        if (xpathRange.collapsed) {
+        if (xrange.collapsed) {
             return Promise.reject(new Error("Collapsed range"));
         }
 
         // shared between promises
-        let _newDoc = {}
+        let newDoc = {}
+        const db = new DB()
 
         // if this is the first create document to be posted, we want the title too
-        return _database.getMatchSum_Promise(match).then(sum => {
+        return db.getMatchingSum(match).then(sum => {
             if (sum != 0) {
                 // resolve to undefined title
                 return Promise.resolve()
@@ -435,41 +453,35 @@ var _eventPage = {
             return new Promise(resolve => { chrome.tabs.get(tabId, tab => { resolve(tab) }) })
         }).then(tab => {
             // not being collapsed is implicit
-            delete xpathRange.collapsed;
+            delete xrange.collapsed;
 
             // ignore tabs where the title == url (i.e. not explicity defined)
-            return _database.postCreateDocument_Promise(
-                match,
-                xpathRange,
-                className,
-                selectionText,
-                (tab && tab.title !== tab.url && tab.title) || undefined
-            )
-        }).then(resp => {
-            _newDoc = {
-                id: resp.id,
-                rev: resp.rev
+            return db.putCreateDocument(match, xrange, className, selectionText, {
+                title: (tab && tab.title !== tab.url && tab.title) || undefined
+            })
+        }).then(response => {
+            newDoc = {
+                id: response.id,
+                rev: response.rev
             }
 
             // use the new document's id for the element id of the (first) highlight element
             try {
-                return _tabs.sendCreateHighlightMessage_Promise(tabId, xpathRange, className, resp.id)
+                return _tabs.sendCreateHighlightMessage_Promise(tabId, xrange, className, response.id)
             } catch (e) {
-                console.error("Exception creating highlight in DOM - Removing associated document");
-
                 // always rejects
-                return _database.removeDocument_Promise(resp.id, resp.rev)
-                    .then(() => Promise.reject(new Error()))
+                return db.removeDB(response.id, response.rev).then(() => {
+                    return Promise.reject(new Error(`Exception creating highlight in DOM - Removing associated document: ${e}`))
+                })
             }
-        }).then(didCreate => {
+        }).then(ok => {
             // a false response means something went wrong.
             // Delete document from db
-            if (!didCreate) {
-                console.error("Error creating highlight in DOM - Removing associated document");
-
+            if (!ok) {
                 // always rejects
-                return _database.removeDocument_Promise(_newDoc.id, _newDoc.rev)
-                    .then(() => Promise.reject(new Error()))
+                return db.removeDB(newDoc.id, newDoc.rev).then(() => {
+                    return Promise.reject(new Error(`Error creating highlight in DOM - Removing associated document`))
+                })
             }
 
             // (re) show page action on success
@@ -479,21 +491,21 @@ var _eventPage = {
 
     /**
      * Update the highlight by changing its class name, first by revising its 'create' document, then in DOM
-     * @param tabId
-     * @param documentId
-     * @param className
+     * 
+     * @param {number} tabId - id of tab containing highlight
+     * @param {string} docId - id of 'create' document to change
+     * @param {string} className - new class name defining highlight style
      */
-    updateHighlight: function (tabId, documentId, className) {
-        "use strict";
-        return _database.updateCreateDocument_Promise(documentId, { className: className }).then(response => {
-            if (!response.ok) {
+    updateHighlight: function (tabId, docId, className) {
+        return new DB().updateCreateDocument(docId, { className: className }).then(({ok}) => {
+            if (!ok) {
                 return Promise.reject(new Error("Response not OK"));
             }
 
             // document updated - now update DOM
-            return _tabs.sendUpdateHighlightMessage_Promise(tabId, documentId, className)
-        }).then(function (is_updated) {
-            if (!is_updated) {
+            return _tabs.sendUpdateHighlightMessage_Promise(tabId, docId, className)
+        }).then(ok => {
+            if (!ok) {
                 return Promise.reject(new Error("Error updating highlight in DOM"));
             }
         });
@@ -501,27 +513,27 @@ var _eventPage = {
 
     /**
      * Delete a highlight in the database, and in the page DOM
-     * @param {Array<Number>|Number} [tabIds] id or array of ids of tabs of associated tabs, whose DOM should contain the highlight. 
-     *  If undefined, query api for tab with match name.
+     * 
+     * @param {Array<number>|number} [tabIds] id or array of ids of tabs of associated tabs, whose DOM should contain the highlight.  If undefined, query api for tab with match name.
      * @param {string} docId id of the document representing the highlight to remove
      */
     deleteHighlight: function (tabIds, docId) {
-        "use strict";
-
         tabIds = (typeof tabIds === 'number' && [tabIds]) || tabIds
 
         // match property of the document representing the highlight to be deleted
-        let _match
+        let match
+        const db = new DB()
 
         // make sure original document exists, and store its 'match' property
-        return _database.getDocument_Promise(docId).then(doc => {
+        return db.getDocument(docId).then(doc => {
             console.assert(doc.verb === 'create')
-            _match = doc.match
+
+            match = doc.match
 
             // if its also the last 'create' document we can delete it directly
-            return _database.getDocuments_Promise(_match, { 
+            return db.getMatchingDocuments(match, { 
                 descending: false, 
-                verbs: ['create'] 
+                verbs: DB.DOCUMENT.VERB.CREATE
             }).then(docs => {
                 console.assert(docs.length >= 1)
                 const lastDoc = docs[docs.length - 1]
@@ -529,22 +541,22 @@ var _eventPage = {
                 // if the last non-delete document was our 'create' doc we can delete directly
                 if (lastDoc._id === doc._id) {
                     console.log('Highlight is the latest "create" document - removing directly')
-                    return _database.removeDocument_Promise(doc._id, doc._rev)
+                    return db.removeDB(doc._id, doc._rev)
                 } else {
                     // post an additional 'delete' document
-                    return _database.postDeleteDocument_Promise(docId)
+                    return db.postDeleteDocument(docId)
                 }
             })
-        }).then(response => {
-            if (!response.ok) {
+        }).then(({ok}) => {
+            if (!ok) {
                 // 'delete' document wasn't posted
-                return Promise.reject(new Error(response))
+                return Promise.reject(new Error("Error removing document"))
             }
 
             // if the tab id is undefined, *try* to query it from the match title
             if (typeof tabIds === 'undefined') {
                 return _tabs.query({
-                    url: encodeURI(_match),
+                    url: encodeURI(match),
                     status: 'complete'
                 }).then(tabs => {
                     tabIds = tabs.map(t => t.id).filter(tid => tid !== chrome.tabs.TAB_ID_NONE)
@@ -560,47 +572,44 @@ var _eventPage = {
             // Get sum of create(+1) & delete(-1) verbs for a specific match
             // If equal, there are no highlights for the page, so the page action can be removed,
             // and the remaining documents are useless
-            return _database.getMatchSum_Promise(_match)
+            return db.getMatchingSum(match)
         }).then(sum => {
-            console.log(`Sum: ${sum} [${_match}]`);
+            console.log(`Sum: ${sum} [${match}]`);
 
             if (sum > 0) {
-                return
+                return { ok: true }
             }
 
-            console.log(`Removing all documents for ${_match}`);
+            console.log(`Removing all documents for ${match}`);
 
             if (Array.isArray(tabIds)) {
-                tabIds.forEach(tid => chrome.pageAction.hide(tid))
+                for (const id of tabIds) {
+                    chrome.pageAction.hide(id)
+                }
             }
 
-            // can delete all documents
-            return _database.removeDocuments_Promise(_match)
+            // can delete all documents (for this match)
+            return db.removeMatchingDocuments(match)
         })
     },
 
     /**
      * Delete all documents associated with a 'match'
+     * 
      * @param {number} tabId
      * @param {string} match
      */
     deleteHighlights: function (tabId, match) {
-        "use strict";
-        return _database.removeDocuments_Promise(match).then(function (response) {
-            chrome.pageAction.hide(tabId);
+        return new DB().removeMatchingDocuments(match).then(response => {
+            chrome.pageAction.hide(tabId)
 
-            // Response is an array containing the id and 
-            // rev of each deleted document.
-            // We can use id to remove highlights in 
-            // the DOM (although some won't match)
-            response.filter(function (r) {
-                return r.ok;
-            }).forEach(function (r) {
-                // remove in DOM - note that the result is ignored 
-                // (and also not awaited)
-                _tabs.sendDeleteHighlightMessage_Promise(tabId, r.id);
-            });
-        });
+            // Response is an array containing the id and rev of each deleted document.
+            // We can use id to remove highlights in the DOM (although some won't match)
+            return Promise.all(
+                // remove in DOM
+                response.filter(r => r.ok).map(({id}) => _tabs.sendDeleteHighlightMessage_Promise(tabId, id))
+            )
+        })
     },
 
 	/**
@@ -610,35 +619,36 @@ var _eventPage = {
         return new Promise(resolve => {
             // get tab object from tab id
             chrome.tabs.get(tabId, tab => resolve(tab))
-        }).then(function (tab) {
+        }).then(({url}) => {
             // build match using tab's url, and get the last document
-            const match = _database.buildMatchString(tab.url)
+            const match = DB.formatMatch(url)
 
-            return _database.getDocuments_Promise(match, { descending: true })
-        }).then(function (docs) {
+            return new DB().getMatchingDocuments(match, { descending: true })
+        }).then(docs => {
             // find last 'undoable' document that has not already been
             // negated 
-            let deletedDocumentIds = new Set();
+            let deletedDocIds = new Set()
 
-            let i, len = docs.length;
-            for (i = 0; i < len; ++i) {
-                var doc = docs[i];
-
+            for (const doc of docs) {
                 switch (doc.verb) {
-                    case "delete":
-                        deletedDocumentIds.add(doc.correspondingDocumentId);
-                        break;
-
-                    case "create":
+                    case DB.DOCUMENT.VERB.DELETE:
+                        deletedDocIds.add(doc.correspondingDocumentId)
+                        break
+                
+                    case DB.DOCUMENT.VERB.CREATE:
                         // is it already deleted?
-                        if (deletedDocumentIds.has(doc._id) === false) {
+                        if (!deletedDocIds.has(doc._id)) {
                             // add a negating document
-                            return _eventPage.deleteHighlight(tabId, doc._id);
+                            return _eventPage.deleteHighlight(tabId, doc._id)
                         }
+                        break
+
+                    default:
+                        console.error(`unknown verb ${doc.verb}`)
                 }
             }
 
-            return Promise.reject("No create documents to undo.");
+            return Promise.reject("No create documents to undo.")
 
             // THIS CRASHES CHROME
 
@@ -676,17 +686,18 @@ var _eventPage = {
 
     /**
      * Copy the text associated with a highlight to the clipboard
-     * @param {string} documentId
+     * @param {string} docId
      */
-    copyHighlightText: function (documentId) {
-        "use strict";
-        return _database.getDocument_Promise(documentId).then(function (doc) {
-            if (doc.text) {
-                if (!_eventPage.copyText(doc.text)) {
-                    return Promise.reject(new Error());
-                }
+    copyHighlightText: function (docId) {
+        return new DB().getDocument(docId).then(doc => {
+            if (!doc.text) {
+                return
             }
-        });
+
+            if (!_eventPage.copyText(doc.text)) {
+                return Promise.reject(new Error());
+            }
+        })
     },
 
 	/**
@@ -718,28 +729,32 @@ var _eventPage = {
 
     /**
      * Speak text
-     * @param {string} documentId
-     * @param {object} [options] if not supplied, use the storage value
+     * 
+     * @param {number} tabId - id of tab from which document element's 'lang' property defines the language to speak
+     * @param {string} docId - id of document containing 'text' property for text to speak
+     * @param {Object} [options] - chrome.tts.speech options
      */
-    speakHighlightText: function (tabId, documentId, options) {
+    speakHighlightText: function (tabId, docId, options) {
         "use strict";
-        options = options || {};
+        const speakOptions = Object.assign({}, options || {})
 
-        return _tabs.sendGetDocumentElementAttributeNodeValue_Promise(tabId, "lang").then(function (lang) {
+        return _tabs.sendGetDocumentElementAttributeNodeValue_Promise(tabId, "lang").then(lang => {
             // navigator.language seems to produce weird-sounding results
             //options.lang = lang || navigator.language;
 
             if (typeof lang === "string") {
-                options.lang = lang;
+                speakOptions.lang = lang
             }
 
-            return _database.getDocument_Promise(documentId);
-        }).then(function (doc) {
-            if (typeof doc.text === "string") {
-                // workaround for Google Deutsch becoming the default voice, for some reason
-                chrome.tts.speak(doc.text, options);
+            return new DB().getDocument(docId)
+        }).then(({text}) => {
+            if (typeof text !== "string") {
+                return 
             }
-        });
+
+            // workaround for Google Deutsch becoming the default voice, for some reason
+            chrome.tts.speak(text, speakOptions)
+        })
     },
 
     /**
@@ -772,7 +787,7 @@ var _eventPage = {
 	 * @param {Function} [comparator] function that returns a promise that resolves to a comparible value
      * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
      * @param {Boolean} [invert] invert the document order
-	 * @returns {Promise} overview correctly formatted as a string
+	 * @returns {Promise<string>} overview correctly formatted as a string
 	 */
     getOverviewText: function (format, tab, comparator, filterPredicate, invert) {
         var titles = {};
@@ -790,16 +805,16 @@ var _eventPage = {
             }
 
             // get documents associated with the tab's url
-            const match = _database.buildMatchString(tab.url)
+            const match = DB.formatMatch(tab.url)
 
-            return _database.getCreateDocuments_Promise(match)
+            // get only the create docs that don't have matched delete doc
+            return new DB().getMatchingDocuments(match, { excludeDeletedDocs: true })
         }).then(function (docs) {
             // filter
-            return (filterPredicate && docs.filter(filterPredicate)) || docs;
+            return (filterPredicate && docs.filter(filterPredicate)) || docs
         }).then(function (docs) {
             // sort - main promise (default to native order)
-            return (comparator && _database.sortDocuments(docs, comparator)) ||
-                Promise.resolve(docs);
+            return (comparator && DB.sortDocuments(docs, comparator)) || Promise.resolve(docs)
         }).then(function (docs) {
             if (invert) {
                 docs.reverse()

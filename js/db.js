@@ -141,7 +141,6 @@ class DB {
   /**
    * Remove a document
    *
-   * @private 
    * @param {string} docId - document id
    * @param {string} docRev - document revision
    * @param {Object} [options={}] - deletion options
@@ -299,9 +298,9 @@ class DB {
    * @memberof DB
    */
   updateCreateDocument(docId, {
-    className, 
-    title
-  } = {className, title}, options = {}) {
+    className=undefined, 
+    title=undefined,
+  } = {}, options = {}) {
     // options for getting existing 'create' doc
     const o = {}
 
@@ -372,10 +371,19 @@ class DB {
 
   //
 
-   /** 
+  /** 
    * @typedef {Object} Document
    * @prop {string} _id - id of document
    * @prop {string} _rev - revision of document
+   * 
+   * @prop {string} match - string formed by processing the associated page's url
+   * @prop {number} date - date of document put/post, as ns since 1970
+   * @prop {string} verb - create or delete 
+   * @prop {Object} [range] - creation document range with xPath 
+   * @prop {string} [className] - className identifying style of create highlight. Used in DOM
+   * @prop {string} [text] - text within create highlight
+   * @prop {string} [title] - title of page highlight was created from
+   * @prop {string} [correspondingDocumentId] - id of 'create' doc associated with this `delete` doc
    */
 
   /**
@@ -409,6 +417,21 @@ class DB {
     })
   }
 
+  /**
+   * Remove every document for each match that has a create/delete sum of zero (i.e. it does nothing)
+   * 
+   * @param {Object} [options] - bulk docs removal options
+   * @returns {Promise<PutResponse[][]>}
+   * @memberof DB
+   */
+  removeAllSuperfluousDocuments(options = {}) {
+    return this.getSums().then(rows => {
+      return Promise.all(rows
+          .filter(({value}) => value === 0)
+          .map(({key}) => this.removeMatchingDocuments(key, options))
+      )
+    })
+  }
   //
 
   /**
