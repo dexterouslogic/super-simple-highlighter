@@ -150,32 +150,21 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 		
 	}
 
-
-
-
 	/**
 	 * Starter 
 	 * parse href (supplied by popup's controller) to find url, which is used to find match string
 	 */
-    var u = purl(location.href),
-		id = u.param('id'), 
-		url = u.param('url'),
-		title = u.param('title'),
-		sortby = u.param('sortby'),
-		invert = Boolean(u.param('invert'));
+	const searchParams = new URL(location.href).searchParams
 
-    if (url !== undefined) {
-        chrome.runtime.getBackgroundPage(function (backgroundPage) {
-            onInit(parseInt(id), url, title, backgroundPage, sortby, invert);
-        });
-    }
-
-
-
-//    chrome.tabs.query({ active: true, currentWindow: true }, function (result) {
-//        chrome.runtime.getBackgroundPage(function (backgroundPage) {
-//            onInit(result[0], backgroundPage);
-//        });
-//    });
-
+	if (searchParams.has('url')) {
+		chrome.runtime.getBackgroundPage(function (backgroundPage) {
+			const id = searchParams.get('id')
+			const url = searchParams.get('url')
+			const title = searchParams.get('title')
+			const sortby = searchParams.get('sortby')
+			const invert = Boolean(searchParams.get('invert'))
+			
+            onInit(parseInt(id), url, title, backgroundPage, sortby, invert)
+        })
+	}
 }]);
