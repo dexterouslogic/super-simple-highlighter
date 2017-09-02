@@ -374,10 +374,8 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
     // docs before grouping
     let ungroupedDocs = []
 
-    // starter
-    init()
-
-    function init() {
+    // Initializer IIFE
+    !function () {
         // build default options object
         return new ChromeStorage().get([
             ChromeStorage.KEYS.OPTIONS.BOOKMARKS_GROUP_BY,
@@ -391,50 +389,54 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 showPageText: items[ChromeStorage.KEYS.OPTIONS.BOOKMARKS_SHOW_PAGE_TEXT], 
             }
             
-            return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b)))
-        }).then(({_database}) => {
-            // get an array of each unique match, and the number of associated documents (which is of no use)
-            return _database.getMatchSums_Promise().then(rows => {
-                // $scope.rows = rows.filter(row => row.value > 0)
-                // $scope.$apply();
+            const db = new DB()
 
+            // get an array of each unique match, and the number of associated documents (which is of no use)
+            return db.getSums().then(rows => {
                 // the key for each row (item in the array) is the 'match' for each document, 
                 // and the value is the sum ('create'+1, 'delete'-1)
-                return Promise.all(rows.filter(row => row.value > 0)
-                    .map(row => _database.getDocuments_Promise(row.key, {
-                        descending: false,
-                        limit: 1   
-                    }))
+                const options = {
+                    descending: false,
+                    limit: 1   
+                }
+
+                return Promise.all(rows
+                    .filter(({value}) => value > 0)
+                    .map(({key}) => db.getMatchingDocuments(key, options))
                 )
-            }).then(a => {
+            }).then(docsArray => {
                 // each entry in docs array is an array containing at most one doc
-                const docs = a.filter(a => a.length === 1).map(a => a[0])
+                const docs = docsArray
+                    .filter(a => a.length === 1)
+                    .map(a => a[0])
+
                 // first doc should always be a 'create'
-                console.assert(docs.every(doc => doc.verb === 'create'))
+                console.assert(docs.every(d => d[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.CREATE))
     
                 // if we're grouping by last_date (date of the last non-deleted 'create' document),
                 // or showing text for each highlight, we need to get all create documents too
-                return Promise.all(docs.map(doc => {
-                    return _database.getCreateDocuments_Promise(doc.match).then(a => {
+                return Promise.all(docs.map(d => {
+                    return db.getMatchingDocuments(d[DB.DOCUMENT.NAME.MATCH], {excludeDeletedDocs: true}).then(a => {
                         // if the first create document has a corresponding delete document, then the title (stored only
                         // on the first document) will be removed along with the create document.
                         console.assert(a.length >= 1)
                         
                         // So we go through this dance.
-                        if (a.length >= 1 && a[0]._id !== doc._id) {
-                            a[0].title = doc.title
+                        if (a.length >= 1 && a[0]._id !== d._id) {
+                            a[0][DB.DOCUMENT.NAME.TITLE] = d[DB.DOCUMENT.NAME.TITLE]
                         }
     
                         return a
                     })
                 }))
             })
-        }).then(createDocs => {
+        }).then(docs => {
             // we have an array of array of createDocs
 
             // add temporary properties to first doc of each
-            createDocs = createDocs.filter(a => a.length >= 1)
-            createDocs.forEach(a => {
+            docs = docs.filter(a => a.length >= 1)
+            
+            for (const a of docs) {
                 // numeric date of creation of latest 'create' doc
                 a[0].lastDate = a[a.length - 1].date
                 // array of each text item for the page's 'create' docs, and its className (aka highlight style)
@@ -447,9 +449,9 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                         className: doc.className,
                     }
                 })
-            })
+            }
 
-            ungroupedDocs = createDocs.map(a => a[0])
+            ungroupedDocs = docs.map(a => a[0])
 
             // group the documents by their title (if possible), and get a sorted array
             updateGroupedDocuments()
@@ -475,7 +477,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
                 })
             })
         })
-    }
+    }()
 
     /**
      * Group an array of documents by a common property
@@ -671,9 +673,7 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
         }
 
         // var match = $scope.rows[index].key;
-        return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
-            return _database.removeDocuments_Promise(doc.match)
-        }).then(result => {
+        return new DB().removeMatchingDocuments(doc.match).then(() => {
             // remove the corresponding doc from our '$scope.groupedDocs' via the handy reference
             const index = group.docs.indexOf(doc)
             if (index === -1) {
@@ -693,13 +693,11 @@ optionsControllers.controller('PagesController', ["$scope", function ($scope) {
             return Promise.resolve()
         }
 
-        // destroy and re-create the database
-        return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
-            return _database.reset()
-        }).then(() => {
+        // destroy the database. It will be lazily recreated
+        return new DB().destroyDB().then(() => {
             $scope.groupedDocs = []
             $scope.$apply()
-        });
+        })
     }
 }]);
 
@@ -716,12 +714,11 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
     // magic string added to exported db
     const VALUE_MAGIC = "Super Simple Highlighter Exported Database";
 
-    init()
-
-    function init() {
+    // initializer
+    !function () {
          // add event listener to files input element
          document.getElementById('files').addEventListener('change', onFileSelect, false);
-    }
+    }()
 
     function onFileSelect(evt) {
         var file = evt.target.files[0];	// FileList object
@@ -746,17 +743,14 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
                 } else {
                     resolve()
                 }
-            }).then(function () {
+            }).then(() => {
                 // the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
-                const items = JSON.parse(jsonObjects.shift())
-    
                 // remainder is the database
-                return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
-                    return _database.load(jsonObjects.join('\n'))
-                }).then(() => {
-                    // set associated styles. null items are removed (implying default should be used)
-                    return new ChromeHighlightStorage().setAll(items)
-                })
+                return new DB().loadDB(jsonObjects.join('\n'))
+            }).then(() => {
+                // set associated styles. null items are removed (implying default should be used)
+                const items = JSON.parse(jsonObjects.shift())
+                return new ChromeHighlightStorage().setAll(items)
             }).then(() => {
                 location.reload();
             }).catch(function (err) {
@@ -795,9 +789,7 @@ optionsControllers.controller('ExperimentalController', ["$scope", function ($sc
                 ldjson += chunk.toString();
             });
 
-            return new Promise(resolve => chrome.runtime.getBackgroundPage(b => resolve(b))).then(({_database}) => {
-                return _database.dump(stream)
-            })
+            return new DB().dumpDB(stream)
         }).then(() => {
             function utf8_to_b64(str) {
                 return window.btoa(unescape(encodeURIComponent(str)));

@@ -33,52 +33,19 @@ class DB {
     // try to open existing db
     const db = new PouchDB(DB.NAME, DB.OPTIONS)
 
-    return db.info(details => {
+    return db.info().then(({doc_count, update_seq}) => {
       // if the db is empty assume it is new
-      if (db.doc_count !== 0 || details.update_seq !== 0) {
+      if (doc_count !== 0/* || update_seq !== 0*/) {
         return
       }
 
       // put design docs
-      return db.bulkDocs([
-        {
-          // _design/match_date_view
-          _id: `${DB.DESIGN_VIEW_PREFIX}/${DB.VIEW_NAME.MATCH_DATE}`,
-          views: {
-            [DB.VIEW_NAME.MATCH_DATE]: {
-              map: function (doc) {
-                if (doc.match) {
-                  emit([doc.match, doc.date]);
-                }
-              }.toString()
-            }
-          }
-        }, {
-          // _design/sum_view
-          _id: `${DB.DESIGN_VIEW_PREFIX}/${DB.VIEW_NAME.SUM}`,
-          views: {
-            [DB.VIEW_NAME.SUM]: {
-              map: function (doc) {
-                // the values will be reduced with '_sum'. If that == 0, number of create == delete
-                switch (doc.verb) {
-                  case [DB.DOCUMENT.VERB.CREATE]:
-                      emit(doc.match, 1)
-                      break
-
-                  case [DB.DOCUMENT.VERB.DELETE]:
-                      emit(doc.match, -1)
-                      break
-                  }
-                }.toString(),
-              // internal method _sum
-              reduce: "_sum"
-            }
-          }
-        }
-      ])
+      return DB.putDesignDocuments(db)
     }).then(() => {
       // store
+      console.assert(!this.hasDB, "DB already has PouchDB instance")
       this._db = db
+
       return db
     }) 
   }
@@ -90,10 +57,6 @@ class DB {
    * @memberof DB
    */
   destroyDB() {
-    if (!this.hasDB) {
-      return Promise.resolve()
-    }
-
     return this.getDB().then(db => db.destroy()).then(() => {
       this._db = null
     })
@@ -232,10 +195,6 @@ class DB {
    * @memberof DB
    */
   viewCleanupDB() {
-    if (!this.hasDB) {
-      return Promise.resolve()
-    }
-
     return this.getDB().then(db => db.viewCleanup())
   }
   
@@ -246,10 +205,6 @@ class DB {
    * @memberof DB
    */
   compactDB() {
-    if (!this.hasDB) {
-      return Promise.resolve()
-    }
-
     return this.getDB().then(db => db.compact())
   }
 
@@ -262,12 +217,14 @@ class DB {
    */
   dumpDB(stream) {
     // const re = new RegExp(`^${DB.DESIGN_VIEW_PREFIX}/`)
-    return this.getDB().then(db => db.dump(stream, {
-			filter: ({_id}) => {
-				// don't include internal documents
-				return _id.match(/^{_design}\//) === null
-			}
-		}))
+    return this.getDB().then(db => {
+      const re = new RegExp(`^${DB.DESIGN_VIEW_PREFIX}/`)
+
+      return db.dump(stream, {
+        // don't include internal documents
+        filter: ({_id}) => !(_id.match(re)) 
+      })
+    })
   }
 
   /**
@@ -279,25 +236,20 @@ class DB {
    */
   loadDB(urlOrString) {
     // load supplied db into a temporary db (probably makes no difference on chrome)
-    const tmpDB = new PouchDB('_tmp', {
-      storage: 'temporary',
-    })
+    const tmpDB = new PouchDB('_tmpdb', {storage: 'temporary'})
 
     return tmpDB.load(urlOrString).then(() => {
       // destroy existing database, and get it (i.e. empty and recrete)
-      return this.destroyDB().then(() => this.getDB())
-    }).then(db => {
-      // replicate into db. Design docs were filtered out, so they won't be added twice
-			return PouchDB.replicate(tmpDB, db)
+      return this.destroyDB()
+    }).then(() => this.getDB()).then(db => {
+      // // replicate into db. Design docs were filtered out, so they won't be added twice
+      return tmpDB.replicate.to(db, {live: false})
     }).then(() => {
 			// cleanup tmp db
       return tmpDB.destroy()
     }).catch(e => {
       // cleanup tmp db on err
-			tmpDB.destroy()
-      
-      // rethrow for caller
-      throw e
+			return tmpDB.destroy().then(() => { throw e })
     })
   }
 
@@ -506,20 +458,21 @@ class DB {
     limit=undefined,
     verbs=undefined,
     excludeDeletedDocs=false,
-  }={}) {
-    const options = {
-      startKey: descending ? [match, {}] : [match],
-      endkey: descending ? [match] : [match, {}],
+  } = {}) {
+    // query options
+    const qo = {
+      startkey: !descending ? [match] : [match, {}],
+      endkey: !descending ? [match, {}] : [match],
       descending: descending,
       include_docs: true,
     }
 
     // limit number of results
     if (typeof limit === 'number') {
-      options.limit = limit
+      qo.limit = limit
     }
 
-    return this.queryDB(DB.VIEW_NAME.MATCH_DATE, options).then(({rows}) => {
+    return this.queryDB(DB.VIEW_NAME.MATCH_DATE, qo).then(({rows}) => {
       let docs = rows.map(r => r.doc)
 
       // if true, remove all `create` documents for which a corresponding `delete` document exists.
@@ -550,6 +503,61 @@ class DB {
 
   // static
 
+
+  /**
+   * Crete the standard design documents into a database
+   * Note that no revision is defined, so it is assumed no documents already exist with this ID
+   * 
+   * @private
+   * @param {Object} pouchDB - database to put into
+   * @param {Object} [options] - bulkDocument options
+   * @returns {Promise<PutResponse[]>}
+   * @memberof DB
+   */
+  static putDesignDocuments(pouchDB, options = {}) {
+    // note that we can't use [DB.DESIGN.DOCUMENT.VERB] directly in the stringified function
+    console.assert(DB.DOCUMENT.VERB.CREATE === 'create')
+    console.assert(DB.DOCUMENT.VERB.DELETE === 'delete')
+    
+    const docs = [
+      {
+        // _design/match_date_view
+        _id: `${DB.DESIGN_VIEW_PREFIX}/${DB.VIEW_NAME.MATCH_DATE}`,
+        views: {
+          [DB.VIEW_NAME.MATCH_DATE]: {
+            map: function (doc) {
+              if (doc.match) {
+                emit([doc.match, doc.date])
+              }
+            }.toString()
+          }
+        }
+      }, {
+        // _design/sum_view
+        _id: `${DB.DESIGN_VIEW_PREFIX}/${DB.VIEW_NAME.SUM}`,
+        views: {
+          [DB.VIEW_NAME.SUM]: {
+            map: function (doc) {
+              // the values will be reduced with '_sum'. If that == 0, number of create == delete
+              switch (doc.verb) {
+                case 'create':
+                    emit(doc.match, 1)
+                    break
+
+                case 'delete':
+                    emit(doc.match, -1)
+                    break
+                }
+              }.toString(),
+            // internal method _sum
+            reduce: "_sum"
+          }
+        }
+      }
+    ]
+
+    return pouchDB.bulkDocs(docs, options)
+  }
   /**
    * Sort documents
    * 
