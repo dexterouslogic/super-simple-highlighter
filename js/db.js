@@ -449,7 +449,7 @@ class DB {
   removeMatchingDocuments(match, options = {}) {
     return this.getMatchingDocuments(match).then(docs => {
       // this is the right way to bulk delete
-      for (const d in docs) {
+      for (const d of docs) {
         d['_deleted'] = true
       }
 
@@ -496,7 +496,7 @@ class DB {
    *     descending=false,
    *     verbs=undefined,
    *     limit=undefined,
-   *     removeDeletedDocs=false,
+   *     excludeDeletedDocs=false,
    *   }={}] 
    * @returns {Promise<Document[]>}
    * @memberof DB
@@ -505,7 +505,7 @@ class DB {
     descending=false,
     limit=undefined,
     verbs=undefined,
-    removeDeletedDocs=false,
+    excludeDeletedDocs=false,
   }={}) {
     const options = {
       startKey: descending ? [match, {}] : [match],
@@ -523,14 +523,15 @@ class DB {
       let docs = rows.map(r => r.doc)
 
       // if true, remove all `create` documents for which a corresponding `delete` document exists.
-      // usually implies `verbs=[create]` too
-      if (removeDeletedDocs) {
+      if (excludeDeletedDocs) {
         // set of ids of documents that can be removed
         const s = new Set()
 
         for (const d of docs.filter(d => d.verb === DB.DOCUMENT.VERB.DELETE)) {
           // add the id of the corresponding 'create' doc of this delete doc
           s.add(d[DB.DOCUMENT.NAME.CORRESPONDING_DOC_ID])
+          // also remove the 'delete' document, as it won't referenceanything
+          s.add(d._id)
         }
 
         docs = docs.filter(d => !s.has(d._id))

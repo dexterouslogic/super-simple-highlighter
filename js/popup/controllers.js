@@ -144,7 +144,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 					// key commands by their name in the scope attribute
 					// can't identify specific commands in angular
 					$scope.$apply(function () {
-						for (const c in commands) {
+						for (const c of commands) {
 							$scope.commands[c.name] = c
 						}
 					})
