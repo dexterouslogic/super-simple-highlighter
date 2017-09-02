@@ -55,25 +55,26 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 		// used to scroll tab's page to the clicked highlight
 		backgroundPage = bgPage;
 
-        // get all the documents (create & delete) associated with the match, then filter the deleted ones
-		const match = backgroundPage._database.buildMatchString(url);
-		const comparator = backgroundPage._tabs.getComparisonFunction(tabId, sortby)
+		const db = new DB()
+		const match = DB.formatMatch(url) 
+		
+		// get all the documents (create & delete) associated with the match, then filter the deleted ones
+		return db.getMatchingDocuments(match, { excludeDeletedDocs: true}).then(docs => {
+			const comparator = backgroundPage._tabs.getComparisonFunction(tabId, sortby)
 
-        return backgroundPage._database.getCreateDocuments_Promise(match).then(function (docs) {
-			// main promise (default to native order)
-			return (comparator && backgroundPage._database.sortDocuments(docs, comparator)) 
-				|| Promise.resolve(docs);
-		}).then(function (docs) {
+			// default to native order
+			return (comparator && DB.sortDocuments(docs, comparator)) || docs
+		}).then(docs => {
 			if (invert) {
 				docs.reverse()
 			}
 			
 			// group by days since epoch
-			var groupedDocs = []
+			let groupedDocs = []
 
-			docs.forEach((doc) => {
-				var date = new Date(doc.date)
-				var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+			for (const d of docs) {
+				const date = new Date(d[DB.DOCUMENT.NAME.DATE])
+				const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
 
 				// first, or different days since epoch of last group
 				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
@@ -85,25 +86,25 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 					})
 				}
 
-				groupedDocs[groupedDocs.length-1].docs.push(doc)
-			})
-			
-			$scope.groupedDocs = groupedDocs
-            $scope.docs = docs;
-			
-			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
-			var length = docs.length;
-			var messageName;
-			
-			if (length == 0) {
-				messageName = "plural_zero_highlights";
-			} else if (length == 1) {
-				messageName = "plural_one_highlight";
-			} else {
-				messageName = "plural_other_highlights";
+				groupedDocs[groupedDocs.length-1].docs.push(d)
 			}
 			
-			$scope.docsCount = chrome.i18n.getMessage(messageName, [docs.length]);
+			$scope.groupedDocs = groupedDocs
+            $scope.docs = docs
+			
+			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
+			let messageName = (() => {
+				switch (docs.length) {
+					case 0:
+						return "plural_zero_highlights"
+					case 1:
+						return "plural_one_highlight"
+					default:
+						return "plural_other_highlights"
+				}
+			})()
+			
+			$scope.docsCount = chrome.i18n.getMessage(messageName, [docs.length])
             $scope.$apply();
 
             // if the highlight cant be found in DOM, flag that
