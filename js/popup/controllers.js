@@ -120,8 +120,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			// 2 - if its already been dismissed before, no need to check
 			const dismissed = items[ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED] || (() => {
 				// it not being a file protocol url is the same as invisible (dismissed)
-				var u = purl(activeTab.url)
-				return ('file' !== u.attr('protocol'))
+				return ('file:' !== new URL(activeTab.url).protocol)
 			})()
 
 			// name of property in scope object
