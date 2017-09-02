@@ -603,11 +603,12 @@ class DB {
    * 
    * @static
    * @param {string|URL} url - url of page to process 
+   * @param {string|URL} [frameUrl] - url of the frame specific to the match. May be null if same as pageUrl. NOT CURRENTLY USED
    * @param {Object} [options={scheme = true, query = true, fragment = false }] - options object
    * @returns {string} match string
    * @memberof DB
    */
-  static formatMatch(url, {
+  static formatMatch(url, frameUrl, {
     scheme = true,
     query = true,
     fragment = false

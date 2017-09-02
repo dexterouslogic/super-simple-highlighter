@@ -50,10 +50,12 @@ var _contextMenus = {
      */
     recreateMenu: function () {
         // do all the async work beforehand, to prepare for the actual update
-        return new ChromeHighlightStorage().getAll().then(({highlightDefinitions}) => {
+        return new ChromeHighlightStorage().getAll().then(items => {
+            const highlightDefinitions = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+
             // if we're hovering over a highlight, we need the corresponding class to check the radio item
             if (_contextMenus.hoveredHighlightId) {
-                return _database.getDocument_Promise(_contextMenus.hoveredHighlightId).then(doc => {
+                return new DB().getDocument(_contextMenus.hoveredHighlightId).then(doc => {
                     _contextMenus._recreateMenu(highlightDefinitions, doc)
                 })
             }
@@ -205,15 +207,18 @@ var _contextMenus = {
                 }
 
                 // get the selection range (_xpath) from content script
-				return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xpathRange) {
-					if (xpathRange.collapsed) {
+				return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(xrange => {
+					if (xrange.collapsed) {
 						return Promise.reject(new Error());
 					}
 					
                     // create new document for highlight, then update DOM
-                    return _eventPage.createHighlight(tab.id,
-                        xpathRange, _database.buildMatchString(tab.url, info.frameUrl),
-                        info.selectionText, className
+                    return _eventPage.createHighlight(
+                        tab.id,
+                        xrange,
+                        DB.formatMatch(tab.url, info.frameUrl),
+                        info.selectionText, 
+                        className
                     )
 				}).then(() => new ChromeStorage().get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(unselectAfterHighlight => {
                    if (!unselectAfterHighlight) {

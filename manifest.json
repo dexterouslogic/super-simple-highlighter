@@ -40,6 +40,8 @@
             "js/background/database.js",
             "js/background/tabs.js",
             "js/background/context_menus.js",
+
+            "js/db.js",
             "js/background/event_page.js"
         ],
 
