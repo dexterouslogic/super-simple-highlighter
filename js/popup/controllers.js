@@ -85,11 +85,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			activeTab = tab
 
 			$scope.title = activeTab.title
-
-			// get database from background page
-			return new Promise(resolve => { chrome.runtime.getBackgroundPage(b => resolve(b)) })
-		}).then(({_database}) => {
-			$scope.match = _database.buildMatchString(activeTab.url)
+			$scope.match = DB.formatMatch(activeTab.url)
 			
 			return new ChromeHighlightStorage().getAll().then(items => {
 				// array of highlight definitions
@@ -186,25 +182,25 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		}).then(activeTab => {
 			return new Promise(resolve => { 
 				chrome.runtime.getBackgroundPage(b => resolve(b)) 
-			}).then(({_tabs, _database, _eventPage}) => {
+			}).then(({_tabs, _eventPage}) => {
 				const comparator = _tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
-
+				
 				// get all the documents (create & delete) associated with the match, then filter the deleted ones
-				return _database.getCreateDocuments_Promise($scope.match).then(docs => {
+				return new DB().getMatchingDocuments($scope.match, {excludeDeletedDocs: true}).then(docs => {
 					// if the highlight cant be found in DOM, flag that
-					return Promise.all(docs.map(doc => {
-						return _eventPage.isHighlightInDOM(activeTab.id, doc._id).then(isInDOM => {
-							doc.isInDOM = isInDOM;
+					return Promise.all(docs.map(d => {
+						return _eventPage.isHighlightInDOM(activeTab.id, d._id).then(isInDOM => {
+							d.isInDOM = isInDOM;
 						}).catch(function () {
 							// swallow
-							doc.isInDOM = false
+							d.isInDOM = false
 						}).then(function () {
-							return doc;
+							return d;
 						})
 					}))
 				}).then(docs => {
 					// sort the docs using the sort value
-					return _database.sortDocuments(docs, comparator)
+					return DB.sortDocuments(docs, comparator)
 				}).then(docs => {
 					if ($scope.sort.invert) {
 						docs.reverse()
