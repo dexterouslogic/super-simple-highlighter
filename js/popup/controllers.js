@@ -315,14 +315,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			return Promise.reject(new Error())
 		}
 
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			_eventPage.selectHighlightText(activeTab.id, doc._id)
-
-			// close popup
-			window.close()
-		})
+		return new Tabs(activeTab.id).selectHighlight(doc._id).then(() => { window.close() })
 	}
 
 	/**
@@ -521,8 +514,13 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
 		}).then(({_eventPage}) => {
-			_eventPage.deleteHighlight(activeTab.id, docId)
-		}).then(() => {
+			return _eventPage.deleteHighlight(activeTab.id, docId)
+		}).then(responses => {
+			// response is empty array if no documents needed to be removed, which is still a success
+			if (responses.some(({ok}) => ok)) {
+				return Promise.reject(new Error())
+			}
+
 			return updateDocs()
 		}).then(docs => {
 			// close popup on last doc removed

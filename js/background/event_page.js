@@ -1,11 +1,3 @@
-// class Factory {
-//     newDB() {
-//         return new DB()
-//     }
-// }
-
-// var factory = new Factory()
-
 /*global _database, _contextMenus, _tabs, _storage*/
 
 /*
@@ -153,44 +145,43 @@ var _eventPage = {
             } else {
                 return Promise.resolve()
             }
-        }).then(() => _tabs.executeAllScripts_Promise(details.tabId, false)).then(() => {
+        }).then(() => {
+            const tabs = new Tabs(details.tabId)
             // set of ids of 'create' documents that reported errors, and did NOT have a corresponding
             // 'delete' document (i.e. implying it's not really an error)
-            const unmatchedCreateDocIds = new Set()
-
-            return _tabs.replayDocuments_Promise(details.tabId, matchedDocs, errorDoc => {
-                // method only called if there's an error. called multiple times
-                if (errorDoc.verb === "create") {
-                    unmatchedCreateDocIds.add(errorDoc._id)
-                }
+            const errorCreateDocIds = new Set()
+                
+            return tabs.executeDefaultScript().then(() => {
+                return new Tabs(details.tabId).playbackDocuments(matchedDocs, errorDoc => {
+                    // method only called if there's an error. called multiple times
+                    if (errorDoc[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.CREATE) {
+                        errorCreateDocIds.add(errorDoc._id)
+                    }
+                })
             }).then(sum => {
-                if (unmatchedCreateDocIds.size > 0) {
+                if (errorCreateDocIds.size > 0) {
                     // remove 'create' docs for which a matching 'delete' doc exists
-                    for (const doc of matchedDocs) {
-                        if (doc.verb === 'delete') {
-                            unmatchedCreateDocIds.delete(doc.correspondingDocumentId)
+                    for (const doc of matchedDocs.filter(d => d[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.DELETE)) {
+                        errorCreateDocIds.delete(doc.correspondingDocumentId)
 
-                            if (unmatchedCreateDocIds.size === 0) {
-                                break
-                            }
+                        if (errorCreateDocIds.size === 0) {
+                            break
                         }
                     }
 
                     // any remaining entries are genuinely invalid
-                    if (unmatchedCreateDocIds.size > 0) {
+                    if (errorCreateDocIds.size > 0) {
                         _eventPage.setPageActionStatus(details.tabId, true)
-                        console.warn(`Error replaying ${unmatchedCreateDocIds.size} 'create' document(s)`)
+
+                        console.warn(`Error replaying ${errorCreateDocIds.size} 'create' document(s) [${Array.from(errorCreateDocIds).join('\n')}]`
+                        )
                     }
                 }
 
-                return sum
+                if (sum > 0) {
+                    chrome.pageAction.show(details.tabId);
+                }
             })
-        }).then(sum => {
-            if (sum <= 0) {
-                return
-            }
-
-            chrome.pageAction.show(details.tabId);
         })
     },
 
@@ -232,28 +223,16 @@ var _eventPage = {
         switch (message.id) {
             case "on_click_delete_highlight":
                 // message.highlightId is the document id to be deleted
-                _tabs.getActiveTab().then(function (tab) {
-                    _eventPage.deleteHighlight(tab.id, message.highlightId);
-                });
-                break;
+                return Tabs.queryActiveTab().then(tab => {
+                    if (!tab) {
+                        return
+                    }
 
-            // case "on_mouse_enter_highlight":
-            //     _contextMenus.setHoveredHighlightId(message.highlightId);
-            //     break;
-
-            // case "on_mouse_leave_highlight":
-            //     _contextMenus.setHoveredHighlightId(null);
-            //     break;
-
-            //        case "create_highlight":
-            //            // create new document for highlight, then update DOM
-            //            _eventPage.createHighlight(sender.tab.id,
-            //                message.range, _database.buildMatchString(sender.tab.url),
-            //                message.selectionText, message.className);
-            //            break;
+                    return _eventPage.deleteHighlight(tab.id, message.highlightId)
+                })
 
             default:
-                throw "Unhandled message: sender=" + sender + ", id=" + message.id;
+                throw `Unhandled message: sender=${sender}, id=${message.id}`
         }
     },
 
@@ -283,7 +262,11 @@ var _eventPage = {
         // parse well-known command strings, but default to the formatted kind
         switch (command) {
             case "delete_hovered_highlight":
-                return _tabs.getActiveTab().then(tab => {
+                return Tabs.queryActiveTab().then(tab => {
+                    if (!tab) {
+                        return
+                    }
+
                     return _tabs.getHoveredHighlightID(tab.id).then(docID => {
                         if (!docID) {
                             return
@@ -294,7 +277,13 @@ var _eventPage = {
                 })
 
             case "undo_last_create_highlight":
-                return _tabs.getActiveTab().then(tab => _eventPage.undoLastHighlight(tab.id))
+                return Tabs.queryActiveTab().then(tab => {
+                    if (!tab) {
+                        return 
+                    }
+
+                    return _eventPage.undoLastHighlight(tab.id)
+                })
 
             case "copy_overview":
                 // use the sort defined by the popup
@@ -302,7 +291,11 @@ var _eventPage = {
                     ChromeStorage.KEYS.HIGHLIGHT.SORT_BY,
                     ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT
                 ]).then(items => {
-                    return _tabs.getActiveTab().then(tab => {
+                    return Tabs.queryActiveTab().then(tab => {
+                        if (!tab) {
+                            return Promise.reject(new Error("no active tab"))
+                        }
+
                         const comparator = _tabs.getComparisonFunction(
                             tab.id,
                             items[ChromeStorage.KEYS.HIGHLIGHT.SORT_BY]
@@ -340,27 +333,32 @@ var _eventPage = {
 
                     highlightClassName = highlightDefinitions[index].className
                     
-                    return _tabs.getActiveTab()
+                    return Tabs.queryActiveTab()
                 }).then(tab => {
-                    const match = DB.formatMatch(tab.url)
+                    if (!tab) {
+                        return Promise.reject(new Error('no active tab'))
+                    }
 
+                    const match = DB.formatMatch(tab.url)
                     if (!match) {
                         return Promise.reject(new Error());
                     }
 
-                    return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(function (xrange) {
+                    const tabs = new Tabs(tab.id)
+                    const storage = new ChromeStorage()
+
+                    return tabs.getSelectionRange().then(xrange => {
                         if (!xrange) {
-                            return Promise.reject(new Error());
+                            return Promise.reject(new Error())
                         }
 
-                        const storage = new ChromeStorage()
 
                         // non collapsed selection means create new highlight
                         if (!xrange.collapsed) {
                             // requires selection text
-                            return _tabs.sendGetRangeTextMessage_Promise(tab.id, xrange).then(function (selectionText) {
-                                if (!selectionText) {
-                                    return Promise.reject(new Error());
+                            return tabs.getRangeText(xrange).then(text => {
+                                if (!text) {
+                                    return Promise.reject(new Error())
                                 }
 
                                 // create new document for highlight,
@@ -369,17 +367,18 @@ var _eventPage = {
                                     tab.id,
                                     xrange,
                                     DB.formatMatch(tab.url),
-                                    selectionText, highlightClassName
+                                    text,
+                                    highlightClassName
                                 )
                             }).then(() => {
                                 // remove selection?
-                                return storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT).then(unselectAfterHighlight => {
-                                    if (!unselectAfterHighlight) {
+                                return storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT).then(value => {
+                                    if (!value) {
                                         return
                                     }
 
-                                    // unselect all
-                                    _eventPage.selectHighlightText(tab.id);
+                                    // clear selection
+                                    return tabs.selectHighlight()
                                 })
                             })
                         } else {
@@ -467,7 +466,7 @@ var _eventPage = {
 
             // use the new document's id for the element id of the (first) highlight element
             try {
-                return _tabs.sendCreateHighlightMessage_Promise(tabId, xrange, className, response.id)
+                return new Tabs(tabId).createHighlight(xrange, className, response.id)
             } catch (e) {
                 // always rejects
                 return db.removeDB(response.id, response.rev).then(() => {
@@ -503,7 +502,7 @@ var _eventPage = {
             }
 
             // document updated - now update DOM
-            return _tabs.sendUpdateHighlightMessage_Promise(tabId, docId, className)
+            return new Tabs(tabId).updateHighlight(docId, className)
         }).then(ok => {
             if (!ok) {
                 return Promise.reject(new Error("Error updating highlight in DOM"));
@@ -555,18 +554,20 @@ var _eventPage = {
 
             // if the tab id is undefined, *try* to query it from the match title
             if (typeof tabIds === 'undefined') {
-                return _tabs.query({
+                return Tabs.query({
                     url: encodeURI(match),
                     status: 'complete'
                 }).then(tabs => {
-                    tabIds = tabs.map(t => t.id).filter(tid => tid !== chrome.tabs.TAB_ID_NONE)
+                    tabIds = tabs.map(tab => tab.id).filter(tabId => tabId !== chrome.tabs.TAB_ID_NONE)
                 })
             }
         }).then(() => {
             // if tab specified, try and remove highlight from DOM (result ignored)
             if (Array.isArray(tabIds)) {
-                // discard errors
-                return Promise.all(tabIds.map(tid => _tabs.sendDeleteHighlightMessage_Promise(tid, docId))).catch(() => { })
+                // ignores errors
+                return Promise.all(tabIds.map(tabId => {
+                    return new Tabs(tabId).deleteHighlight(docId).catch(() => { /* */ })
+                }))
             }
         }).then(() => {
             // Get sum of create(+1) & delete(-1) verbs for a specific match
@@ -577,7 +578,8 @@ var _eventPage = {
             console.log(`Sum: ${sum} [${match}]`);
 
             if (sum > 0) {
-                return { ok: true }
+                // empty doc implies no matching documents needed to be removed (not an error)
+                return []
             }
 
             console.log(`Removing all documents for ${match}`);
@@ -589,6 +591,7 @@ var _eventPage = {
             }
 
             // can delete all documents (for this match)
+            // return array of objects {ok,id,rev} for each removed doc
             return db.removeMatchingDocuments(match)
         })
     },
@@ -605,9 +608,11 @@ var _eventPage = {
 
             // Response is an array containing the id and rev of each deleted document.
             // We can use id to remove highlights in the DOM (although some won't match)
-            return Promise.all(
-                // remove in DOM
-                response.filter(r => r.ok).map(({id}) => _tabs.sendDeleteHighlightMessage_Promise(tabId, id))
+            const tabs = new Tabs(tabId)
+
+            return Promise.all(response
+                .filter(r => r.ok)
+                .map(({id}) => tabs.deleteHighlight(id))
             )
         })
     },
@@ -648,7 +653,7 @@ var _eventPage = {
                 }
             }
 
-            return Promise.reject("No create documents to undo.")
+            return Promise.reject(new Error("No create documents to undo."))
 
             // THIS CRASHES CHROME
 
@@ -673,16 +678,15 @@ var _eventPage = {
         });
     },
 
-    /**
-     * Select the text associated with a highlight
-     * @param {number} tabId
-     * @param {string} [documentId] if undefined, remove selection
-     * @param {function} [responseCallback] function(xpathRange)
-     */
-    selectHighlightText: function (tabId, documentId) {
-        "use strict";
-        return _tabs.sendSelectHighlightTextMessage_Promise(tabId, documentId);
-    },
+    // /**
+    //  * Select the text associated with a highlight
+    //  * @param {number} tabId
+    //  * @param {string} [highlightId] if undefined, remove selection
+    //  * @param {function} [responseCallback] function(xpathRange)
+    //  */
+    // selectHighlightText: function (tabId, highlightId) {
+    //     return new Tabs(tabId).selectHighlight(highlightId)
+    // },
 
     /**
      * Copy the text associated with a highlight to the clipboard
@@ -791,16 +795,19 @@ var _eventPage = {
 	 */
     getOverviewText: function (format, tab, comparator, filterPredicate, invert) {
         var titles = {};
-        var promise = (tab && Promise.resolve(tab)) || _tabs.getActiveTab();
+        const queryTabPromise = (tab && Promise.resolve(tab)) || Tabs.queryActiveTab()
 
-        return promise.then(function (_tab) {
-            // the actual tab
-            tab = _tab;
+        return queryTabPromise.then(t => {
+            if (!t) {
+                return Promise.reject(new Error("no tab"))
+            }
+
+            tab = t;
 
             return new ChromeHighlightStorage().getAll().then(items => items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS])
-        }).then(highlightDefinitions => {
+        }).then(definitions => {
             // map the highlight class name to its display name, for later usage
-            for (const d of highlightDefinitions) {
+            for (const d of definitions) {
                 titles[d.className] = d.title
             }
 

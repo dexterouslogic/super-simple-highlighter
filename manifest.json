@@ -37,11 +37,15 @@
             // "js/storage.js", 
             "js/chrome_storage.js", "js/chrome_highlight_storage.js",
             "js/string_utils.js",
+            
             "js/background/database.js",
+            "js/db.js",
+            
+            "js/tabs.js",
             "js/background/tabs.js",
+            
             "js/background/context_menus.js",
 
-            "js/db.js",
             "js/background/event_page.js"
         ],
 

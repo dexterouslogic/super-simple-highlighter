@@ -79,7 +79,7 @@ class DB {
    * @returns {Promise<PutResponse>}
    * @memberof DB
    */
-  putDB(doc, {id="", rev=""}, options = {}) {
+  putDB(doc, {id=undefined, rev=undefined} = {}, options = {}) {
     return this.getDB().then(db => {
       // fast path
       if (!id && !rev) {
@@ -623,26 +623,28 @@ class DB {
 
   /**
    * Form the string that a page URL will be associated with in the database
+   * Note that the match is URI decoded by default
    * 
    * @static
    * @param {string|URL} url - url of page to process 
    * @param {string|URL} [frameUrl] - url of the frame specific to the match. May be null if same as pageUrl. NOT CURRENTLY USED
-   * @param {Object} [options={scheme = true, query = true, fragment = false }] - options object
+   * @param {Object} [options={scheme = true, query = true, fragment = false, decode = true }] - options object
    * @returns {string} match string
    * @memberof DB
    */
   static formatMatch(url, frameUrl, {
     scheme = true,
     query = true,
-    fragment = false
+    fragment = false,
+    decode = true,
   } = {}) {
     // @ts-ignore
     const u = (url instanceof URL && url) || new URL(url)
 
     // shortcut - basically the match is the entire url
-    if( scheme && query && fragment ) {
-      return u.href
-    }
+    // if( scheme && query && fragment ) {
+    //   return u.href
+    // }
 
     // example.com
     let match = u.hostname
@@ -670,7 +672,7 @@ class DB {
       match += u.hash
     }
 
-    return match
+    return decode ? decodeURI(match) : match
   }
 
 }

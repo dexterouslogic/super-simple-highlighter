@@ -207,9 +207,11 @@ var _contextMenus = {
                 }
 
                 // get the selection range (_xpath) from content script
-				return _tabs.sendGetSelectionRangeMessage_Promise(tab.id).then(xrange => {
+                const tabs = new Tabs(tab.id)
+
+                return tabs.getSelectionRange().then(xrange => {
 					if (xrange.collapsed) {
-						return Promise.reject(new Error());
+						return Promise.reject(new Error())
 					}
 					
                     // create new document for highlight, then update DOM
@@ -225,7 +227,8 @@ var _contextMenus = {
                        return
                    }
 
-                   return _eventPage.selectHighlightText(tab.id);
+                   // clear selection
+                   return tabs.selectHighlight()
                 })
 
             case "update_highlight":
@@ -245,7 +248,7 @@ var _contextMenus = {
         switch (info.menuItemId) {
         case "select_highlight_text":
             if (_contextMenus.hoveredHighlightId) {
-                _eventPage.selectHighlightText(tab.id, _contextMenus.hoveredHighlightId);
+                return new Tabs(tab.id).selectHighlight(_contextMenus.hoveredHighlightId)
             }
             break;
 

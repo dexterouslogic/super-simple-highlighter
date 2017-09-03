@@ -171,7 +171,7 @@ var _contentScript = {
                 throw new Error(`Unable to parse xrange`)
             }
         } catch (err) {
-            console.error(`Exception parsing xpath range ${xrange}: ${err.message}`)
+            // console.error(`Exception parsing xpath range ${xrange}: ${err.message}`)
             return null
         }
 
@@ -340,14 +340,11 @@ var _contentScript = {
 
             case 'select_highlight':
                 response = (() => {
-                    // if highlightId is null, selection is cleared (no result)
-                    if (!message.highlightId) {
-                        return // undefined
-                    }
-                    
-                    // get xrange from range
+                    // null id clears selection
                     const range = _contentScript.selectHighlight(message.highlightId)
-                    return RangeUtils.toObject(range)
+
+                    // get xrange from range
+                    return message.highlightId ? RangeUtils.toObject(range) : null
                 })()
                 break;
 
@@ -500,7 +497,7 @@ var _contentScript = {
      */
     onStorageChanged: function (changes, areaName) {
         if (areaName !== 'sync') {
-            return Promise.reject(new Error('unknown area name'))
+            return Promise.resolve()
         }
 
         return new ChromeStorage().get(ChromeStorage.KEYS.ENABLE_HIGHLIGHT_BOX_SHADOW).then(enableHighlightBoxShadow => {
