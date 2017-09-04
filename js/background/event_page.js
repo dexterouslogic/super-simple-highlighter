@@ -49,7 +49,9 @@ var _eventPage = {
      * @param {function} details function(object details) {...}
      */
     onRuntimeInstalled: function (details) {
-        _contextMenus.recreateMenu()
+        // ignored promise
+        ChromeContextMenus.create()
+        // _contextMenus.recreateMenu()
 
         // one time initialization
         // return _database.putDesignDocuments().then(() => {
@@ -67,14 +69,27 @@ var _eventPage = {
      * extension is operating in 'split' incognito mode.
      */
     onRuntimeStartup: function () {
-        _contextMenus.recreateMenu();
-
-        // remove entries in which the number of 'create' doc == number of 'delete' docs
-        const db = new DB()
-
-        return db.removeAllSuperfluousDocuments().then(() => {
-            return db.compactDB()
+        // ignored promise
+        return ChromeContextMenus.create().then(() => {
+            // remove entries in which the number of 'create' doc == number of 'delete' docs
+            const db = new DB()
+        
+            return db.removeAllSuperfluousDocuments().then(() => {
+                return db.compactDB()
+            })
         })
+        // _contextMenus.recreateMenu();
+
+        // // remove entries in which the number of 'create' doc == number of 'delete' docs
+        // const db = new DB()
+
+        // return db.removeAllSuperfluousDocuments().then(() => {
+        //     return db.compactDB()
+        // })
+
+
+
+
         // return _database.getMatchSums_Promise().then(rows => {
         //     return Promise.all(rows
         //         .filter(row => row.value === 0)
@@ -242,13 +257,19 @@ var _eventPage = {
      * @param namespace
      */
     onStorageChanged: function (changes, namespace) {
-        "use strict";
-        if (namespace === "sync") {
-            if (changes.highlightDefinitions) {
-                // content of context menu depends on the highlight styles
-                _contextMenus.recreateMenu();
-            }
+        // Content of context menu depends on the highlight styles
+        if (namespace !== 'sync' || !changes.highlightDefinitions) {
+            return
         }
+
+        // unhandled promise
+        return ChromeContextMenus.create()
+
+        // if (namespace === "sync") {
+        //     if (changes.highlightDefinitions) {
+        //         _contextMenus.recreateMenu();
+        //     }
+        // }
     },
 
     /**

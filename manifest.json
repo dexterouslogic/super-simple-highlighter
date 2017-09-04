@@ -45,6 +45,7 @@
             "js/background/tabs.js",
             
             "js/background/context_menus.js",
+            "js/background/chrome_context_menus.js",
 
             "js/background/event_page.js"
         ],
