@@ -248,7 +248,8 @@ var _contentScript = {
     },
 
     getBoundingClientRect: function (id) {
-        return document.querySelector(`#${id}`).getBoundingClientRect()
+        const elm = document.querySelector(`#${id}`)
+        return (elm && elm.getBoundingClientRect()) || null
     },
 
     /**
@@ -349,14 +350,15 @@ var _contentScript = {
                 break;
 
             case "select_range":
-                response = (document => {
+                response = (() => {
                     // select range defined by xrange, or clear if undefined
-                    const range = message.xrange && RangeUtils.toRange(message.xrange, document)
+                    const range = message.xrange ? RangeUtils.toRange(message.xrange, document) : null
+                    
                     _contentScript.selectRange(range);
 
                     // return xrange of selection
-                    return range && RangeUtils.toObject(range)
-                })(document)
+                    return range ? RangeUtils.toObject(range) : null
+                })()
                 break;
 
             case "is_highlight_in_dom":
@@ -383,25 +385,35 @@ var _contentScript = {
                 break;
 
             case "get_bounding_client_rect":
-                var rect = _contentScript.getBoundingClientRect(message.highlightId);
+                const rect = _contentScript.getBoundingClientRect(message.highlightId)
 
                 // ClientRect won't stringify
-                response = {
+                response = (rect && {
                     "top": rect.top,
                     "right": rect.right,
                     "bottom": rect.bottom,
                     "left": rect.left,
                     "width": rect.width,
                     "height": rect.height,
-                };
+                }) || null
 
                 break;
 
-            case "get_document_element_attribute_node_value":
-                var attribute = document.documentElement.attributes[message.attribute_name];
-                response = (attribute && attribute.nodeValue) || undefined;
-                // response = document.documentElement.attributes[message.attribute_name];
-                break;
+            case "get_node_attribute_value":
+                const {singleNodeValue} = document.evaluate(
+                    message.xpathExpression,
+                    document,
+                    null,
+                    XPathResult.FIRST_ORDERED_NODE_TYPE,
+                    null
+                )
+
+                response = (singleNodeValue &&
+                    singleNodeValue.attributes &&
+                    singleNodeValue.attributes[message.attributeName] &&
+                    singleNodeValue.attributes[message.attributeName].nodeValue) ||
+                    null
+                break
 
             case "get_hovered_highlight_id":
                 response = _contentScript.getHoveredHighlightID();
@@ -427,7 +439,7 @@ var _contentScript = {
         // even if the first span sets the firstSpan property to itself
         if (!element.firstSpan) {
             // unusual
-            return;
+            return null;
         }
 
         return element.firstSpan.id;
@@ -471,17 +483,11 @@ var _contentScript = {
      * Get the ID of the highlight currently being hovered over
      */
     getHoveredHighlightID: function () {
-        // undefined if no element
-        var lastHoveredElement = (function () {
-            // highlight classes that are hovered
-            var selector = "." + _contentScript.highlightClassName + ":hover";
-            var q = document.querySelectorAll(selector);
-
-            return q[q.length - 1];
-        })()
+        const elms = document.querySelectorAll(`.${_contentScript.highlightClassName}:hover`);
+        const lastHoveredElement = elms[elms.length - 1]
 
         if (!lastHoveredElement) {
-            return;
+            return null;
         }
 
         return _contentScript._getHighlightId(lastHoveredElement);

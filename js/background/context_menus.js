@@ -187,93 +187,96 @@ var _contextMenus = {
     onClicked: function (info, tab) {
         "use strict";
         // check for id in format 'something.className'
-        var re = new RegExp("^(.+)\\.(.+)");
-        var match = re.exec(info.menuItemId);
+        const match = new RegExp("^(.+)\\.(.+)").exec(info.menuItemId)
 
-        if (match && match.length === 3) {
-            var className = match[2];
-
-            switch (match[1]) {
-            case "create_highlight":
-                if (info.editable) {
-                    window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"));
-                    break
-                }
-
-                // can't create highlight in frames that aren't top level frames, or in editable textareas
-                if (info.frameUrl && info.frameUrl !== tab.url){
-                    window.alert(chrome.i18n.getMessage("alert_create_highlight_in_subframe"));
-                    break
-                }
-
-                // get the selection range (_xpath) from content script
-                const tabs = new Tabs(tab.id)
-
-                return tabs.getSelectionRange().then(xrange => {
-					if (xrange.collapsed) {
-						return Promise.reject(new Error())
-					}
-					
-                    // create new document for highlight, then update DOM
-                    return _eventPage.createHighlight(
-                        tab.id,
-                        xrange,
-                        DB.formatMatch(tab.url, info.frameUrl),
-                        info.selectionText, 
-                        className
-                    )
-				}).then(() => new ChromeStorage().get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(unselectAfterHighlight => {
-                   if (!unselectAfterHighlight) {
-                       return
-                   }
-
-                   // clear selection
-                   return tabs.selectHighlight()
-                })
-
-            case "update_highlight":
-                if (_contextMenus.hoveredHighlightId) {
-                    return _eventPage.updateHighlight(tab.id, _contextMenus.hoveredHighlightId, className)
-                } 
-                break
-
-            default:
-                throw "Unhandled menu item id: " + info.menuItemId;
-            } // end switch
-
+        if (!match || match.length !== 3) {
             return Promise.resolve()
         }
 
-        // default (constant ids)
-        switch (info.menuItemId) {
-        case "select_highlight_text":
-            if (_contextMenus.hoveredHighlightId) {
-                return new Tabs(tab.id).selectHighlight(_contextMenus.hoveredHighlightId)
-            }
-            break;
+        const verb = match[1]
+        const className = match[2]
 
-        case "copy_highlight_text":
-            if (_contextMenus.hoveredHighlightId) {
-                _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
+        switch (verb) {
+        case "create_highlight":
+            if (info.editable) {
+                window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"));
+                break
             }
-            break;
 
-        case "speak_highlight_text":
-            if (_contextMenus.hoveredHighlightId) {
-                _eventPage.speakHighlightText(tab.id, _contextMenus.hoveredHighlightId);
+            // can't create highlight in frames that aren't top level frames, or in editable textareas
+            if (info.frameUrl && info.frameUrl !== tab.url){
+                window.alert(chrome.i18n.getMessage("alert_create_highlight_in_subframe"));
+                break
             }
-            break;
 
-        case "delete_highlight":
+            // get the selection range (_xpath) from content script
+            const tabs = new ChromeTabs(tab.id)
+
+            return tabs.getSelectionRange().then(xrange => {
+                if (xrange.collapsed) {
+                    return Promise.reject(new Error())
+                }
+                
+                // create new document for highlight, then update DOM
+                return _eventPage.createHighlight(
+                    tab.id,
+                    xrange,
+                    DB.formatMatch(tab.url, info.frameUrl),
+                    info.selectionText, 
+                    className
+                )
+            }).then(() => new ChromeStorage().get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(value => {
+                if (!value) {
+                    return
+                }
+
+                // clear selection
+                return tabs.selectHighlight()
+            })
+
+        case "update_highlight":
             if (_contextMenus.hoveredHighlightId) {
-                _eventPage.deleteHighlight(tab.id, _contextMenus.hoveredHighlightId);
-            }
-            break;
+                return _eventPage.updateHighlight(tab.id, _contextMenus.hoveredHighlightId, className)
+            } 
+            break
 
         default:
-            throw "Unhandled menu item. id=" + info.menuItemId;
-        }
-        
+            throw "Unhandled menu item id: " + info.menuItemId;
+        } // end switch
+
         return Promise.resolve()
+
+
+        // // default (constant ids)
+        // switch (info.menuItemId) {
+        // case "select_highlight_text":
+        //     if (_contextMenus.hoveredHighlightId) {
+        //         return new ChromeTabs(tab.id).selectHighlight(_contextMenus.hoveredHighlightId)
+        //     }
+        //     break;
+
+        // case "copy_highlight_text":
+        //     if (_contextMenus.hoveredHighlightId) {
+        //         _eventPage.copyHighlightText(_contextMenus.hoveredHighlightId);
+        //     }
+        //     break;
+
+        // case "speak_highlight_text":
+        //     if (_contextMenus.hoveredHighlightId) {
+        //         _eventPage.speakHighlightText(tab.id, _contextMenus.hoveredHighlightId);
+        //     }
+        //     break;
+
+        // case "delete_highlight":
+        //     if (_contextMenus.hoveredHighlightId) {
+        //         _eventPage.deleteHighlight(tab.id, _contextMenus.hoveredHighlightId);
+        //     }
+        //     break;
+
+        // default:
+        //     throw "Unhandled menu item. id=" + info.menuItemId;
+        // }
+        
+        // return Promise.resolve()
     }
 };

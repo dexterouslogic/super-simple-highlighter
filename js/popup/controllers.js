@@ -78,10 +78,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 */
 	function init() {
 		// get storage values
-		return new Promise(resolve => {
-			// get active tab
-			chrome.tabs.query({ active: true, currentWindow: true }, tabs => resolve(tabs[0]))
-		}).then(tab => {
+		return ChromeTabs.queryActiveTab().then(tab => {
+			if (!tab) {
+				return Promise.reject(new Error('no active tab'))
+			}
+
 			activeTab = tab
 
 			$scope.title = activeTab.title
@@ -176,20 +177,22 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @private
 	 */
 	var updateDocs = function () {
-		return new Promise(resolve => {
-			// get active tab
-			chrome.tabs.query({ active: true, currentWindow: true }, tabs => resolve(tabs[0]))
-		}).then(activeTab => {
+		return ChromeTabs.queryActiveTab().then(activeTab => {
+			if (!activeTab) {
+				return Promise.reject(new Error('no active tab'))
+			}
+			
 			return new Promise(resolve => { 
 				chrome.runtime.getBackgroundPage(b => resolve(b)) 
-			}).then(({_tabs, _eventPage}) => {
-				const comparator = _tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
+			}).then(({_eventPage}) => {
+				const tabs = new ChromeTabs(activeTab.id)
+				const comparator = tabs.getComparisonFunction($scope.sort.value)
 				
 				// get all the documents (create & delete) associated with the match, then filter the deleted ones
 				return new DB().getMatchingDocuments($scope.match, {excludeDeletedDocs: true}).then(docs => {
 					// if the highlight cant be found in DOM, flag that
 					return Promise.all(docs.map(d => {
-						return _eventPage.isHighlightInDOM(activeTab.id, d._id).then(isInDOM => {
+						return tabs.isHighlightInDOM(d._id).then(isInDOM => {
 							d.isInDOM = isInDOM;
 						}).catch(function () {
 							// swallow
@@ -297,12 +300,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			return Promise.reject(new Error())
 		}
 
-		// get background page
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			return _eventPage.scrollTo(activeTab.id, doc._id)
-		})
+		return new ChromeTabs(activeTab.id).scrollToHighlight(doc._id)
 	}
 
 	/**
@@ -315,7 +313,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			return Promise.reject(new Error())
 		}
 
-		return new Tabs(activeTab.id).selectHighlight(doc._id).then(() => { window.close() })
+		return new ChromeTabs(activeTab.id).selectHighlight(doc._id).then(() => { window.close() })
 	}
 
 	/**
@@ -343,7 +341,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
 		}).then(({_eventPage}) => {
-			_eventPage.speakHighlightText(activeTab.id, docId)
+			return _eventPage.speakHighlightText(activeTab.id, docId)
 		})
 	}
 
@@ -430,8 +428,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	$scope.onClickSaveOverview = function () {
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_tabs, _eventPage}) => {
-			const comparator = _tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
+		}).then(({_eventPage}) => {
+			const comparator = new ChromeTabs(activeTab.id).getComparisonFunction($scope.sort.value)
 
 			// format all highlights as a markdown document
 			return _eventPage.getOverviewText(
@@ -469,8 +467,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// sort the docs using the sort value
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_tabs, _eventPage}) => {
-			const comparator = _tabs.getComparisonFunction(activeTab.id, $scope.sort.value)
+		}).then(({_eventPage}) => {
+			const comparator = new ChromeTabs(activeTab.id).getComparisonFunction($scope.sort.value)
 
 			return _eventPage.getOverviewText(
 				"markdown-no-footer", activeTab, comparator,

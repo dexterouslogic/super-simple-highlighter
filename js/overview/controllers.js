@@ -39,9 +39,9 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
      * @param {number} [tabId] tab id of the tab associated with the popup that navigated here, or NaN if not known or specified
      * @param {string} url tab url
      * @param {string} [title] optional tab title
-     * @param {object} bgPage
-	 * @param {string} sortby
-	 * @param {boolean} invert
+     * @param {Object} bgPage
+	   * @param {string} sortby
+	   * @param {boolean} invert
      */
     function onInit(tabId, url, title, bgPage, sortby, invert){
 		$scope.tabId = tabId;
@@ -57,10 +57,11 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 
 		const db = new DB()
 		const match = DB.formatMatch(url) 
+		const tabs = new ChromeTabs(tabId)
 		
 		// get all the documents (create & delete) associated with the match, then filter the deleted ones
 		return db.getMatchingDocuments(match, { excludeDeletedDocs: true}).then(docs => {
-			const comparator = backgroundPage._tabs.getComparisonFunction(tabId, sortby)
+			const comparator = tabs.getComparisonFunction(sortby)
 
 			// default to native order
 			return (comparator && DB.sortDocuments(docs, comparator)) || docs
@@ -105,19 +106,27 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 			})()
 			
 			$scope.docsCount = chrome.i18n.getMessage(messageName, [docs.length])
-            $scope.$apply();
+			$scope.$apply();
 
-            // if the highlight cant be found in DOM, flag that
-            if (!isNaN(tabId)) {
-                docs.forEach(function (doc) {
-                    // default to undefined, implying it IS in the DOM
-                    backgroundPage._eventPage.isHighlightInDOM(tabId, doc._id).then(function (isInDOM) {
-                        doc.isInDOM = isInDOM;
+			// if the highlight cant be found in DOM, flag that
+			if (isNaN(tabId)) {
+				return
+			}
+			
+			return Promise.all(docs.map(doc => {
+				return tabs.isHighlightInDOM(doc._id).then(value => doc.isInDOM = value)
+			})).then(() => $scope.$apply())
 
-                        $scope.$apply();
-                    });
-                });
-            }
+            // if (!isNaN(tabId)) {
+            //     docs.forEach(function (doc) {
+            //         // default to undefined, implying it IS in the DOM
+            //         backgroundPage._eventPage.isHighlightInDOM(tabId, doc._id).then(function (isInDOM) {
+            //             doc.isInDOM = isInDOM;
+
+            //             $scope.$apply();
+            //         });
+            //     });
+            // }
         });
     }
 
@@ -139,16 +148,16 @@ overviewControllers.controller('DocumentsController', ["$scope", function ($scop
 	 * @param {Object} doc highlight document which was clicked
 	 */	
 	$scope.onClickHighlight = function(doc) {
-		// if scrolling to the element is successful, only then we can make the tab active
-        return backgroundPage._eventPage.scrollTo($scope.tabId, doc._id).then(function(didScroll) {
-        	if (didScroll) {
-				// make it the active tab
-				chrome.tabs.update($scope.tabId, {
-					active: true
-				});
-        	}
-        });
-		
+		const tabId = $scope.tabId
+
+		return new ChromeTabs(tabId).scrollToHighlight(doc._id).then(ok => {
+			if (!ok) {
+				return
+			}
+			
+			// if scrolling to the element is successful, only then we can make the tab active
+			chrome.tabs.update(tabId, { active: true })
+		})
 	}
 
 	/**

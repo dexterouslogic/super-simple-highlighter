@@ -41,7 +41,7 @@
             "js/background/database.js",
             "js/db.js",
             
-            "js/tabs.js",
+            "js/chrome_tabs.js",
             "js/background/tabs.js",
             
             "js/background/context_menus.js",

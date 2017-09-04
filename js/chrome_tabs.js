@@ -6,12 +6,12 @@ const promiseSerial = funcs =>
     Promise.resolve([])
   )
 
-class Tabs {
+class ChromeTabs {
   /**
    * Creates an instance of Tabs
    * 
    * @param {number} tabId - id of tab that all instance methods target 
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   constructor(tabId) {
     this.tabId = tabId
@@ -19,6 +19,7 @@ class Tabs {
 
   /**
    * @typedef {Object} Tab
+   * @prop {number} id - tab id
    */
 
   /**
@@ -35,7 +36,7 @@ class Tabs {
    * @static
    * @param {QueryInfo} [info] - chrome.tabs query info object
    * @returns {Promise<Tab[]>} array of tabs
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   static query(info) {
     return new Promise(resolve => {
@@ -48,10 +49,10 @@ class Tabs {
    * 
    * @static
    * @returns {Promise<Tab>} tab, or null
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   static queryActiveTab() {
-    return Tabs.query({
+    return ChromeTabs.query({
       active: true,
       currentWindow: true 
     }).then(tabs => {
@@ -72,7 +73,7 @@ class Tabs {
    * @param {string|string[]} files - JavaScript or CSS file to inject. If array, files are injected sequentially
    * @param {ExecuteScriptDetails} [details] - injection details
    * @returns {Promise}
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   executeScript(files, details = {}) {
     if (Array.isArray(files)) {
@@ -106,10 +107,10 @@ class Tabs {
    * 
    * @param {ExecuteScriptDetails} [details={}] - injection details
    * @returns 
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   executeDefaultScript(details = {}) {
-    return this.executeScript(Tabs.DEFAULT_SCRIPTS, details)
+    return this.executeScript(ChromeTabs.DEFAULT_SCRIPTS, details)
   }
 
   //
@@ -127,7 +128,7 @@ class Tabs {
    * @param {Object} message - message sent to tab content script
    * @param {Object} [options] [{ executeDefaultScript = false }={}] 
    * @returns {Promise<*>} message response
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   sendMessage(message, { executeDefaultScript = false } = {}) {
     return (executeDefaultScript ? this.executeDefaultScript() : Promise.resolve()).then(() => {
@@ -147,7 +148,7 @@ class Tabs {
    * @private
    * @param {Object} message - object of any shape
    * @returns {Promise<*>} resolves if no last error defined and the result is defined (handled)
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   sendMessageInternal(message) {
     return new Promise((resolve, reject) => {
@@ -189,11 +190,11 @@ class Tabs {
    * @param {string} className - name of class defining style of highlight
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
    * @returns {Promise<boolean>} true if highlight span could be created 
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   createHighlight(range, className, highlightId) {
     return this.sendMessage({
-      id: Tabs.MESSAGE_ID.CREATE_HIGHLIGHT,
+      id: ChromeTabs.MESSAGE_ID.CREATE_HIGHLIGHT,
       range: range,
       highlightId: highlightId,
       className: className
@@ -206,11 +207,11 @@ class Tabs {
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
    * @param {string} className - name of class defining style of highlight
    * @returns {Promise<boolean>} true if update succeeded
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   updateHighlight(highlightId, className) {
     return this.sendMessage({
-      id: Tabs.MESSAGE_ID.UPDATE_HIGHLIGHT,
+      id: ChromeTabs.MESSAGE_ID.UPDATE_HIGHLIGHT,
       highlightId: highlightId,
       className: className
     })
@@ -221,11 +222,11 @@ class Tabs {
    * 
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
    * @returns {Promise<boolean>} true if delete succeeded
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   deleteHighlight(highlightId) {
     return this.sendMessage({
-      id: Tabs.MESSAGE_ID.DELETE_HIGHLIGHT,
+      id: ChromeTabs.MESSAGE_ID.DELETE_HIGHLIGHT,
       highlightId: highlightId,
     })
   }
@@ -236,11 +237,11 @@ class Tabs {
    * Get a range object representing the current selection of the content's document
    * 
    * @returns {Promise<XRange>} - XRange object (even if no selection)
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   getSelectionRange() {
     return this.sendMessage({
-      id: Tabs.MESSAGE_ID.GET_SELECTION_RANGE
+      id: ChromeTabs.MESSAGE_ID.GET_SELECTION_RANGE
     })
   }
 
@@ -249,11 +250,11 @@ class Tabs {
    * 
    * @param {XRange} xrange - range to query
    * @returns {Promise<string|Null>} text of selection, or null if not found
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   getRangeText(xrange) {
     return this.sendMessage({
-      id: Tabs.MESSAGE_ID.GET_RANGE_TEXT,
+      id: ChromeTabs.MESSAGE_ID.GET_RANGE_TEXT,
       xrange: xrange,
     })
   }
@@ -263,16 +264,113 @@ class Tabs {
    * 
    * @param {string} [highlightId] - #id of highlight in DOM. If undefined, clear document's selection
    * @returns {Promise<XRange|Null>} xrange of selected highlight, or null if no highlight was supplied
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   selectHighlight(highlightId) {
-    const message = { id: Tabs.MESSAGE_ID.SELECT_HIGHLIGHT }
+    const message = { id: ChromeTabs.MESSAGE_ID.SELECT_HIGHLIGHT }
 
     if (highlightId) {
       message.highlightId = highlightId
     }
 
     return this.sendMessage(message)
+  }
+
+  /**
+   * Select a range of text in the document
+   * 
+   * @param {XRange} [xrange] - range to select. clear selection if undefined
+   * @returns {Promise<XRange|Null>} xrange of selected highlight, or null if no highlight was supplied
+   * @memberof ChromeTabs
+   */
+  selectRange(xrange) {
+    const message = { id: ChromeTabs.MESSAGE_ID.SELECT_RANGE }
+    if (xrange) {
+      message.xrange = xrange
+    }
+    
+    return this.sendMessage(message)
+  }
+
+  /**
+   * Query DOM whether a highlight exists
+   * 
+   * @param {string} highlightId - #id of highlight (aka 'create' doc _id)
+   * @returns {Promise<boolean>} true if in DOM, else false
+   * @memberof ChromeTabs
+   */
+  isHighlightInDOM(highlightId) {
+    return this.sendMessage({
+      id: ChromeTabs.MESSAGE_ID.IS_HIGHLIGHT_IN_DOM,
+      highlightId: highlightId,
+    })
+  }
+
+  /**
+   * Scroll document to a highlight
+   * 
+   * @param {string} highlightId - #id of highlight (aka 'create' doc _id)
+   * @returns {Promise<boolean>} true if element found, else false
+   * @memberof ChromeTabs
+   */
+  scrollToHighlight(highlightId) {
+    return this.sendMessage({
+        id: ChromeTabs.MESSAGE_ID.SCROLL_TO,
+        fragment: highlightId
+    });
+  }
+
+  /**
+   * Get a value of an attribute in the document's DOM
+   * 
+   * @param {string} xpathExpression - xPath for element to evaluate
+   * @param {string} attributeName - name of attribute
+   * @returns {Promise<string|Null>} value of attribute, or null if no element/attribute
+   * @memberof ChromeTabs
+   */
+  getNodeAttributeValue(xpathExpression, attributeName) {
+    return this.sendMessage({
+      id: ChromeTabs.MESSAGE_ID.GET_NODE_ATTRIBUTE_VALUE,
+      xpathExpression: xpathExpression,
+      attributeName: attributeName,
+    })
+  }
+
+
+  /**
+   * @typedef {Object} BoundingClientRect
+   * @prop {number} top 
+   * @prop {number} right 
+   * @prop {number} bottom 
+   * @prop {number} left 
+   * @prop {number} width 
+   * @prop {number} height 
+   */
+
+  /**
+   * Get the bounding client rect of a highlight in the document
+   * 
+   * @param {string} highlightId - #id of highlight (aka 'create' doc _id)
+   * @returns {Promise<BoundingClientRect|Null>}
+   * @memberof ChromeTabs
+   */
+  getHighlightBoundingClientRect(highlightId) {
+    return this.sendMessage({
+      id: ChromeTabs.MESSAGE_ID.GET_BOUNDING_CLIENT_RECT,
+      highlightId: highlightId,
+    })
+  }
+
+  /**
+   * Get the #id of the highlight that is currently being hovered over
+   * 
+   * @returns {Promise<String|Null>} id or null
+   * @memberof ChromeTabs
+   */
+  getHoveredHighlightID() {
+    return this.sendMessage({
+      id: ChromeTabs.MESSAGE_ID.GET_HOVERED_HIGHLIGHT_ID
+    })
   }
 
   // /** 
@@ -297,7 +395,7 @@ class Tabs {
    * @param {Object[]} documents - array of documents to play back serially 
    * @param {Function} [onPlaybackError] - method called after each document that doesn't play back successfully
    * @returns {Promise<number>} sum of create/delete documents, where create is +1, delete is -1. If zero, no highlights. Rejects if any create/delete method rejects.
-   * @memberof Tabs
+   * @memberof ChromeTabs
    */
   playbackDocuments(documents, onPlaybackError) {
     let sum = 0
@@ -341,11 +439,56 @@ class Tabs {
     // return sum
     return promiseSerial(funcs).then(() => sum)
   }
+
+
+  /**
+	 * Get a sort comparison function, which takes a document and returns a promise that resolves to a comparable value
+   * 
+	 * @param {string} sortby - type of sort
+	 * @return {Function<Promise>} Function that returns a promise that gets a comparable value
+	 */
+	getComparisonFunction(sortby) {
+		switch(sortby) {
+        case "time":
+            // simply order by creation time (which it probably already does)
+            return doc => Promise.resolve(doc.date)
+			
+        case "location":
+            return doc => {
+                // resolve to top of bounding client rect
+                return this.isHighlightInDOM(doc._id).then(isInDOM => {
+                    return isInDOM ?
+                      this.getHighlightBoundingClientRect(doc._id) :
+                      Promise.reject(new Error())
+                }).then(rect => rect.top)
+            }
+
+        case "style":
+            // items are ordered by the index of its associated style. Build a map for faster lookup
+            let map = new Map()
+
+            return doc => {
+                if (map.size === 0) {
+                    return new ChromeHighlightStorage().getAll().then(items => {
+                        // key is definition className, value is the index that occupies
+                        items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS].forEach(({className}, index) => {
+                            map.set(className, index)
+                        })
+                    }).then(() => map.get(doc.className))
+                }
+
+                return Promise.resolve(map.get(doc.className))
+            }
+
+		default:
+			throw "Unknown type";
+		}
+	}
 }
 
 // static properties
 
-Tabs.DEFAULT_SCRIPTS = [
+ChromeTabs.DEFAULT_SCRIPTS = [
   "js/chrome_storage.js", "js/chrome_highlight_storage.js",
   
   "js/string_utils.js",
@@ -355,11 +498,17 @@ Tabs.DEFAULT_SCRIPTS = [
   "js/content_script/content_script.js"
 ]
 
-Tabs.MESSAGE_ID = {
+ChromeTabs.MESSAGE_ID = {
   CREATE_HIGHLIGHT: 'create_highlight',
   UPDATE_HIGHLIGHT: 'update_highlight',
   DELETE_HIGHLIGHT: 'delete_highlight',
   GET_SELECTION_RANGE: 'get_selection_range',
   GET_RANGE_TEXT: 'get_range_text',
-  SELECT_HIGHLIGHT: 'select_highlight'
+  SELECT_HIGHLIGHT: 'select_highlight',
+  SELECT_RANGE: 'select_range',
+  IS_HIGHLIGHT_IN_DOM: 'is_highlight_in_dom',
+  SCROLL_TO: 'scroll_to',
+  GET_NODE_ATTRIBUTE_VALUE: 'get_node_attribute_value',
+  GET_BOUNDING_CLIENT_RECT: 'get_bounding_client_rect',
+  GET_HOVERED_HIGHLIGHT_ID: 'get_hovered_highlight_id'
 }
