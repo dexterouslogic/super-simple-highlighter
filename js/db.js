@@ -144,7 +144,7 @@ class DB {
    * @param {string} docId - document id
    * @param {string} docRev - document revision
    * @param {Object} [options={}] - deletion options
-   * @returns {Promise<PutResponse>}
+   * @returns {Promise<PutResponse>} object with ok/id/rev properties
    * @memberof DB
    */
   removeDB(docId, docRev, options = {}) {
@@ -343,7 +343,7 @@ class DB {
    * @param {string} createDocId - id of `create` doc that this document deletes
    * @param {Object} optionals [{date = Date.now(), }={}] - optional values
    * @param {Object} [options] - options
-   * @returns {Promise<PutResponse>}
+   * @returns {Promise<PutResponse>} object with ok/id/rev properties
    * @memberof DB
    */
   postDeleteDocument(createDocId, {

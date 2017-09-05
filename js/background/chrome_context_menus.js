@@ -96,10 +96,21 @@ class ChromeContextMenus {
    * @callback
    * @param {Object} info - nformation about the item clicked and the context where the click happened.
    * @param {Object} [tab] - The details of the tab where the click took place. If the click did not take place in a tab, this parameter will be missing.
+   * @param {Object} callbacks - { $ } 
    * @returns {Promise}
    * @memberof ChromeContextMenus
    */
-  static onClicked(info, tab) {
+  /**
+   * 
+   * 
+   * @static
+   * @param {any} info 
+   * @param {any} tab 
+   
+   * @returns 
+   * @memberof ChromeContextMenus
+   */
+  static onClicked(info, tab, { $=undefined } = {}) {
     // parse the formatted menu item id into its verb & parameter parts (if possible)
     const match = new RegExp("^(.+)\\.(.+)").exec(info.menuItemId)
   
@@ -134,13 +145,13 @@ class ChromeContextMenus {
             }
             
             // create new document for highlight, then update DOM
-            return _eventPage.createHighlight(
+            return $ ? $.createHighlight(
                 tab.id,
                 xrange,
                 DB.formatMatch(tab.url, info.frameUrl),
                 info.selectionText, 
                 className
-            )
+            ) : Promise.reject(new Error('no event page'))
         }).then(() => storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(value => {
             if (!value) {
                 return

@@ -63,6 +63,20 @@ class ChromeTabs {
   //
 
   /**
+   * Retrieves details about the specified tab
+   * 
+   * @returns {Promise<Tab>} tab, or null
+   * @memberof ChromeTabs
+   */
+  get() {
+    return new Promise(resolve => {
+      chrome.tabs.query(this.tabId, tab => resolve(tab))
+    })
+  }
+
+  //
+
+  /**
    * @typedef {Object} ExecuteScriptDetails
    * @prop {boolean} [allFrames=false] - If true implies that the JavaScript or CSS should be injected into all frames of current page
    */

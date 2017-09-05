@@ -38,7 +38,7 @@ var _eventPage = {
 
         chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
 
-        chrome.contextMenus.onClicked.addListener(_contextMenus.onClicked);
+        // chrome.contextMenus.onClicked.addListener(_contextMenus.onClicked);
 
         chrome.commands.onCommand.addListener(_eventPage.onCommandsCommand);
     },
@@ -243,7 +243,7 @@ var _eventPage = {
                         return
                     }
 
-                    return _eventPage.deleteHighlight(tab.id, message.highlightId)
+                    return $.deleteHighlight(message.highlightId, tab.id)
                 })
 
             default:
@@ -288,12 +288,12 @@ var _eventPage = {
                         return
                     }
 
-                    return new ChromeTabs(tab.id).getHoveredHighlightID().then(docID => {
-                        if (!docID) {
+                    return new ChromeTabs(tab.id).getHoveredHighlightID().then(docId => {
+                        if (!docId) {
                             return
                         }
                          
-                        _eventPage.deleteHighlight(tab.id, docID)
+                        $.deleteHighlight(docId, tab.id)
                     })
                 })
 
@@ -384,7 +384,7 @@ var _eventPage = {
 
                                 // create new document for highlight,
                                 // then update DOM
-                                return _eventPage.createHighlight(
+                                return $.createHighlight(
                                     tab.id,
                                     xrange,
                                     DB.formatMatch(tab.url),
@@ -417,7 +417,7 @@ var _eventPage = {
                                 return new DB().getDocument(docId).then(doc => {
                                     if (doc[DB.DOCUMENT.NAME.CLASS_NAME] !== highlightClassName) {
                                         // different class. update.
-                                        return _eventPage.updateHighlight(tab.id, docId, highlightClassName);
+                                        return $.updateHighlight(tab.id, docId, highlightClassName);
                                     } 
 
                                     // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
@@ -428,7 +428,7 @@ var _eventPage = {
                                         }
 
                                         // remove the highlight, then select the text it spanned
-                                        return _eventPage.deleteHighlight(tab.id, docId).then(() => {
+                                        return $.deleteHighlight(docId, tab.id).then(() => {
                                             return tabs.selectRange(doc[DB.DOCUMENT.NAME.RANGE])
                                         });
                                     });
@@ -664,7 +664,7 @@ var _eventPage = {
                         // is it already deleted?
                         if (!deletedDocIds.has(doc._id)) {
                             // add a negating document
-                            return _eventPage.deleteHighlight(tabId, doc._id)
+                            return $.deleteHighlight(doc._id, tabId)
                         }
                         break
 

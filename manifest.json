@@ -47,7 +47,8 @@
             "js/background/context_menus.js",
             "js/background/chrome_context_menus.js",
 
-            "js/background/event_page.js"
+            "js/background/event_page.js",
+            "js/background/chrome_event_page.js"
         ],
 
         "persistent": false

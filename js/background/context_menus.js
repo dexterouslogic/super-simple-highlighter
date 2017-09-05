@@ -234,11 +234,11 @@ var _contextMenus = {
                 return tabs.selectHighlight()
             })
 
-        case "update_highlight":
-            if (_contextMenus.hoveredHighlightId) {
-                return _eventPage.updateHighlight(tab.id, _contextMenus.hoveredHighlightId, className)
-            } 
-            break
+        // case "update_highlight":
+        //     if (_contextMenus.hoveredHighlightId) {
+        //         return _eventPage.updateHighlight(tab.id, _contextMenus.hoveredHighlightId, className)
+        //     } 
+        //     break
 
         default:
             throw "Unhandled menu item id: " + info.menuItemId;

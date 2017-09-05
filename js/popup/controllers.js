@@ -361,8 +361,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			return _eventPage.updateHighlight(activeTab.id, doc._id, d.className)
+		}).then(backgroundPage => {
+			return backgroundPage.$.updateHighlight(activeTab.id, doc._id, d.className)
 		}).then(() => {
 			// update local classname, which will update class in dom
 			doc.className = d.className
@@ -511,8 +511,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			return _eventPage.deleteHighlight(activeTab.id, docId)
+		}).then(backgroundPage => {
+			return backgroundPage.$.deleteHighlight(docId, activeTab.id)
 		}).then(responses => {
 			// response is empty array if no documents needed to be removed, which is still a success
 			if (responses.some(({ok}) => ok)) {
@@ -539,8 +539,8 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	$scope.onClickRemoveAllHighlights = function () {
 		return new Promise(resolve => { 
 			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			return _eventPage.deleteHighlights(activeTab.id, $scope.match)
+		}).then(backgroundPage => {
+			return backgroundPage.$.deleteHighlights($scope.match, activeTab.id)
 		}).then(function () {
 			window.close()
 		})
