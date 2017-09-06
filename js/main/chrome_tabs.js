@@ -493,12 +493,11 @@ class ChromeTabs {
    * 
 	 * @param {string} format one of [markdown]
 	 * @param {Function} [comparator] function that returns a promise that resolves to a comparible value
-   * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
    * @param {Boolean} [invert] invert the document order
 	 * @returns {Promise<string>} overview correctly formatted as a string
    * @memberof ChromeTabs
    */
-  getFormattedOverviewText(format, comparator, filterPredicate, invert) {
+  getFormattedOverviewText(format, comparator,/* filterPredicate,*/ invert) {
     let tab
     const titles = new Map()
 
@@ -518,9 +517,9 @@ class ChromeTabs {
       return new DB().getMatchingDocuments(DB.formatMatch(tab.url), { excludeDeletedDocs: true })
     }).then(docs => {
       // filter
-      if (filterPredicate) {
-        docs = docs.filter(filterPredicate)
-      }
+      // if (filterPredicate) {
+      //   docs = docs.filter(filterPredicate)
+      // }
       
       // sort - main promise (default to native order)
       return (comparator && DB.sortDocuments(docs, comparator)) || Promise.resolve(docs)

@@ -98,11 +98,9 @@ body {
     text-decoration: line-through;
 }
 
-.not-in-dom .highlight {
-    cursor: not-allowed;
-}
-
-.not-in-dom .select {
+.not-in-dom .highlight,
+.not-in-dom .select,
+.not-in-dom .definition {
     cursor: not-allowed;
 }
 

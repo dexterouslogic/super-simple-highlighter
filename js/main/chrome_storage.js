@@ -122,6 +122,12 @@ ChromeStorage.KEYS = {
   },
 }
 
+ChromeStorage.HIGHLIGHT_SORT_BY_VALUES = {
+  LOCATION: 'location',
+  TIME: 'time',
+  STYLE: 'style',
+}
+
 /** 
  * @type {Object}
  * @readonly
