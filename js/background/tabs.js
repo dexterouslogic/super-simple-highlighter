@@ -86,10 +86,12 @@ var _tabs = {
 
         // build the array supplied to executeScripts()
         [
-            "js/chrome_storage.js", "js/chrome_highlight_storage.js",
+            "js/main/chrome_storage.js", 
+            "js/main/chrome_highlight_storage.js",
             
-            "js/string_utils.js",
+            "js/utils.js",
             "js/stylesheet.js",
+            
             "js/content_script/range_utils.js",
             "js/content_script/highlighter.js",
             "js/content_script/content_script.js"

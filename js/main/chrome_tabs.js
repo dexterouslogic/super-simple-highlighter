@@ -1,11 +1,3 @@
-
-// https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
-const promiseSerial = funcs =>
-  funcs.reduce((promise, func) =>
-    promise.then(result => func().then(Array.prototype.concat.bind(result))),
-    Promise.resolve([])
-  )
-
 class ChromeTabs {
   /**
    * Creates an instance of Tabs
@@ -20,6 +12,7 @@ class ChromeTabs {
   /**
    * @typedef {Object} Tab
    * @prop {number} id - tab id
+   * @prop {string} url - tab url
    */
 
   /**
@@ -70,7 +63,7 @@ class ChromeTabs {
    */
   get() {
     return new Promise(resolve => {
-      chrome.tabs.query(this.tabId, tab => resolve(tab))
+      chrome.tabs.get(this.tabId, tab => resolve(tab))
     })
   }
 
@@ -92,12 +85,12 @@ class ChromeTabs {
   executeScript(files, details = {}) {
     if (Array.isArray(files)) {
       // map to array of promise-returning functions
-      const funcs = files.map(f => {
+      const pfuncs = files.map(f => {
         return () => this.executeScript(f, details)
       })
 
       // execute each script in series
-      return promiseSerial(funcs)
+      return PromiseUtils.serial(pfuncs)
     }
 
     return new Promise((resolve, reject) => {
@@ -415,7 +408,7 @@ class ChromeTabs {
     let sum = 0
 
     // map to array of functions that return a promise
-    const funcs = documents.map(doc => {
+    return PromiseUtils.serial(documents.map(doc => {
       return () => {
         // main promise
         const promise = (() => {
@@ -448,12 +441,8 @@ class ChromeTabs {
           }
         })
       }
-    })
-
-    // return sum
-    return promiseSerial(funcs).then(() => sum)
+    })).then(() => sum)
   }
-
 
   /**
 	 * Get a sort comparison function, which takes a document and returns a promise that resolves to a comparable value
@@ -497,15 +486,102 @@ class ChromeTabs {
 		default:
 			throw "Unknown type";
 		}
-	}
+  }
+  
+  /**
+   * Get an overview of the tab's highlights as formatted text 
+   * 
+	 * @param {string} format one of [markdown]
+	 * @param {Function} [comparator] function that returns a promise that resolves to a comparible value
+   * @param {Function} [filterPredicate] function that returns true if the doc should be included. Same signature as Array.map
+   * @param {Boolean} [invert] invert the document order
+	 * @returns {Promise<string>} overview correctly formatted as a string
+   * @memberof ChromeTabs
+   */
+  getFormattedOverviewText(format, comparator, filterPredicate, invert) {
+    let tab
+    const titles = new Map()
+
+    return this.get().then(t => {
+      tab = t
+
+      return new ChromeHighlightStorage().getAll()
+        .then(items => items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS])
+    }).then(definitions => {
+      // map the highlight class name to its display name, for later usage
+      for (const d of definitions) {
+          titles.set(d.className, d.title)
+      }
+
+      // get documents associated with the tab's url
+      // get only the create docs that don't have matched delete doc
+      return new DB().getMatchingDocuments(DB.formatMatch(tab.url), { excludeDeletedDocs: true })
+    }).then(docs => {
+      // filter
+      if (filterPredicate) {
+        docs = docs.filter(filterPredicate)
+      }
+      
+      // sort - main promise (default to native order)
+      return (comparator && DB.sortDocuments(docs, comparator)) || Promise.resolve(docs)
+    }).then(docs => {
+      if (invert) {
+        docs.reverse()
+      }
+
+      switch (format) {
+        case ChromeTabs.OVERVIEW_FORMAT.MARKDOWN:
+        case ChromeTabs.OVERVIEW_FORMAT.MARKDOWN_NO_FOOTER:
+            let markdown = `# [${tab.title}](${tab.url})`
+            let currentClassName
+
+            // iterate each highlight
+            for (const {className, text} of docs) {
+                // only add a new heading when the class of the header changes
+                if (className != currentClassName) {
+                    markdown += `\n\n## ${titles.get(className)}`
+
+                    currentClassName = className
+                } else {
+                    // only seperate subsequent list items
+                    markdown += "\n"
+                }
+
+                // each highlight is an unordered list item
+                markdown += `\n* ${text}`
+            }
+
+            // footer
+            if (format !== ChromeTabs.OVERVIEW_FORMAT.MARKDOWN_NO_FOOTER) {
+                markdown += `\n\n---\n${chrome.i18n.getMessage("overview_footer", [
+                  chrome.i18n.getMessage("extension_name"),
+                  chrome.i18n.getMessage("extension_webstore_url"),
+                  chrome.i18n.getMessage("copyright_year"),
+                  chrome.i18n.getMessage("extension_author"),
+                  chrome.i18n.getMessage("extension_author_url")
+              ])}`
+            }
+
+            return Promise.resolve(markdown)
+
+        default:
+            return Promise.reject(new Error('unknown format'))
+      }
+    })
+  }
 }
 
 // static properties
 
+ChromeTabs.OVERVIEW_FORMAT = {
+  MARKDOWN: 'markdown',
+  MARKDOWN_NO_FOOTER: 'markdown-no-footer',
+}
+
 ChromeTabs.DEFAULT_SCRIPTS = [
-  "js/chrome_storage.js", "js/chrome_highlight_storage.js",
+  "js/main/chrome_storage.js", "js/main/chrome_highlight_storage.js",
   
-  "js/string_utils.js",
+  "js/utils.js",
   "js/stylesheet.js",
   "js/content_script/range_utils.js",
   "js/content_script/highlighter.js",

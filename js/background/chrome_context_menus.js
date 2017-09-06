@@ -77,14 +77,7 @@ class ChromeContextMenus {
         }
       })
 
-      // https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
-      const promiseSerial = funcs =>
-        funcs.reduce((promise, func) =>
-          promise.then(result => func().then(Array.prototype.concat.bind(result))),
-          Promise.resolve([])
-        )
-      
-      return promiseSerial(pfuncs)
+      return PromiseUtils.serial(pfuncs)
     })
   }
 
@@ -96,21 +89,10 @@ class ChromeContextMenus {
    * @callback
    * @param {Object} info - nformation about the item clicked and the context where the click happened.
    * @param {Object} [tab] - The details of the tab where the click took place. If the click did not take place in a tab, this parameter will be missing.
-   * @param {Object} callbacks - { $ } 
    * @returns {Promise}
    * @memberof ChromeContextMenus
    */
-  /**
-   * 
-   * 
-   * @static
-   * @param {any} info 
-   * @param {any} tab 
-   
-   * @returns 
-   * @memberof ChromeContextMenus
-   */
-  static onClicked(info, tab, { $=undefined } = {}) {
+  static onClicked(info, tab) {
     // parse the formatted menu item id into its verb & parameter parts (if possible)
     const match = new RegExp("^(.+)\\.(.+)").exec(info.menuItemId)
   
@@ -134,7 +116,6 @@ class ChromeContextMenus {
 
         // get the selection range (_xpath) from content script
         const tabs = new ChromeTabs(tab.id)
-        const storage = new ChromeStorage()
         
         // highlight definition class name
         const className = match[2]
@@ -145,14 +126,13 @@ class ChromeContextMenus {
             }
             
             // create new document for highlight, then update DOM
-            return $ ? $.createHighlight(
-                tab.id,
+            return new Highlighter(tab.id).create(
                 xrange,
                 DB.formatMatch(tab.url, info.frameUrl),
                 info.selectionText, 
                 className
-            ) : Promise.reject(new Error('no event page'))
-        }).then(() => storage.get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(value => {
+            )
+        }).then(() => new ChromeStorage().get(ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT)).then(value => {
             if (!value) {
                 return
             }

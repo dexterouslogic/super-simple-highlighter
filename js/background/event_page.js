@@ -23,24 +23,24 @@ var _eventPage = {
      */
     init: function () {
         "use strict";
-        chrome.runtime.onInstalled.addListener(_eventPage.onRuntimeInstalled);
-        chrome.runtime.onStartup.addListener(_eventPage.onRuntimeStartup);
-        chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
+        // chrome.runtime.onInstalled.addListener(_eventPage.onRuntimeInstalled);
+        // chrome.runtime.onStartup.addListener(_eventPage.onRuntimeStartup);
+        // chrome.runtime.onMessage.addListener(_eventPage.onRuntimeMessage);
 
-        chrome.webNavigation.onCompleted.addListener(_eventPage.onCompleted, {
-            url: [{
-                schemes: ['http', 'https', 'file']
-            }]
-        })
+        // chrome.webNavigation.onCompleted.addListener(_eventPage.onCompleted, {
+        //     url: [{
+        //         schemes: ['http', 'https', 'file']
+        //     }]
+        // })
 
-        // DISABLED UNTIL MOUSE EVENT BUG IS FIXED
-        // chrome.tabs.onActivated.addListener(_eventPage.onActivated);
+        // // DISABLED UNTIL MOUSE EVENT BUG IS FIXED
+        // // chrome.tabs.onActivated.addListener(_eventPage.onActivated);
 
-        chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
+        // chrome.storage.onChanged.addListener(_eventPage.onStorageChanged);
 
-        // chrome.contextMenus.onClicked.addListener(_contextMenus.onClicked);
+        // // chrome.contextMenus.onClicked.addListener(_contextMenus.onClicked);
 
-        chrome.commands.onCommand.addListener(_eventPage.onCommandsCommand);
+        // chrome.commands.onCommand.addListener(_eventPage.onCommandsCommand);
     },
 
     /**
@@ -243,7 +243,7 @@ var _eventPage = {
                         return
                     }
 
-                    return $.deleteHighlight(message.highlightId, tab.id)
+                    return new Highlighter(tab.id).delete(message.highlightId)
                 })
 
             default:
@@ -292,8 +292,8 @@ var _eventPage = {
                         if (!docId) {
                             return
                         }
-                         
-                        $.deleteHighlight(docId, tab.id)
+                        
+                        return new Highlighter(tab.id).delete(docId)
                     })
                 })
 
@@ -303,7 +303,7 @@ var _eventPage = {
                         return 
                     }
 
-                    return _eventPage.undoLastHighlight(tab.id)
+                    return new Highlighter(tab.id).undo()
                 })
 
             // case "copy_overview":
@@ -417,7 +417,7 @@ var _eventPage = {
                                 return new DB().getDocument(docId).then(doc => {
                                     if (doc[DB.DOCUMENT.NAME.CLASS_NAME] !== highlightClassName) {
                                         // different class. update.
-                                        return $.updateHighlight(tab.id, docId, highlightClassName);
+                                        return new Highlighter(tab.id).update(docId, highlightClassName)
                                     } 
 
                                     // the 'toggle' nature of this means it only makes sense 'unselectAfterHighlight' is true.
@@ -428,7 +428,7 @@ var _eventPage = {
                                         }
 
                                         // remove the highlight, then select the text it spanned
-                                        return $.deleteHighlight(docId, tab.id).then(() => {
+                                        return new Highlighter(tab.id).delete(docId).then(() => {
                                             return tabs.selectRange(doc[DB.DOCUMENT.NAME.RANGE])
                                         });
                                     });
@@ -650,9 +650,9 @@ var _eventPage = {
 
             return new DB().getMatchingDocuments(match, { descending: true })
         }).then(docs => {
-            // find last 'undoable' document that has not already been
-            // negated 
+            // find last 'undoable' document that has not already been negated 
             let deletedDocIds = new Set()
+            let highlighter = new Highlighter(tabId)
 
             for (const doc of docs) {
                 switch (doc.verb) {
@@ -664,7 +664,7 @@ var _eventPage = {
                         // is it already deleted?
                         if (!deletedDocIds.has(doc._id)) {
                             // add a negating document
-                            return $.deleteHighlight(doc._id, tabId)
+                            return highlighter.delete(doc._id)
                         }
                         break
 

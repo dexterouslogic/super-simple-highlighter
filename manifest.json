@@ -35,20 +35,26 @@
 			"static/js/pouchdb.replication-stream.min.js",
 			"static/js/pouchdb.load.min.js",
             // "js/storage.js", 
-            "js/chrome_storage.js", "js/chrome_highlight_storage.js",
-            "js/string_utils.js",
             
-            "js/background/database.js",
-            "js/db.js",
-            
-            "js/chrome_tabs.js",
-            "js/background/tabs.js",
-            
-            "js/background/context_menus.js",
-            "js/background/chrome_context_menus.js",
+            // "js/background/database.js",
+            "js/main/db.js",
+            "js/main/highlighter.js",
+            "js/main/chrome_tabs.js",
+            "js/main/chrome_storage.js", 
+            "js/main/chrome_highlight_storage.js",
 
-            "js/background/event_page.js",
-            "js/background/chrome_event_page.js"
+            "js/utils.js",
+            
+            // "js/background/tabs.js",
+
+            
+            // "js/background/context_menus.js",
+            
+            "js/background/chrome_context_menus.js",
+            "js/background/chrome_page_action.js",
+            "js/background/main.js"
+
+            // "js/background/event_page.js"
         ],
 
         "persistent": false

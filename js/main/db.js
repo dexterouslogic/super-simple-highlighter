@@ -51,6 +51,20 @@ class DB {
   }
 
   /**
+   * Close the database, this closes any open connection to the underlying storage and frees memory (event listeners) the database may be using.
+   * 
+   * @returns {Promise}
+   * @memberof DB
+   */
+  closeDB() {
+    if (!this.hasDB) {
+      return Promise.resolve()
+    }
+
+    return this.getDB().then(db => db.close())
+  }
+
+  /**
    * Destroy (delete) the Pouch database
    * 
    * @returns {Promise} promise when DB is deleted and cached instance released
@@ -113,7 +127,7 @@ class DB {
    * 
    * @private
    * @param {Object} doc - document to post
-   * @param {any} [options={}] - post options
+   * @param {any} [options] - post options
    * @returns {Promise<PutResponse>}
    * @memberof DB
    */
@@ -130,11 +144,11 @@ class DB {
    * Finally, to delete a document, include a _deleted parameter with the value true.
    * 
    * @param {Document[]} docs - array of docs. 
-   * @param {Object} [options={}] 
+   * @param {Object} [options] 
    * @returns {Promise<PutResponse[]>}
    * @memberof DB
    */
-  bulkDocsDB(docs, options = {}) {
+  bulkDocsDB(docs, options) {
     return this.getDB().then(db => db.bulkDocs(docs, options))
   }
 
@@ -143,11 +157,11 @@ class DB {
    *
    * @param {string} docId - document id
    * @param {string} docRev - document revision
-   * @param {Object} [options={}] - deletion options
+   * @param {Object} [options] - deletion options
    * @returns {Promise<PutResponse>} object with ok/id/rev properties
    * @memberof DB
    */
-  removeDB(docId, docRev, options = {}) {
+  removeDB(docId, docRev, options) {
     return this.getDB().then(db => db.remove(docId, docRev, options))
   }
 
@@ -170,11 +184,11 @@ class DB {
    * Invoke a map/reduce function
    * 
    * @param {Object|Function|string} fun - Map/reduce function, which can be one of the following:
-   * @param {Object} [options={}] options
+   * @param {Object} [options] options
    * @returns {Promise<QueryResponse>}
    * @memberof DB
    */
-  queryDB(fun, options = {}) {
+  queryDB(fun, options) {
     return this.getDB().then(db => db.query(fun, options))
   }
 

@@ -1,37 +1,32 @@
-/**
- * Singleton class
- * 
- * @class ChromeEventPage
- */
-class ChromeEventPage {
-  constructor() {
-    // handler for clicked context menu items
-    chrome.contextMenus.onClicked.addListener((info, tab) => {
-      // callback calls back into this
-      return ChromeContextMenus.onClicked(info, tab, { $: this })
-    })
+class Highlighter {
+  /**
+   * Creates an instance of Highlight.
+   * @param {Array<number>|number} [tabId] - id or (in case of delete method) array, of ids of tabs of associated tabs
+   * @memberof Highlight
+   */
+  constructor(tabId) {
+    this.tabId = tabId
   }
 
-  //
-
   /**
-   * 
-   * 
-   * @param {number} tabId - id of tab to send message to, to create highlight in DOM 
-   * @param {Object} xrange - range of highlight
-   * @param {string} match - match string to identify related highlights. Usually processed from url
-   * @param {string} text - text of highlight
-   * @param {string} className - class name identifying highlight style to apply to DOM element, and in database also
-   * @returns {Promise}
-   * @memberof ChromeEventPage
-   */
-  createHighlight(tabId, xrange, match, text, className) {
+  * 
+  * 
+  * 
+  * @param {Object} xrange - range of highlight
+  * @param {string} match - match string to identify related highlights. Usually processed from url
+  * @param {string} text - text of highlight
+  * @param {string} className - class name identifying highlight style to apply to DOM element, and in database also
+  * @returns {Promise}
+  * @memberof Highlighter
+  */
+  create(xrange, match, text, className) {
     if (xrange.collapsed) {
       return Promise.reject(new Error("Collapsed range"))
     }
 
+    // requires single tab id
+    const tabs = new ChromeTabs((typeof this.tabId === 'number' && this.tabId) || this.tabId[0])
     const db = new DB()
-    const tabs = new ChromeTabs(tabId)
 
     // document to create
     let doc = {}
@@ -82,27 +77,33 @@ class ChromeEventPage {
       }
 
       // (re) show page action on success
-      chrome.pageAction.show(tabId)
+      chrome.pageAction.show(tabs.tabId)
     })
+    
+    // .then(() => {
+    //   return db.closeDB()
+    // }).catch(e => {
+    //   return db.closeDB().then(() => { throw(e)} )
+    // })
   }
 
   /**
    * Update the highlight by changing its class name, first by revising its 'create' document, then in DOM
    * 
-   * @param {number} tabId - id of tab containing highlight
    * @param {string} docId - id of 'create' document to change
    * @param {string} className - new class name defining highlight style
    * @returns {Promise}
-   * @memberof ChromeEventPage
+   * @memberof Highlighter
    */
-  updateHighlight(tabId, docId, className) {
+  update(docId, className) {
     return new DB().updateCreateDocument(docId, { className: className }).then(({ ok }) => {
       if (!ok) {
         return Promise.reject(new Error("Response not OK"));
       }
 
       // document updated - now update DOM
-      return new ChromeTabs(tabId).updateHighlight(docId, className)
+      const tabs = new ChromeTabs((typeof this.tabId === 'number' && this.tabId) || this.tabId[0])
+      return tabs.updateHighlight(docId, className)
     }).then(ok => {
       if (!ok) {
         return Promise.reject(new Error("Error updating highlight in DOM"));
@@ -111,18 +112,19 @@ class ChromeEventPage {
   }
 
   /**
-   * Delete a highlight in the database, and in the page DOM
+   * Delete a highlight in the database, and in the page DOM.
+   * NB: this.tabId can be array|undefined. If undefined, query api for tab with match name.
    * 
    * @param {string} docId - id of the document representing the highlight to remove
-   * @param {Array<number>|number} [tabIds] - id or array of ids of tabs of associated tabs, whose DOM should contain the highlight.  If undefined, query api for tab with match name.
    * @returns {Promise<Object>} ok/id/rev object
-   * @memberof ChromeEventPage
+   * @memberof Highlighter
    */
-  deleteHighlight(docId, tabIds) {
+  delete(docId) {
     const db = new DB()
 
     // make array
-    tabIds = (typeof tabIds === 'number' && [tabIds]) || tabIds
+    const tabIds = (typeof this.tabId === 'number' && [this.tabId]) || this.tabId
+    console.assert(Array.isArray(tabIds))
 
     // match property of the document representing the highlight to be deleted
     let match
@@ -202,26 +204,83 @@ class ChromeEventPage {
   /**
    * Delete all documents associated with a 'match'
    * 
-   * @param {number} tabId - id of tab containing highlights to delete
    * @param {string} match - match string identifying highlights to remove
    * @returns {Promise<Boolean[]>} - array of bool for each deleted highlight in the tab
-   * @memberof ChromeEventPage
+   * @memberof Highlighter
    */
-  deleteHighlights(tabId, match) {
+  deleteMatching(match) {
     return new DB().removeMatchingDocuments(match).then(responses => {
-      chrome.pageAction.hide(tabId)
+      const tabs = new ChromeTabs((typeof this.tabId === 'number' && this.tabId) || this.tabId[0])
+
+      chrome.pageAction.hide(tabs.tabId)
 
       // Response is an array containing the id and rev of each deleted document.
       // We can use id to remove highlights in the DOM (although some won't match)
-      const tabs = new ChromeTabs(tabId)
-
       return Promise.all(responses
         .filter(r => r.ok)
         .map(({ id }) => tabs.deleteHighlight(id))
       )
     })
   }
-}
 
-// singleton instance
-var $ = new ChromeEventPage()
+  /**
+   * Undo the last undoable document in the journal (by negating it)
+   * 
+   * @memberof Highlighter
+   */
+  undo() {
+    const tabs = new ChromeTabs((typeof this.tabId === 'number' && this.tabId) || this.tabId[0])
+    
+    return tabs.get().then(({ url }) => {
+      // build match using tab's url, and get the last document
+      const match = DB.formatMatch(url)
+
+      return new DB().getMatchingDocuments(match, { descending: true })
+    }).then(docs => {
+      // find last 'undoable' document that has not already been negated 
+      let deletedDocIds = new Set()
+
+      for (const doc of docs) {
+        switch (doc.verb) {
+          case DB.DOCUMENT.VERB.DELETE:
+            deletedDocIds.add(doc.correspondingDocumentId)
+            break
+
+          case DB.DOCUMENT.VERB.CREATE:
+            // is it already deleted?
+            if (!deletedDocIds.has(doc._id)) {
+              // add a negating document
+              return this.delete(doc._id)
+            }
+            break
+
+          default:
+            console.error(`unknown verb ${doc.verb}`)
+        }
+      }
+
+      return Promise.reject(new Error("No create documents to undo."))
+
+      // THIS CRASHES CHROME
+
+      // var latestCreateDoc = docs.find(function (doc) {
+      // 	switch (doc.verb) {
+      // 	case "delete":
+      // 		deletedDocumentIds.add(doc.correspondingDocumentId);
+      // 		return false;
+      //
+      // 	case "create":
+      // 		// is it already deleted?
+      // 		return deletedDocumentIds.has(doc._id) === false
+      // 	}
+      // });
+      //
+      // if (lastCreateDoc) {
+      // 	// add a negating document
+      // 	return _eventPage.deleteHighlight(tabId, lastCreateDoc._id);
+      // } else {
+      // 	return Promise.reject("No create documents to undo.");
+      // }
+    })
+  }
+}

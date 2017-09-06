@@ -28,7 +28,7 @@ var popupControllers = angular.module('popupControllers', []);
 popupControllers.controller('DocumentsController', ["$scope", function ($scope) {
 	'use strict';
 	// var backgroundPage;
-	
+
 	// active tab that the popup represents. Set in init()
 	let activeTab = null
 
@@ -87,11 +87,11 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 
 			$scope.title = activeTab.title
 			$scope.match = DB.formatMatch(activeTab.url)
-			
+
 			return new ChromeHighlightStorage().getAll().then(items => {
 				// array of highlight definitions
 				$scope.highlightDefinitions = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
-			
+
 				return new ChromeStorage().get([
 					ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH,
 					ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED,
@@ -113,7 +113,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			// file access for the extension, set a flag now. 
 			// The view will set the warning's
 			// visibility based on its value.
-			
+
 			// 2 - if its already been dismissed before, no need to check
 			const dismissed = items[ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED] || (() => {
 				// it not being a file protocol url is the same as invisible (dismissed)
@@ -181,98 +181,94 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 			if (!activeTab) {
 				return Promise.reject(new Error('no active tab'))
 			}
-			
-			return new Promise(resolve => { 
-				chrome.runtime.getBackgroundPage(b => resolve(b)) 
-			}).then(({_eventPage}) => {
-				const tabs = new ChromeTabs(activeTab.id)
-				const comparator = tabs.getComparisonFunction($scope.sort.value)
-				
-				// get all the documents (create & delete) associated with the match, then filter the deleted ones
-				return new DB().getMatchingDocuments($scope.match, {excludeDeletedDocs: true}).then(docs => {
-					// if the highlight cant be found in DOM, flag that
-					return Promise.all(docs.map(d => {
-						return tabs.isHighlightInDOM(d._id).then(isInDOM => {
-							d.isInDOM = isInDOM;
-						}).catch(function () {
-							// swallow
-							d.isInDOM = false
-						}).then(function () {
-							return d;
-						})
-					}))
-				}).then(docs => {
-					// sort the docs using the sort value
-					return DB.sortDocuments(docs, comparator)
-				}).then(docs => {
-					if ($scope.sort.invert) {
-						docs.reverse()
-					}
 
-					// group by days since epoch
-					let groups = []
-		
-					switch ($scope.sort.value) {
-						case 'location':
-							// a single untitled group containing all items sorted by location
-							groups.push({ docs: docs })
-							break
-		
-						case 'time':
-							// a group for each unique day
-							for (const doc of docs) {
-								var date = new Date(doc.date)
-								var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
-		
-								// first, or different days since epoch of last group
-								if (groups.length === 0 || daysSinceEpoch !== groups[groups.length - 1].daysSinceEpoch) {
-									// each group defines its days since epoch and an ordered array of docs
-									groups.push({
-										daysSinceEpoch: daysSinceEpoch,
-										title: date.toLocaleDateString(undefined, {
-											weekday: 'long',
-											year: 'numeric',
-											month: 'long',
-											day: 'numeric'
-										}),
-										docs: []
-									})
-								}
-		
-								groups[groups.length - 1].docs.push(doc)
+			const tabs = new ChromeTabs(activeTab.id)
+			const comparator = tabs.getComparisonFunction($scope.sort.value)
+
+			// get all the documents (create & delete) associated with the match, then filter the deleted ones
+			return new DB().getMatchingDocuments($scope.match, { excludeDeletedDocs: true }).then(docs => {
+				// if the highlight cant be found in DOM, flag that
+				return Promise.all(docs.map(d => {
+					return tabs.isHighlightInDOM(d._id).then(isInDOM => {
+						d.isInDOM = isInDOM;
+					}).catch(function () {
+						// swallow
+						d.isInDOM = false
+					}).then(function () {
+						return d;
+					})
+				}))
+			}).then(docs => {
+				// sort the docs using the sort value
+				return DB.sortDocuments(docs, comparator)
+			}).then(docs => {
+				if ($scope.sort.invert) {
+					docs.reverse()
+				}
+
+				// group by days since epoch
+				let groups = []
+
+				switch ($scope.sort.value) {
+					case 'location':
+						// a single untitled group containing all items sorted by location
+						groups.push({ docs: docs })
+						break
+
+					case 'time':
+						// a group for each unique day
+						for (const doc of docs) {
+							var date = new Date(doc.date)
+							var daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+							// first, or different days since epoch of last group
+							if (groups.length === 0 || daysSinceEpoch !== groups[groups.length - 1].daysSinceEpoch) {
+								// each group defines its days since epoch and an ordered array of docs
+								groups.push({
+									daysSinceEpoch: daysSinceEpoch,
+									title: date.toLocaleDateString(undefined, {
+										weekday: 'long',
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric'
+									}),
+									docs: []
+								})
 							}
-							break
-		
-						case 'style':
-							// first map highlight classname to index of definition
-							var m = new Map($scope.highlightDefinitions.map((d, idx) => [d.className, idx]))
-		
-							// a group for each non-empty style
-							for (const doc of docs) {
-								// docs are already sorted
-								const definitionIndex = m.get(doc.className)
-		
-								if (groups.length === 0 || definitionIndex !== groups[groups.length - 1].definitionIndex) {
-									groups.push({
-										definitionIndex: definitionIndex,
-										title: $scope.highlightDefinitions[definitionIndex].title,
-										docs: []
-									})
-								}
-		
-								groups[groups.length - 1].docs.push(doc)
+
+							groups[groups.length - 1].docs.push(doc)
+						}
+						break
+
+					case 'style':
+						// first map highlight classname to index of definition
+						var m = new Map($scope.highlightDefinitions.map((d, idx) => [d.className, idx]))
+
+						// a group for each non-empty style
+						for (const doc of docs) {
+							// docs are already sorted
+							const definitionIndex = m.get(doc.className)
+
+							if (groups.length === 0 || definitionIndex !== groups[groups.length - 1].definitionIndex) {
+								groups.push({
+									definitionIndex: definitionIndex,
+									title: $scope.highlightDefinitions[definitionIndex].title,
+									docs: []
+								})
 							}
-							break
-		
-						default:
-							console.assert(false)
-					}
-		
-					$scope.groupedDocs = groups
-					$scope.docs = docs
-		
-					return docs;
-				})
+
+							groups[groups.length - 1].docs.push(doc)
+						}
+						break
+
+					default:
+						console.assert(false)
+				}
+
+				$scope.groupedDocs = groups
+				$scope.docs = docs
+
+				return docs
 			})
 		})
 	}
@@ -322,13 +318,16 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @returns {Promise} resolved when highlight is copied to clipboard
 	 */
 	$scope.onClickCopy = function (docId) {
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			_eventPage.copyHighlightText(docId)
-			
-			// close popup
+		return new DB().getDocument(docId).then(doc => {
+			if (!doc.text) {
+				return
+			}
+
+			const result = ClipboardUtils.copy(doc.text, window.document)
+
 			window.close()
+
+			return result
 		})
 	}
 
@@ -338,10 +337,18 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @returns {Promise} resolved when highlight starts to speak
 	 */
 	$scope.onClickSpeak = function (docId) {
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			return _eventPage.speakHighlightText(activeTab.id, docId)
+		return new DB().getDocument(docId).then(({ text }) => {
+			if (!text) {
+				return
+			}
+
+			// get the lang attribute of the document root element (html)
+			// workaround for Google Deutsch becoming the default voice, for some reason
+			return new ChromeTabs(activeTab.id).getNodeAttributeValue('/*', 'lang').then(lang => {
+				chrome.tts.speak(text, Object.assign({},
+					typeof lang === 'string' ? { lang: lang } : {}
+				))
+			})
 		})
 	}
 
@@ -359,11 +366,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// get classname of new definition
 		const d = $scope.highlightDefinitions[index]
 
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(backgroundPage => {
-			return backgroundPage.$.updateHighlight(activeTab.id, doc._id, d.className)
-		}).then(() => {
+		return new Highlighter(activeTab.id).update(doc._id, d.className).then(() => {
 			// update local classname, which will update class in dom
 			doc.className = d.className
 
@@ -382,13 +385,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @returns {Promise}
 	 */
 	$scope.onClickUndoLastHighlight = function () {
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			return _eventPage.undoLastHighlight(activeTab.id)
-		}).then(result => {
-			if (!result.ok) {
-				return Promise.reject(new Error());
+		return new Highlighter(activeTab.id).undo().then(results => {
+			if (results.some(r => !r.ok)) {
+				return Promise.reject(new Error())
 			}
 
 			return updateDocs()
@@ -400,7 +399,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 				return
 			}
 
-			$scope.$apply();
+			$scope.$apply()
 		})
 	}
 
@@ -410,14 +409,28 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 */
 	$scope.onClickOpenOverviewInNewTab = function () {
 		// get the full uri for the tab. the summary page will get the match for it
-		chrome.tabs.create({
-			url: "overview.html?" +
-			"id=" + activeTab.id + "&" +
-			"url=" + encodeURIComponent(activeTab.url) + "&" +
-			"title=" + encodeURIComponent($scope.title) + "&" +
-			"sortby=" + encodeURIComponent($scope.sort.value) + "&" +
-			"invert=" + ($scope.sort.invert === true ? "1" : "")
-		});
+		const u = new URL("http://example.com/overview.html")
+
+		for (const [key, value] of Object.entries({
+			id: activeTab.id,
+			url: activeTab.url,
+			title: $scope.title,
+			sortby: $scope.sort.value,
+			invert: $scope.sort.invert === true ? "1" : "",
+		})) {
+			u.searchParams.set(key, value)
+		}
+
+		chrome.tabs.create({ url: `${u.pathname}?${u.searchParams.toString()}` })
+
+		// chrome.tabs.create({
+		// 	url: "overview.html?" +
+		// 	"id=" + activeTab.id + "&" +
+		// 	"url=" + encodeURIComponent(activeTab.url) + "&" +
+		// 	"title=" + encodeURIComponent($scope.title) + "&" +
+		// 	"sortby=" + encodeURIComponent($scope.sort.value) + "&" +
+		// 	"invert=" + ($scope.sort.invert === true ? "1" : "")
+		// });
 	};
 
 	/**
@@ -426,33 +439,35 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @returns {Promise} promise resolved when an anchor containing the text to save as a data url is saved
 	 */
 	$scope.onClickSaveOverview = function () {
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			const comparator = new ChromeTabs(activeTab.id).getComparisonFunction($scope.sort.value)
+		const tabs = new ChromeTabs(activeTab.id)
 
-			// format all highlights as a markdown document
-			return _eventPage.getOverviewText(
-				"markdown", activeTab, comparator, $scope.styleFilterPredicate,
-				$scope.sort.invert
-			)
-		}).then(text => {
+		return tabs.getFormattedOverviewText(
+			ChromeTabs.OVERVIEW_FORMAT.MARKDOWN,
+			tabs.getComparisonFunction($scope.sort.value),
+			$scope.styleFilterPredicate,
+			$scope.sort.invert
+		).then(text => {
+			if (!text) {
+				return
+			}
+
 			// create a temporary anchor to navigate to data uri
-			var a = document.createElement("a");
+			const anchorElm = document.createElement("a")
 
 			function utf8_to_b64(str) {
-				return window.btoa(unescape(encodeURIComponent(str)));
+				return window.btoa(unescape(encodeURIComponent(str)))
 			};
 
-			a.download = chrome.i18n.getMessage("save_overview_file_name");
-			a.href = "data:text;base64," + utf8_to_b64(text);
+			anchorElm.download = chrome.i18n.getMessage("save_overview_file_name")
+			anchorElm.href = `data:text;base64,${utf8_to_b64(text)}`
 
 			// create & dispatch mouse event to hidden anchor
-			var mEvent = document.createEvent("MouseEvent");
-			mEvent.initMouseEvent("click", true, true, window,
+			const event = document.createEvent("MouseEvent")
+
+			event.initMouseEvent("click", true, true, window,
 				0, 0, 0, 0, 0, false, false, false, false, 0, null);
 
-			a.dispatchEvent(mEvent);
+			anchorElm.dispatchEvent(event);
 		})
 	};
 
@@ -463,36 +478,19 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 */
 	$scope.onClickCopyOverview = function () {
 		// format all highlights as a markdown document
+		const tabs = new ChromeTabs(activeTab.id)
 
-		// sort the docs using the sort value
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(({_eventPage}) => {
-			const comparator = new ChromeTabs(activeTab.id).getComparisonFunction($scope.sort.value)
+		return tabs.getFormattedOverviewText(
+			ChromeTabs.OVERVIEW_FORMAT.MARKDOWN_NO_FOOTER,
+			tabs.getComparisonFunction($scope.sort.value),
+			$scope.styleFilterPredicate,
+			$scope.sort.invert
+		).then(text => {
+			if (!text) {
+				return
+			}
 
-			return _eventPage.getOverviewText(
-				"markdown-no-footer", activeTab, comparator,
-				$scope.styleFilterPredicate, $scope.sort.invert
-			)
-		}).then(text => {
-			// Create element to contain markdown
-			const pre = document.createElement('pre');
-			pre.innerText = text
-
-			document.body.appendChild(pre);
-
-			const range = document.createRange()
-			range.selectNode(pre);
-
-			// make our node the sole selection
-			const selection = document.getSelection()
-			selection.removeAllRanges();
-			selection.addRange(range);
-
-			document.execCommand('copy');
-
-			selection.removeAllRanges();
-			document.body.removeChild(pre);
+			ClipboardUtils.copy(text, window.document)
 
 			window.close()
 		})
@@ -509,13 +507,9 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 		// don't scroll
 		event.stopPropagation()
 
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(backgroundPage => {
-			return backgroundPage.$.deleteHighlight(docId, activeTab.id)
-		}).then(responses => {
+		return new Highlighter(activeTab.id).delete(docId).then(responses => {
 			// response is empty array if no documents needed to be removed, which is still a success
-			if (responses.some(({ok}) => ok)) {
+			if (responses.some(({ ok }) => ok)) {
 				return Promise.reject(new Error())
 			}
 
@@ -537,11 +531,7 @@ popupControllers.controller('DocumentsController', ["$scope", function ($scope) 
 	 * @return {Promise} resolved when popup closed
 	 */
 	$scope.onClickRemoveAllHighlights = function () {
-		return new Promise(resolve => { 
-			chrome.runtime.getBackgroundPage(b => resolve(b)) 
-		}).then(backgroundPage => {
-			return backgroundPage.$.deleteHighlights($scope.match, activeTab.id)
-		}).then(function () {
+		return new Highlighter(activeTab.id).deleteMatching($scope.match).then(() => {
 			window.close()
 		})
 	}
