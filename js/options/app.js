@@ -1,5 +1,3 @@
-/*global angular, _storage, _stylesheet*/
-
 /*
  * This file is part of Super Simple Highlighter.
  * 
@@ -17,27 +15,19 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const appModule = angular.module('optionsApp', [
+    'stylesControllers',
+    'bookmarksControllers',
+    'advancedControllers',
+    'aboutControllers',
 
-/**
- * App Module
- * @type {ng.IModule}
- */
-var optionsApp = angular.module('optionsApp', [
-    'optionsControllers',
     'ui-rangeSlider',
     'i18nFilters',
-    'optionsFilters'
+    'optionsFilters',
 ]);
 
 // http://stackoverflow.com/questions/15606751/angular-changes-urls-to-unsafe-in-extension-page
-optionsApp.config( [ '$compileProvider', function( $compileProvider ) {
-    "use strict";
+appModule.config( [ '$compileProvider', function( $compileProvider ) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file|mailto|chrome-extension):/);
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
-}]);
-//
-//$().ready(function () {
-//    "use strict";
-//    $('.color-picker').colorpicker();
-//});
-
+}])

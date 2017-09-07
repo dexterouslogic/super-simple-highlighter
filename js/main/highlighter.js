@@ -1,3 +1,8 @@
+/**
+ * Coordinating class for manipulating highlights in the database AND the content page
+ * 
+ * @class Highlighter
+ */
 class Highlighter {
   /**
    * Creates an instance of Highlight.
@@ -123,8 +128,7 @@ class Highlighter {
     const db = new DB()
 
     // make array
-    const tabIds = (typeof this.tabId === 'number' && [this.tabId]) || this.tabId
-    console.assert(Array.isArray(tabIds))
+    let tabIds = (typeof this.tabId === 'number' && [this.tabId]) || this.tabId
 
     // match property of the document representing the highlight to be deleted
     let match

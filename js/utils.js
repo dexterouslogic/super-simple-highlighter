@@ -100,3 +100,13 @@ class ClipboardUtils {
 		return result
 	}
 }
+
+class Base64Utils {
+  static utf8_to_b64(str, w = window) {
+    return w.btoa(unescape(encodeURIComponent(str)));
+  }
+
+  static b64_to_utf8(str, w = window) {
+    return decodeURIComponent(escape(w.atob(str)));
+  }
+}

@@ -1,4 +1,13 @@
+/**
+ * Database access 
+ * 
+ * @class DB
+ */
 class DB {
+  /**
+   * Creates an instance of DB.
+   * @memberof DB
+   */
   constructor() {
     this._db = null
   }

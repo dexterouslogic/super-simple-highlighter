@@ -71,34 +71,34 @@
   "edit_style": {
     "message": "Edit Style"
   },
-  "experimental": {
+  "advanced": {
     "message": "Advanced"
   },
-  "experimental_database_export_button_text": {
+  "advanced_database_export_button_text": {
     "message": "Export…"
   },
-  "experimental_database_export_description": {
+  "advanced_database_export_description": {
     "message": "Saves a file containing the URL of each highlighted page, the location of the highlights on that page, and all currently defined styles. If you haven't enabled the 'Ask where to save each file before downloading' option in Chrome, the file will probably be saved in your Downloads folder."
   },
-  "experimental_database_export_file_name": {
+  "advanced_database_export_file_name": {
     "message": "database.ldjson"
   },
-  "experimental_database_export_title": {
+  "advanced_database_export_title": {
     "message": "Backup"
   },
-  "experimental_database_heading": {
+  "advanced_database_heading": {
     "message": "Styles, Bookmarks & Highlights"
   },
-  "experimental_database_import_button_text": {
+  "advanced_database_import_button_text": {
     "message": "Import…"
   },
-  "experimental_database_import_description": {
+  "advanced_database_import_description": {
     "message": "Replace the highlights and styles with those previously exported into a file. NOTE: ALL existing highlights on ALL pages will be replaced, along with ALL modified highlight styles."
   },
-  "experimental_database_import_title": {
+  "advanced_database_import_title": {
     "message": "Restore"
   },
-  "experimental_header": {
+  "advanced_header": {
     "message": "Caution! Functions in this section should be considered experimental, and subject to change or removal in the future. Don't say you weren't warned..."
   },
   "extension_author": {
@@ -202,7 +202,7 @@
   "page_action_title_not_in_dom": {
     "message": "Some highlights couldn't be restored onto this page"
   },
-  "pages": {
+  "bookmarks": {
     "message": "Bookmarks"
   },
   "pages_empty": {
@@ -268,7 +268,7 @@
     "message": "Style"
   },
   "support": {
-    "message": "Support"
+    "message": "Email Support"
   },
   "text_remove_all_pages": {
     "message": "Remove All Bookmarks"
