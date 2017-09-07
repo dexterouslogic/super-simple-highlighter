@@ -39,9 +39,5 @@ var _libraries = [
     {
         href: "http://pouchdb.com/",
         text: "PouchDB"
-    },
-    {
-        href: "https://github.com/allmarkedup/purl",
-        text: "Purl"
     }
 ];

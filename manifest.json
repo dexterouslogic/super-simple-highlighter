@@ -30,7 +30,6 @@
     "author": "__MSG_extension_author__",
     "background": {
         "scripts": [
-            "static/js/purl.min.js",
             "static/js/pouchdb-6.3.4.min.js",
 			"static/js/pouchdb.replication-stream.min.js",
 			"static/js/pouchdb.load.min.js",
