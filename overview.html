@@ -1,108 +1,112 @@
 <!DOCTYPE html>
-<html ng-app="overviewApp" ng-csp>
-<head lang="en" data-ng-controller="DocumentsController">
-    <meta charset="UTF-8">
-    <link href="static/css/angular-csp.css" rel="stylesheet">
-    <link href="static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/overview.css" rel="stylesheet">
-    
-    <script src="static/js/pouchdb-6.3.4.min.js"></script>
-    <script src="static/js/jquery-3.2.1.min.js"></script>
-    <script src="static/js/angular.min.js"></script>
-    <script src="static/js/bootstrap.min.js"></script>
-    
-    <script src="js/main/chrome_storage.js"></script>
-    <script src="js/main/chrome_highlight_storage.js"></script>
-    <script src="js/main/db.js"></script>
-    <script src="js/main/chrome_tabs.js"></script>
-    
-    <script src="js/stylesheet.js"></script>
-    <script src="js/utils.js"></script>
-    
-    <script src="js/ng-modules/i18n_filters.js"></script>
-    <script src="js/overview/app.js"></script>
-    <script src="js/overview/controllers.js"></script>
-        
+<html ng-app="app" ng-csp>
+
+<head lang="en" data-ng-controller="overviewController">
+	<meta charset="UTF-8">
+	<link href="static/css/angular-csp.css" rel="stylesheet">
+	<link href="static/css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/overview.css" rel="stylesheet">
+
+	<!-- static -->
+	<script src="static/js/pouchdb-6.3.4.min.js"></script>
+	<script src="static/js/jquery-3.2.1.min.js"></script>
+	<script src="static/js/angular.min.js"></script>
+	<script src="static/js/bootstrap.min.js"></script>
+
+	<!-- main -->
+	<script src="js/main/chrome_storage.js"></script>
+	<script src="js/main/chrome_highlight_storage.js"></script>
+	<script src="js/main/db.js"></script>
+	<script src="js/main/chrome_tabs.js"></script>
+
+	<script src="js/stylesheet.js"></script>
+	<script src="js/utils.js"></script>
+
+	<!-- ng -->
+	<script src="js/ng-modules/i18n_filters.js"></script>
+	<script src="js/overview/app.js"></script>
+	<script src="js/overview/controllers.js"></script>
+
 	<title>{{'overview_page_title_prefix' | i18n}} - {{title}}</title>
 </head>
 
-<body data-ng-controller="DocumentsController">
-<nav class="navbar navbar-default" role="navigation" >
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1">
+<body data-ng-controller="overviewController">
+	<nav class="navbar navbar-default" role="navigation">
+		<div class="container-fluid">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
 
-            <a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
-                <!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
-				{{manifest.name}}
-                <span class="small">{{manifest.version}}</span>
-            </a>
-        </div>
+				<a class="navbar-brand" ng-href="{{'extension_webstore_url' | i18n}}">
+					<!-- <img data-ng-src="{{manifest.icons['19']}}" style="margin-right: 1em; vertical-align: bottom"> -->
+					{{manifest.name}}
+					<span class="small">{{manifest.version}}</span>
+				</a>
+			</div>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                <li><a ng-href="{{'extension_author_url' | i18n }}">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>	
-	
-	
-<div id="page-container" class="container">
-   <header class="page-header">
-	     <!-- Main Header -->
-        <h1>
-            <!-- <a ng-href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		  -->
-            <!-- <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span> -->
-            <!-- onClickPageUrl() uses the event param to prevent default action (navigation).
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav navbar-right">
+					<li><a ng-href="{{'extension_author_url' | i18n }}">&copy;{{'copyright_year' | i18n}} {{ 'extension_author' | i18n }}</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+
+	<div id="page-container" class="container">
+		<header class="page-header">
+			<!-- Main Header -->
+			<h1>
+				<!-- <a ng-href="{{url}}" target="_id" class="glyphicon glyphicon-open-file" ng-click="onClickPageUrl()"></a>		  -->
+				<!-- <span class="glyphicon glyphicon-file pointer" data-ng-click="onClickPageUrl()" title="{{'activate_originating_tab' | i18n}}"></span> -->
+				<!-- onClickPageUrl() uses the event param to prevent default action (navigation).
             If the associated tab has been removed, user should navigate explicitly (via context menu) -->
-            <a ng-href="{{url}}" alt="Page Title">{{title}}</a>
-            <!-- <a href="" class="h6 glyphicon glyphicon-file">
+				<a ng-href="{{url}}" alt="Page Title">{{title}}</a>
+				<!-- <a href="" class="h6 glyphicon glyphicon-file">
                 ({{'activate_originating_tab' | i18n}})
             </span> -->
-            <small class="number-of-highlights text-muted">{{docsCount}}</small>
-        </h1>
-	</header>
+				<small class="number-of-highlights text-muted">{{docsCountText}}</small>
+			</h1>
+		</header>
 
-    <!-- Highlights List -->
-    <section>
-        <ol class="list-unstyled highlights">
-            <li ng-repeat="group in groupedDocs">
-                <h4 class="group-header" ng-show="sortby === 'time'">
-                    {{ group.representativeDate | date:'fullDate' }}
-                </h4>
+		<!-- Highlights List -->
+		<section>
+			<ol class="list-unstyled highlights">
+				<li ng-repeat="group in groupedDocs">
+					<h4 class="group-header" ng-show="sortby === 'time'">
+						{{ group.representativeDate | date:'fullDate' }}
+					</h4>
 
-                <ol class="list-unstyled">
-                    <li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm" ng-class="{'not-in-dom': doc.isInDOM === false}">
-                        <!--Number (index+1)-->
-                        <!-- <h2 class="number highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{$index + 1}}</h2> -->
-                        <!--title-->
-                        <p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">
-                            {{doc.text || "&nbsp;"}}
-                        </p>
+					<ol class="list-unstyled">
+						<li ng-repeat="doc in group.docs" id="{{doc._id}}" class="well-sm" ng-class="{'not-in-dom': doc.isInDOM === false}">
+							<!--Number (index+1)-->
+							<!-- <h2 class="number highlight {{doc.className}}" ng-click="onClickHighlight(doc)">{{$index + 1}}</h2> -->
+							<!--title-->
+							<p class="text highlight {{doc.className}}" ng-click="onClickHighlight(doc)">
+								{{doc.text || "&nbsp;"}}
+							</p>
 
-                        <!-- info -->
-                        <div class="infobar">
-                            <small class="date">{{ doc.date | date:'mediumTime' }}</small>
-                        </div>
-                    </li>
-                </ol>
-            </li>
-        </ol>
-    </section>
+							<!-- info -->
+							<div class="infobar">
+								<small class="date">{{ doc.date | date:'mediumTime' }}</small>
+							</div>
+						</li>
+					</ol>
+				</li>
+			</ol>
+		</section>
 
-    <footer class="visible-print-block">
-        <a class="small" ng-href="{{url}}">{{url}}</a>
-    </footer>
-</div>
+		<footer class="visible-print-block">
+			<a class="small" ng-href="{{url}}">{{url}}</a>
+		</footer>
+	</div>
 
 </body>
+
 </html>

@@ -59,16 +59,7 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 			// assign synchronously available commands
 			this.scope = scope
 			this.document = document
-		}
 
-		/**
-		 * Async initializer of class. Mainly scope properties
-		 * 
-		 * @returns {Promise}
-		 * @memberof Controller
-		 */
-		init() {
-			// sync
 			this.scope.manifest = chrome.runtime.getManifest()
 			this.scope.commands = {}
 			// this.scope.sort = {}
@@ -118,7 +109,15 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 			]) {
 				this.scope[func.name] = func.bind(this)
 			}
+		}
 
+		/**
+		 * Async initializer of class. Mainly scope properties
+		 * 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		init() {
 			// required in later promise
 			let activeTabURL
 
@@ -566,14 +565,13 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 
 				// get the full uri for the tab. the summary page will get the match for it
 				const u = new URL("http://example.com/overview.html")
+				const m = new Map([
+					['tabId', tab.id.toString()],
+					['sortby', this.scope.sort.value],
+					['invert', this.scope.sort.invert === true ? "1" : ""],
+				])
 
-				for (const [key, value] of Object.entries({
-					id: tab.id,
-					url: tab.url,
-					title: tab.title,
-					sortby: this.scope.sort.value,
-					invert: this.scope.sort.invert === true ? "1" : "",
-				})) {
+				for (const [key, value] of m.entries()) {
 					u.searchParams.set(key, value)
 				}
 

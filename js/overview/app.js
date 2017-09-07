@@ -1,5 +1,3 @@
-/*global angular, _storage, _stylesheet*/
-
 /*
  * This file is part of Super Simple Highlighter.
  * 
@@ -17,42 +15,13 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-/**
- * App Module
- * @type {ng.IModule}
- */
-var overviewApp = angular.module('overviewApp', [
-    'overviewControllers',
+const appModule = angular.module('app', [
+    'controller',
     'i18nFilters'
 ]);
 
 // http://stackoverflow.com/questions/15606751/angular-changes-urls-to-unsafe-in-extension-page
-overviewApp.config( [ '$compileProvider', function( $compileProvider ) {
-    "use strict";
+appModule.config( [ '$compileProvider', function( $compileProvider ) {
     // $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file):/);
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
-}]);
-
-$().ready(function () {
-    "use strict";
-    // 1 - get current highlight styles, and apply to DOM
-    // Note that we share this script with the content page (directly)
-    return new ChromeHighlightStorage().getAll().then(items => {
-        // shared highlight styles
-        if (items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
-            _stylesheet.setHighlightStyle({
-                className: "highlight",
-                style: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
-            });
-        }
-
-        // must apply per-style rules last
-        if (items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
-            for (const d of items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
-                _stylesheet.setHighlightStyle(d);
-            }
-        }
-    });
-});
-
+}])

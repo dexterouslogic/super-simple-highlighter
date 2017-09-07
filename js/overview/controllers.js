@@ -1,5 +1,3 @@
-/*global angular, _eventPage, _i18n, _storage, purl*/
-
 /*
  * This file is part of Super Simple Highlighter.
  * 
@@ -17,164 +15,152 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// disable console log
-// console.log = function() {}
+// depended on by app module
+const controllerModule = angular.module('controller', []);
 
-/**
- * Controllers module
- * @type {ng.IModule}
- */
-var overviewControllers = angular.module('overviewControllers', []);
+controllerModule.controller('overviewController', ["$scope", function ($scope) {
+	/**
+	 * @typedef {Object} Scope
+	 * @prop {Object} manifest
+	 * @prop {string} url
+	 * @prop {string} [title]
+	 * @prop {string} sortby
+	 * @prop {string} docsCountText
+	 * @prop {Object[]} groupedDocs 
+	 */
 
+	class Controller {
+		/**
+		 * Creates an instance of Controller.
+		 * @param {Scope} scope - controller $scope
+		 * @param {number} tabId - id of tab that launched overview
+		 * @memberof Controller
+		 */
+		constructor(scope, tabId) {
+			this.scope = scope
+			this.tabId = tabId
 
-// array this is something to do with minification
-overviewControllers.controller('DocumentsController', ["$scope", function ($scope) {
-    'use strict';
-	var backgroundPage;
+			this.scope.manifest = chrome.runtime.getManifest()
+
+			for (const func of [this.onClickHighlight]) {
+				this.scope[func.name] = func.bind(this)
+			}
+		}
+
+		/**
+		 * Async init
+		 * 
+		 * @param {URL} locationURL - URL of the document (not the page it refers to)
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		initAsync(locationURL) {
+			const tabs = new ChromeTabs(this.tabId)
+			const db = new DB()
+
+			const searchParams = locationURL.searchParams
+			
+			this.scope.sortby = searchParams.get('sortby')
+
+			// if the url doesn't have a query value for the page's url, get it from the tab id
+			return tabs.get().then(tab => {
+				this.scope.url = searchParams.has('url') ? searchParams.get('url') : tab.url
+				this.scope.title = searchParams.has('title') ? searchParams.get('title') : tab.title
+				
+				return new ChromeHighlightStorage().getAll()
+			}).then(items => {
+				// shared highlight styles
+				if (items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
+						_stylesheet.setHighlightStyle({
+								className: "highlight",
+								style: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
+						})
+				}
 	
-    $scope.manifest = chrome.runtime.getManifest();
-
-    /**
-     * Initializer, called from the starter section
-     * @param {number} [tabId] tab id of the tab associated with the popup that navigated here, or NaN if not known or specified
-     * @param {string} url tab url
-     * @param {string} [title] optional tab title
-     * @param {Object} bgPage
-	   * @param {string} sortby
-	   * @param {boolean} invert
-     */
-    function onInit(tabId, url, title, bgPage, sortby, invert){
-		$scope.tabId = tabId;
-		$scope.url = url;
-
-		// share title with that of the source page
-		$scope.title = title;
-		$scope.sortby = sortby;
-		// document.title = chrome.i18n.getMessage("overview_document_title", [title]);
-
-		// used to scroll tab's page to the clicked highlight
-		backgroundPage = bgPage;
-
-		const db = new DB()
-		const match = DB.formatMatch(url) 
-		const tabs = new ChromeTabs(tabId)
+				// must apply per-style rules last
+				if (items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+						for (const d of items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+								_stylesheet.setHighlightStyle(d)
+						}
+				}
 		
-		// get all the documents (create & delete) associated with the match, then filter the deleted ones
-		return db.getMatchingDocuments(match, { excludeDeletedDocs: true}).then(docs => {
-			const comparator = tabs.getComparisonFunction(sortby)
-
-			// default to native order
-			return (comparator && DB.sortDocuments(docs, comparator)) || docs
-		}).then(docs => {
-			if (invert) {
-				docs.reverse()
-			}
-			
-			// group by days since epoch
-			let groupedDocs = []
-
-			for (const d of docs) {
-				const date = new Date(d[DB.DOCUMENT.NAME.DATE])
-				const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
-
-				// first, or different days since epoch of last group
-				if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
-					// each group defines its days since epoch and an ordered array of docs
-					groupedDocs.push({
-						daysSinceEpoch: daysSinceEpoch,
-						representativeDate: date,
-						docs: []
-					})
+				// get all the documents (create & delete) associated with the match, then filter the deleted ones
+				return db.getMatchingDocuments(DB.formatMatch(this.scope.url), { excludeDeletedDocs: true})
+			}).then(docs => {
+				const comparator = tabs.getComparisonFunction(this.scope.sortby)
+	
+				// default to native order
+				return (comparator && DB.sortDocuments(docs, comparator)) || docs
+			}).then(docs => {
+				if (Boolean(locationURL.searchParams.get('invert'))) {
+					docs.reverse()
 				}
+				
+				this.docs = docs
 
-				groupedDocs[groupedDocs.length-1].docs.push(d)
-			}
-			
-			$scope.groupedDocs = groupedDocs
-            $scope.docs = docs
-			
-			// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
-			let messageName = (() => {
-				switch (docs.length) {
-					case 0:
-						return "plural_zero_highlights"
-					case 1:
-						return "plural_one_highlight"
-					default:
-						return "plural_other_highlights"
+				// group by days since epoch
+				const groupedDocs = []
+	
+				for (const d of docs) {
+					const date = new Date(d[DB.DOCUMENT.NAME.DATE])
+					const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+	
+					// first, or different days since epoch of last group
+					if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
+						// each group defines its days since epoch and an ordered array of docs
+						groupedDocs.push({
+							daysSinceEpoch: daysSinceEpoch,
+							representativeDate: date,
+							docs: []
+						})
+					}
+	
+					groupedDocs[groupedDocs.length-1].docs.push(d)
 				}
-			})()
-			
-			$scope.docsCount = chrome.i18n.getMessage(messageName, [docs.length])
-			$scope.$apply();
+				
+				this.scope.groupedDocs = groupedDocs
+				
+				// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
+				this.scope.docsCountText = chrome.i18n.getMessage((() => {
+					switch (docs.length) {
+						case 0:
+							return "plural_zero_highlights"
+						case 1:
+							return "plural_one_highlight"
+						default:
+							return "plural_other_highlights"
+					}
+				})(), [docs.length])
 
-			// if the highlight cant be found in DOM, flag that
-			if (isNaN(tabId)) {
-				return
-			}
-			
-			return Promise.all(docs.map(doc => {
-				return tabs.isHighlightInDOM(doc._id).then(value => doc.isInDOM = value)
-			})).then(() => $scope.$apply())
+				// if the highlight cant be found in DOM, flag that
+				if (!isNaN(this.tabId)) {
+					return Promise.all(docs.map(doc => {
+						return tabs.isHighlightInDOM(doc._id).then(value => doc.isInDOM = value)
+					}))
+				}
+			}).then(() => {
+				$scope.$apply()
+			})
+		} // end init()
 
-            // if (!isNaN(tabId)) {
-            //     docs.forEach(function (doc) {
-            //         // default to undefined, implying it IS in the DOM
-            //         backgroundPage._eventPage.isHighlightInDOM(tabId, doc._id).then(function (isInDOM) {
-            //             doc.isInDOM = isInDOM;
+		// click handlers
 
-            //             $scope.$apply();
-            //         });
-            //     });
-            // }
-        });
-    }
+		onClickHighlight(doc) {
+			return new ChromeTabs(this.tabId).scrollToHighlight(doc._id).then(ok => {
+				if (!ok) {
+					return Promise.reject(new Error('unable to scroll to highlight'))
+				}
+				
+				// if scrolling to the element is successful, only then we can make the tab active
+				return new Promise(resolve => {
+					chrome.tabs.update(this.tabId, { active: true }, tab => { resolve(tab) })
+				})
+			})
+		}
+	}// end class
 
-	/**
-	 * Clicked the header, showing the source page title.
-     * Makes corresponding tab active
-	 * @type function
-	 */
-	// $scope.onClickPageUrl = function () {
-	// 	// make the tab which was associated with the popup that launched us the active tab.
-	// 	// If it has been closed nothing will happen (but the user can open explicitly from the anchor instead)
-	// 	chrome.tabs.update($scope.tabId, {
-	// 		active: true
-	// 	});
-	// }
+	let url = new URL(location.href)
 
-	/**
-	 * Clicked a highlight. Make the associated tab active, and scroll it to its position
-	 * @param {Object} doc highlight document which was clicked
-	 */	
-	$scope.onClickHighlight = function(doc) {
-		const tabId = $scope.tabId
-
-		return new ChromeTabs(tabId).scrollToHighlight(doc._id).then(ok => {
-			if (!ok) {
-				return
-			}
-			
-			// if scrolling to the element is successful, only then we can make the tab active
-			chrome.tabs.update(tabId, { active: true })
-		})
-	}
-
-	/**
-	 * Starter 
-	 * parse href (supplied by popup's controller) to find url, which is used to find match string
-	 */
-	const searchParams = new URL(location.href).searchParams
-
-	if (searchParams.has('url')) {
-		chrome.runtime.getBackgroundPage(function (backgroundPage) {
-			const id = searchParams.get('id')
-			const url = searchParams.get('url')
-			const title = searchParams.get('title')
-			const sortby = searchParams.get('sortby')
-			const invert = Boolean(searchParams.get('invert'))
-			
-            onInit(parseInt(id), url, title, backgroundPage, sortby, invert)
-        })
-	}
+	// unhandled promise
+	new Controller($scope, parseInt(url.searchParams.get('tabId'))).initAsync(url)
 }]);

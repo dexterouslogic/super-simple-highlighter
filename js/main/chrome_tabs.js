@@ -13,6 +13,7 @@ class ChromeTabs {
    * @typedef {Object} Tab
    * @prop {number} id - tab id
    * @prop {string} url - tab url
+   * @prop {string} title - tab title
    */
 
   /**
