@@ -1,5 +1,3 @@
-/*global angular, _eventPage, _i18n, _storage, */
-
 /*
  * This file is part of Super Simple Highlighter.
  * 
@@ -17,7 +15,12 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class Controller {
+
+// module named 'controller', no dependencies
+const controllerModule = angular.module('controller', [])
+
+// Controller named 'popupController'
+controllerModule.controller('popupController', ["$scope", function ($scope) {
 	/**
 	 * @typedef {Object} Scope
 	 * @prop {Object} manifest
@@ -44,670 +47,667 @@ class Controller {
 	 * @prop {Function} group
 	 * @prop {Function} text
 	 */
-	 
-	/**
-	 * Creates an instance of Controller.
-	 * @param {Scope} scope 
-	 * @param {Document} document 
-	 * @memberof Controller
-	 */
-	constructor(scope, document) {
-		// assign synchronously available commands
-		this.scope = scope
-		this.document = document
-	}
 
-	/**
-	 * Async initializer of class. Mainly scope properties
-	 * 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	init() {
-		// sync
-		this.scope.manifest = chrome.runtime.getManifest()
-		this.scope.commands = {}
-		// this.scope.sort = {}
-		this.scope.search = {}
-		this.scope.filters = {
-			// by style and text of any document within group
-			group: (group) => {
-				const searchText = this.scope.search.text && this.scope.search.text.toLowerCase()
-	
-				return group.docs.some(doc => {
-					// delegate to search.text and styleFilterPredicate
-					return (!searchText ||
-						(typeof doc.text === 'string' && doc.text.toLowerCase().indexOf(searchText) != -1
+	class Controller {
+		/**
+		 * Creates an instance of Controller.
+		 * @param {Scope} scope 
+		 * @param {Document} document 
+		 * @memberof Controller
+		 */
+		constructor(scope, document) {
+			// assign synchronously available commands
+			this.scope = scope
+			this.document = document
+		}
+
+		/**
+		 * Async initializer of class. Mainly scope properties
+		 * 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		init() {
+			// sync
+			this.scope.manifest = chrome.runtime.getManifest()
+			this.scope.commands = {}
+			// this.scope.sort = {}
+			this.scope.search = {}
+			this.scope.filters = {
+				// by style and text of any document within group
+				group: (group) => {
+					const searchText = this.scope.search.text && this.scope.search.text.toLowerCase()
+		
+					return group.docs.some(doc => {
+						// delegate to search.text and styleFilterPredicate
+						return (!searchText ||
+							(typeof doc.text === 'string' && doc.text.toLowerCase().indexOf(searchText) != -1
+						))
+					})
+				},
+		
+				// by current text search string of document
+				text: (doc) => {
+					const searchText = this.scope.search.text && this.scope.search.text.toLowerCase()
+		
+					return (!searchText || (
+						typeof doc.text === 'string'
+						&& doc.text.toLowerCase().indexOf(searchText) != -1
 					))
+				},
+			}
+
+			// add function references to scope
+			for (const func of [
+				this.onClickHighlight,
+				this.onClickExpandHighlight,
+				this.onClickRemoveHighlight,
+
+				this.onClickCopyHighlight,
+				this.onClickSelectHighlight,
+				this.onClickSpeakHighlight,
+				this.onClickDefineHighlight,
+
+				this.onClickUndoLastHighlight,
+				this.onClickOpenOverview,
+				this.onClickSaveOverview,
+				this.onClickCopyOverview,
+				this.onClickRemoveAllHighlights,
+
+				this.onClickDismissFileAccessRequiredWarning
+			]) {
+				this.scope[func.name] = func.bind(this)
+			}
+
+			// required in later promise
+			let activeTabURL
+
+			// async
+			// 1 - get current highlight styles, and apply to DOM
+			return new ChromeHighlightStorage().getAll().then(items => {
+					// shared highlight styles
+					if (items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
+							_stylesheet.setHighlightStyle({
+									className: "highlight",
+									style: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
+							});
+					}
+
+					// must apply per-style rules last
+					if (items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+							for (const d of items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
+									_stylesheet.setHighlightStyle(d);
+							}
+					}
+			
+					return ChromeTabs.queryActiveTab()
+			}).then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+
+				activeTabURL = new URL(tab.url)
+
+				return new ChromeHighlightStorage().getAll()
+			}).then(items => {
+				// array of highlight definitions
+				this.scope.highlightDefinitions = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+
+				return new ChromeStorage().get([
+					ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH,
+					ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED,
+					ChromeStorage.KEYS.HIGHLIGHT.SORT_BY,
+					ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT,
+				])
+			}).then(items => {
+				// 1 - initialize controller variables
+				if (items[ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH]) {
+					this.scope.popupHighlightTextMaxLength = items[ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH]
+				}
+
+				this.scope.sort = {
+					value: items[ChromeStorage.KEYS.HIGHLIGHT.SORT_BY],
+					invert: items[ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT],
+				}
+
+				// if the url protocol is file based, and the
+				// user hasn't been warned to enable
+				// file access for the extension, set a flag now. 
+				// The view will set the warning's
+				// visibility based on its value.
+
+				// 2 - if its already been dismissed before, no need to check
+				const dismissed = items[ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED] || (() => {
+					// it not being a file protocol url is the same as invisible (dismissed)
+					return ('file:' !== activeTabURL.protocol)
+				})()
+
+				// name of property in scope object
+				this.scope.fileAccessRequiredWarningVisible = !dismissed
+
+				// 3 - listen for variable change, and sync value to storage
+				this.scope.$watch(Controller.SCOPE.NAME.FILE_ACCESS_REQUIRED_WARNING_VISIBLE, (newValue, oldValue) => {
+					if (newValue === oldValue) {
+						return
+					}
+
+					// unhandled promise
+					new ChromeStorage().set(!newValue, ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED)
 				})
-			},
-	
-			// by current text search string of document
-			text: (doc) => {
-				const searchText = this.scope.search.text && this.scope.search.text.toLowerCase()
-	
-				return (!searchText || (
-					typeof doc.text === 'string'
-					&& doc.text.toLowerCase().indexOf(searchText) != -1
-				))
-			},
+
+				// 4 - shortcut commands array
+				return new Promise(resolve => {
+					chrome.commands.getAll(commands => {
+						// key commands by their name in the scope attribute
+						// can't identify specific commands in angular
+						this.scope.$apply(() => {
+							for (const c of commands) {
+								this.scope.commands[c.name] = c
+							}
+						})
+
+						resolve()
+					})
+				})
+			}).then(() => {
+				return this.updateDocs()
+			}).then(() => {
+				// After the initial update, watch for changes to options object
+				this.scope.$watchCollection(Controller.SCOPE.NAME.SORT, newSort => {
+					// update storage
+					return new ChromeStorage().set({
+						[ChromeStorage.KEYS.HIGHLIGHT.SORT_BY]: newSort.value,
+						[ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT]: newSort.invert,
+					}).then(() => {
+						return this.updateDocs()
+					}).then(() => {
+						this.scope.$apply()
+					})
+				})
+
+				// this bullshit is done because if it finishes too quick the popup is the wrong height
+				// setTimeout(() => {
+					this.scope.$apply()
+
+					// presumably the autofocus attribute effect gets overridden, so do it manually.
+					this.document.querySelector('#input-search').focus()
+
+					// if we set this too early the first value would be animated
+					this.document.querySelector('#btn-sort-invert').classList.add('button-animate-transition')
+				// }, 50)
+			})
 		}
 
-		// add function references to scope
-		for (const func of [
-			this.onClickHighlight,
-			this.onClickExpandHighlight,
-			this.onClickRemoveHighlight,
+		/**
+		 * Update 'docs' and 'groupedDocs' properties of scope object, depending on current settings
+		 * 
+		 * @returns {Promise<Object[]>}
+		 * @memberof Controller
+		 */
+		updateDocs() {
+			let tabs
 
-			this.onClickCopyHighlight,
-			this.onClickSelectHighlight,
-			this.onClickSpeakHighlight,
-			this.onClickDefineHighlight,
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
 
-			this.onClickUndoLastHighlight,
-			this.onClickOpenOverview,
-			this.onClickSaveOverview,
-			this.onClickCopyOverview,
-			this.onClickRemoveAllHighlights,
+				tabs = new ChromeTabs(tab.id)
 
-			this.onClickDismissFileAccessRequiredWarning
-		]) {
-			this.scope[func.name] = func.bind(this)
+				// get all the documents (create & delete) associated with the match, then filter the deleted ones
+				return new DB().getMatchingDocuments(DB.formatMatch(tab.url), { excludeDeletedDocs: true })
+			}).then(docs => {
+				// if the highlight cant be found in DOM, flag that
+				return Promise.all(docs.map(d => {
+					return tabs.isHighlightInDOM(d._id).then(isInDOM => {
+						d.isInDOM = isInDOM
+					}).catch(() => {
+						// swallow
+						d.isInDOM = false
+					}).then(() => d)
+				}))
+			}).then(docs => {
+				// sort the docs using the sort value
+				return DB.sortDocuments(
+					docs,
+					tabs.getComparisonFunction(this.scope.sort.value)
+				)
+			}).then(docs => {
+				if (this.scope.sort.invert) {
+					docs.reverse()
+				}
+
+				this.scope.docs = docs
+
+				// group by days since epoch
+				let groupedDocs = []
+
+				switch (this.scope.sort.value) {
+					case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.LOCATION:
+						// a single untitled group containing all items sorted by location
+						groupedDocs.push({ docs: docs })
+						break
+
+					case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.TIME:
+						// a group for each unique day
+						for (const doc of docs) {
+							const date = new Date(doc[DB.DOCUMENT.NAME.DATE])
+							const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+							// first, or different days since epoch of last group
+							if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length - 1].daysSinceEpoch) {
+								// each group defines its days since epoch and an ordered array of docs
+								groupedDocs.push({
+									daysSinceEpoch: daysSinceEpoch,
+									title: date.toLocaleDateString(undefined, {
+										weekday: 'long',
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric'
+									}),
+									docs: []
+								})
+							}
+
+							groupedDocs[groupedDocs.length - 1].docs.push(doc)
+						}
+						break
+
+					case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.STYLE:
+						// first map highlight classname to index of definition
+						const m = new Map(this.scope.highlightDefinitions.map((d, idx) => [d.className, idx]))
+
+						// a group for each non-empty style
+						for (const doc of docs) {
+							// docs are already sorted
+							const index = m.get(doc[DB.DOCUMENT.NAME.CLASS_NAME])
+
+							if (groupedDocs.length === 0 || index !== groupedDocs[groupedDocs.length - 1].definitionIndex) {
+								groupedDocs.push({
+									definitionIndex: index,
+									title: this.scope.highlightDefinitions[index].title,
+									docs: []
+								})
+							}
+
+							groupedDocs[groupedDocs.length - 1].docs.push(doc)
+						}
+						break
+
+					default:
+						console.error(`unknown sort_by value "${this.scope.sort.value}"`)
+				}
+
+				this.scope.groupedDocs = groupedDocs
+
+				return docs
+			})
+		} // end func
+
+		// click onhandlers
+
+		/**
+		 * Clicked on the overall highlight element (i.e. not 'close' or 'more' buttons)
+		 * 
+		 * @param {Object} doc - clicked document for highlight
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickHighlight(doc) {
+			// if not in the DOM it shouldn't 
+			console.assert(doc.isInDOM)
+
+			// scroll to the highlight, in the active tab
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+				
+				return new ChromeTabs(tab.id).scrollToHighlight(doc._id)
+			})
 		}
 
-		// required in later promise
-		let activeTabURL
+		/**
+		 * Clicked the remove (x) button on a highlight
+		 * 
+		 * @param {Object} doc - 'create' document for highlight to remove
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickRemoveHighlight(doc) {
+			// don't propagate to click handler of parent
+			event.stopPropagation()
 
-		// async
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
 
-			// this.scope[Controller.SCOPE.NAME.MATCH] = DB.formatMatch(tab.url)
+				// remove document from database
+				return new Highlighter(tab.id).delete(doc._id)
+			}).then(responses => {
+				// response is empty array if no documents needed to be removed, which is still a success
+				if (responses.some(({ ok }) => ok)) {
+					return Promise.reject(new Error())
+				}
 
-			activeTabURL = new URL(tab.url)
-
-			return new ChromeHighlightStorage().getAll()
-		}).then(items => {
-			// array of highlight definitions
-			this.scope.highlightDefinitions = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
-
-			return new ChromeStorage().get([
-				ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH,
-				ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED,
-				ChromeStorage.KEYS.HIGHLIGHT.SORT_BY,
-				ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT,
-			])
-		}).then(items => {
-			// 1 - initialize controller variables
-			if (items[ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH]) {
-				this.scope.popupHighlightTextMaxLength = items[ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH]
-			}
-
-			this.scope.sort = {
-				value: items[ChromeStorage.KEYS.HIGHLIGHT.SORT_BY],
-				invert: items[ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT],
-			}
-
-			// if the url protocol is file based, and the
-			// user hasn't been warned to enable
-			// file access for the extension, set a flag now. 
-			// The view will set the warning's
-			// visibility based on its value.
-
-			// 2 - if its already been dismissed before, no need to check
-			const dismissed = items[ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED] || (() => {
-				// it not being a file protocol url is the same as invisible (dismissed)
-				return ('file:' !== activeTabURL.protocol)
-			})()
-
-			// name of property in scope object
-			this.scope.fileAccessRequiredWarningVisible = !dismissed
-
-			// 3 - listen for variable change, and sync value to storage
-			this.scope.$watch(Controller.SCOPE.NAME.FILE_ACCESS_REQUIRED_WARNING_VISIBLE, (newValue, oldValue) => {
-				if (newValue === oldValue) {
+				// regroup documents in popup controller
+				return this.updateDocs()
+			}).then(docs => {
+				// close popup on last doc removed
+				if (docs.length === 0) {
+					window.close()
 					return
 				}
 
-				// unhandled promise
-				new ChromeStorage().set(!newValue, ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED)
-			})
-
-			// 4 - shortcut commands array
-			return new Promise(resolve => {
-				chrome.commands.getAll(commands => {
-					// key commands by their name in the scope attribute
-					// can't identify specific commands in angular
-					this.scope.$apply(() => {
-						for (const c of commands) {
-							this.scope.commands[c.name] = c
-						}
-					})
-
-					resolve()
-				})
-			})
-		}).then(() => {
-			return this.updateDocs()
-		}).then(() => {
-			// After the initial update, watch for changes to options object
-			this.scope.$watchCollection(Controller.SCOPE.NAME.SORT, newSort => {
-				// update storage
-				return new ChromeStorage().set({
-					[ChromeStorage.KEYS.HIGHLIGHT.SORT_BY]: newSort.value,
-					[ChromeStorage.KEYS.HIGHLIGHT.INVERT_SORT]: newSort.invert,
-				}).then(() => {
-					return this.updateDocs()
-				}).then(() => {
-					this.scope.$apply()
-				})
-			})
-
-			// this bullshit is done because if it finishes too quick the popup is the wrong height
-			setTimeout(() => {
+				// force update
 				this.scope.$apply()
+			})
+		}
 
-				// presumably the autofocus attribute effect gets overridden, so do it manually.
-				this.document.querySelector('#input-search').focus()
+		/**
+		 * Clicked on the 'more' link to show > 512 characters of text of a highlight
+		 * 
+		 * @param {Object} doc - document to expand
+		 * @memberof Controller
+		 */
+		onClickExpandHighlight(doc) {
+			// don't navigate
+			event.preventDefault()
 
-				// if we set this too early the first value would be animated
-				this.document.querySelector('#btn-sort-invert').classList.add('button-animate-transition')
-			}, 50)
-		})
-	}
-
-	/**
-	 * Update 'docs' and 'groupedDocs' properties of scope object, depending on current settings
-	 * 
-	 * @returns {Promise<Object[]>}
-	 * @memberof Controller
-	 */
-	updateDocs() {
-		let tabs
-
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
-
-			tabs = new ChromeTabs(tab.id)
-
-			// get all the documents (create & delete) associated with the match, then filter the deleted ones
-			return new DB().getMatchingDocuments(DB.formatMatch(tab.url), { excludeDeletedDocs: true })
-		}).then(docs => {
-			// if the highlight cant be found in DOM, flag that
-			return Promise.all(docs.map(d => {
-				return tabs.isHighlightInDOM(d._id).then(isInDOM => {
-					d.isInDOM = isInDOM
-				}).catch(() => {
-					// swallow
-					d.isInDOM = false
-				}).then(() => d)
-			}))
-		}).then(docs => {
-			// sort the docs using the sort value
-			return DB.sortDocuments(
-				docs,
-				tabs.getComparisonFunction(this.scope.sort.value)
-			)
-		}).then(docs => {
-			if (this.scope.sort.invert) {
-				docs.reverse()
-			}
-
-			this.scope.docs = docs
-
-			// group by days since epoch
-			let groupedDocs = []
-
-			switch (this.scope.sort.value) {
-				case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.LOCATION:
-					// a single untitled group containing all items sorted by location
-					groupedDocs.push({ docs: docs })
-					break
-
-				case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.TIME:
-					// a group for each unique day
-					for (const doc of docs) {
-						const date = new Date(doc[DB.DOCUMENT.NAME.DATE])
-						const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
-
-						// first, or different days since epoch of last group
-						if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length - 1].daysSinceEpoch) {
-							// each group defines its days since epoch and an ordered array of docs
-							groupedDocs.push({
-								daysSinceEpoch: daysSinceEpoch,
-								title: date.toLocaleDateString(undefined, {
-									weekday: 'long',
-									year: 'numeric',
-									month: 'long',
-									day: 'numeric'
-								}),
-								docs: []
-							})
-						}
-
-						groupedDocs[groupedDocs.length - 1].docs.push(doc)
-					}
-					break
-
-				case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.STYLE:
-					// first map highlight classname to index of definition
-					const m = new Map(this.scope.highlightDefinitions.map((d, idx) => [d.className, idx]))
-
-					// a group for each non-empty style
-					for (const doc of docs) {
-						// docs are already sorted
-						const index = m.get(doc[DB.DOCUMENT.NAME.CLASS_NAME])
-
-						if (groupedDocs.length === 0 || index !== groupedDocs[groupedDocs.length - 1].definitionIndex) {
-							groupedDocs.push({
-								definitionIndex: index,
-								title: this.scope.highlightDefinitions[index].title,
-								docs: []
-							})
-						}
-
-						groupedDocs[groupedDocs.length - 1].docs.push(doc)
-					}
-					break
-
-				default:
-					console.error(`unknown sort_by value "${this.scope.sort.value}"`)
-			}
-
-			this.scope.groupedDocs = groupedDocs
-
-			return docs
-		})
-	} // end func
-
-	// click onhandlers
-
-	/**
-	 * Clicked on the overall highlight element (i.e. not 'close' or 'more' buttons)
-	 * 
-	 * @param {Object} doc - clicked document for highlight
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickHighlight(doc) {
-		// if not in the DOM it shouldn't 
-		console.assert(doc.isInDOM)
-
-		// scroll to the highlight, in the active tab
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
+			// replace the inner text of the span associated with the highlight
 			
-			return new ChromeTabs(tab.id).scrollToHighlight(doc._id)
-		})
-	}
-
-	/**
-	 * Clicked the remove (x) button on a highlight
-	 * 
-	 * @param {Object} doc - 'create' document for highlight to remove
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickRemoveHighlight(doc) {
-		// don't propagate to click handler of parent
-		event.stopPropagation()
-
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
-
-			// remove document from database
-			return new Highlighter(tab.id).delete(doc._id)
-		}).then(responses => {
-			// response is empty array if no documents needed to be removed, which is still a success
-			if (responses.some(({ ok }) => ok)) {
-				return Promise.reject(new Error())
-			}
-
-			// regroup documents in popup controller
-			return this.updateDocs()
-		}).then(docs => {
-			// close popup on last doc removed
-			if (docs.length === 0) {
-				window.close()
-				return
-			}
-
-			// force update
-			this.scope.$apply()
-		})
-	}
-
-	/**
-	 * Clicked on the 'more' link to show > 512 characters of text of a highlight
-	 * 
-	 * @param {Object} doc - document to expand
-	 * @memberof Controller
-	 */
-	onClickExpandHighlight(doc) {
-		// don't navigate
-		event.preventDefault()
-
-		// replace the inner text of the span associated with the highlight
-		
-		/** @type {HTMLSpanElement} */
-		const elm = this.document.querySelector(`#${doc._id} .highlight-text`)
-		elm.innerText = doc.text
-	}
-
-	// infobar event handlers
-
-	/**
-	 * Copy the text property value of a document to the clipboard (text format)
-	 * 
-	 * @param {Object} doc - 'create' doc of highlight
-	 * @returns {boolean} true on success
-	 * @memberof Controller
-	 */
-	onClickCopyHighlight(doc) {
-		if (typeof doc.text !== 'string') {
-			return false
+			/** @type {HTMLSpanElement} */
+			const elm = this.document.querySelector(`#${doc._id} .highlight-text`)
+			elm.innerText = doc.text
 		}
 
-		return ClipboardUtils.copy(doc.text, window.document)
-	}
+		// infobar event handlers
 
-	/**
-	 * Select the text of the highlight in the document
-	 * 
-	 * @param {Object} doc 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickSelectHighlight(doc) {
-		console.assert(doc.isInDOM)
-
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
+		/**
+		 * Copy the text property value of a document to the clipboard (text format)
+		 * 
+		 * @param {Object} doc - 'create' doc of highlight
+		 * @returns {boolean} true on success
+		 * @memberof Controller
+		 */
+		onClickCopyHighlight(doc) {
+			if (typeof doc.text !== 'string') {
+				return false
 			}
-		
-			const tabs = new ChromeTabs(tab.id)
 
-			// select and scroll to it
-			return tabs.selectHighlight(doc._id).then(() => tabs.scrollToHighlight(doc._id))
-		}).then(() => { 
-			window.close() 
-		})
-	}
-
-	/**
-	 * Speak the text content of the highlight
-	 * 
-	 * @param {Object} doc 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickSpeakHighlight(doc) {
-		const text = doc[DB.DOCUMENT.NAME.TEXT]
-
-		if (typeof text !== 'string') {
-			return Promise.resolve()
+			return ClipboardUtils.copy(doc.text, window.document)
 		}
 
-		// get the lang attribute of the document root element (html)
-		// workaround for Google Deutsch becoming the default voice, for some reason
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
+		/**
+		 * Select the text of the highlight in the document
+		 * 
+		 * @param {Object} doc 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickSelectHighlight(doc) {
+			console.assert(doc.isInDOM)
+
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+			
+				const tabs = new ChromeTabs(tab.id)
+
+				// select and scroll to it
+				return tabs.selectHighlight(doc._id).then(() => tabs.scrollToHighlight(doc._id))
+			}).then(() => { 
+				window.close() 
+			})
+		}
+
+		/**
+		 * Speak the text content of the highlight
+		 * 
+		 * @param {Object} doc 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickSpeakHighlight(doc) {
+			const text = doc[DB.DOCUMENT.NAME.TEXT]
+
+			if (typeof text !== 'string') {
+				return Promise.resolve()
 			}
 
-			return new ChromeTabs(tab.id).getNodeAttributeValue('/*', 'lang')
-		}).then(lang => {
-			const options = typeof lang === 'string' ? { lang: lang } : {}
-			chrome.tts.speak(text, options)
-		})
-	}
+			// get the lang attribute of the document root element (html)
+			// workaround for Google Deutsch becoming the default voice, for some reason
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
 
-	/**
-	 * (re) define the style to use for a highlight
-	 * 
-	 * @param {Object} doc - document defining highlight
-	 * @param {Object} newDefinition - new highlight definition, whose class is applied to the highlight (entry in scope.highlightDefinitions) 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickDefineHighlight(doc, newDefinition) {
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
+				return new ChromeTabs(tab.id).getNodeAttributeValue('/*', 'lang')
+			}).then(lang => {
+				const options = typeof lang === 'string' ? { lang: lang } : {}
+				chrome.tts.speak(text, options)
+			})
+		}
 
-			return new Highlighter(tab.id).update(doc._id, newDefinition.className)
-		}).then(() => {
-			// update local classname, which will update class in dom
-			doc.className = newDefinition.className
+		/**
+		 * (re) define the style to use for a highlight
+		 * 
+		 * @param {Object} doc - document defining highlight
+		 * @param {Object} newDefinition - new highlight definition, whose class is applied to the highlight (entry in scope.highlightDefinitions) 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickDefineHighlight(doc, newDefinition) {
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
 
-			// regroup only if sorted by 'style'
-			if (this.scope.sort.value == ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.STYLE) {
+				return new Highlighter(tab.id).update(doc._id, newDefinition.className)
+			}).then(() => {
+				// update local classname, which will update class in dom
+				doc.className = newDefinition.className
+
+				// regroup only if sorted by 'style'
+				if (this.scope.sort.value == ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.STYLE) {
+					return this.updateDocs()
+				}
+			}).then(() => {
+				this.scope.$apply()
+			})
+		}
+
+		// menu handlers
+
+		/**
+		 * Clicked 'undo' in menu
+		 * 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickUndoLastHighlight() {
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+			
+				return new Highlighter(tab.id).undo()
+			}).then(results => {
+				if (results.some(r => !r.ok)) {
+					return Promise.reject(new Error())
+				}
+
 				return this.updateDocs()
-			}
-		}).then(() => {
-			this.scope.$apply()
-		})
-	}
+			}).then(docs => {
+				// console.log(docs)
+				// // close popup on last doc removed
+				if (docs.length === 0) {
+					window.close()
+					return
+				}
 
-	// menu handlers
+				this.scope.$apply()
+			})
+		}
 
-	/**
-	 * Clicked 'undo' in menu
-	 * 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickUndoLastHighlight() {
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
+		/**
+		 * Clicked 'open overview' in menu
+		 * 
+		 * @returns {Promise<Object>} promise with chrome tab object
+		 * @memberof Controller
+		 */
+		onClickOpenOverview() {
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+
+				// get the full uri for the tab. the summary page will get the match for it
+				const u = new URL("http://example.com/overview.html")
+
+				for (const [key, value] of Object.entries({
+					id: tab.id,
+					url: tab.url,
+					title: tab.title,
+					sortby: this.scope.sort.value,
+					invert: this.scope.sort.invert === true ? "1" : "",
+				})) {
+					u.searchParams.set(key, value)
+				}
+
+				return new Promise(resolve => {
+					chrome.tabs.create({
+						url: `${u.pathname}?${u.searchParams.toString()}`
+					}, tab => {
+						resolve(tab)
+					})
+				}) 
+			})
+		}
+
+		/**
+		 * Clicked 'save overview' in menu
+		 * 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickSaveOverview() {
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+
+				const tabs = new ChromeTabs(tab.id)
+
+				return tabs.getFormattedOverviewText(
+					ChromeTabs.OVERVIEW_FORMAT.MARKDOWN,
+					tabs.getComparisonFunction(this.scope.sort.value),
+					this.scope.sort.invert
+				)
+			}).then(text => {
+				if (!text) {
+					return
+				}
+
+				// create a temporary anchor to navigate to data uri
+				const anchorElm = document.createElement("a")
+
+				function utf8_to_b64(str) {
+					return window.btoa(unescape(encodeURIComponent(str)))
+				};
+
+				anchorElm.download = chrome.i18n.getMessage("save_overview_file_name")
+				anchorElm.href = `data:text;base64,${utf8_to_b64(text)}`
+
+				// create & dispatch mouse event to hidden anchor
+				const event = document.createEvent("MouseEvent")
+
+				event.initMouseEvent("click", true, true, window,
+					0, 0, 0, 0, 0, false, false, false, false, 0, null)
+
+				anchorElm.dispatchEvent(event)
+			})
+		}
+
+		/**
+		 * Clicked 'copy overview' menu item
+		 * 
+		 * @returns {Promise<boolean>}
+		 * @memberof Controller
+		 */
+		onClickCopyOverview() {
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
+			
+				// format all highlights as a markdown document
+				const tabs = new ChromeTabs(tab.id)
+
+				return tabs.getFormattedOverviewText(
+					ChromeTabs.OVERVIEW_FORMAT.MARKDOWN_NO_FOOTER,
+					tabs.getComparisonFunction(this.scope.sort.value),
+					this.scope.sort.invert
+				)
+			}).then(text => {
+				if (!text) {
+					return
+				}
+
+				return ClipboardUtils.copy(text, window.document)
+			})
+		}
+
+		/**
+		 * Clicked 'remove all highlights' menu item
+		 * 
+		 * @returns {Promise}
+		 * @memberof Controller
+		 */
+		onClickRemoveAllHighlights() {
+			return ChromeTabs.queryActiveTab().then(tab => {
+				if (!tab) {
+					return Promise.reject(new Error('no active tab'))
+				}
 		
-			return new Highlighter(tab.id).undo()
-		}).then(results => {
-			if (results.some(r => !r.ok)) {
-				return Promise.reject(new Error())
-			}
-
-			return this.updateDocs()
-		}).then(docs => {
-			// console.log(docs)
-			// // close popup on last doc removed
-			if (docs.length === 0) {
+				return new Highlighter(tab.id).deleteMatching(DB.formatMatch(tab.url))
+			}).then(() => {
 				window.close()
-				return
-			}
+			})
+		}
 
-			this.scope.$apply()
-		})
+		// misc event handlers
+
+		/**
+		 * Clicked 'ok got it' button for the offline (file protocol) warning
+		 * 
+		 * @memberof Controller
+		 */
+		onClickDismissFileAccessRequiredWarning() {
+			this.fileAccessRequiredWarningVisible = false
+		}
 	}
 
-	/**
-	 * Clicked 'open overview' in menu
-	 * 
-	 * @returns {Promise<Object>} promise with chrome tab object
-	 * @memberof Controller
-	 */
-	onClickOpenOverview() {
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
+	// static properties
 
-			// get the full uri for the tab. the summary page will get the match for it
-			const u = new URL("http://example.com/overview.html")
+	Controller.SCOPE = {
+		NAME: {
+			SORT: 'sort',
+			// MANIFEST: 'manifest',
+			// COMMANDS: 'commands',
+			// SEARCH: 'search',
+			// FILTERS: 'filters',
 
-			for (const [key, value] of Object.entries({
-				id: tab.id,
-				url: tab.url,
-				title: tab.title,
-				sortby: this.scope.sort.value,
-				invert: this.scope.sort.invert === true ? "1" : "",
-			})) {
-				u.searchParams.set(key, value)
-			}
-
-			return new Promise(resolve => {
-				chrome.tabs.create({
-					 url: `${u.pathname}?${u.searchParams.toString()}`
-				}, tab => {
-					resolve(tab)
-				})
-			}) 
-		})
+			FILE_ACCESS_REQUIRED_WARNING_VISIBLE: 'fileAccessRequiredWarningVisible',
+			// HIGHLIGHT_DEFINITIONS: 'highlightDefinitions',
+			// POPUP_HIGHLIGHT_TEXT_MAX_LENGTH: 'popupHighlightTextMaxLength',
+			// GROUPED_DOCS: 'groupedDocs',
+			// DOCS: 'docs',
+		},
 	}
 
-	/**
-	 * Clicked 'save overview' in menu
-	 * 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickSaveOverview() {
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
-
-			const tabs = new ChromeTabs(tab.id)
-
-			return tabs.getFormattedOverviewText(
-				ChromeTabs.OVERVIEW_FORMAT.MARKDOWN,
-				tabs.getComparisonFunction(this.scope.sort.value),
-				this.scope.sort.invert
-			)
-		}).then(text => {
-			if (!text) {
-				return
-			}
-
-			// create a temporary anchor to navigate to data uri
-			const anchorElm = document.createElement("a")
-
-			function utf8_to_b64(str) {
-				return window.btoa(unescape(encodeURIComponent(str)))
-			};
-
-			anchorElm.download = chrome.i18n.getMessage("save_overview_file_name")
-			anchorElm.href = `data:text;base64,${utf8_to_b64(text)}`
-
-			// create & dispatch mouse event to hidden anchor
-			const event = document.createEvent("MouseEvent")
-
-			event.initMouseEvent("click", true, true, window,
-				0, 0, 0, 0, 0, false, false, false, false, 0, null)
-
-			anchorElm.dispatchEvent(event)
-		})
-	}
-
-	/**
-	 * Clicked 'copy overview' menu item
-	 * 
-	 * @returns {Promise<boolean>}
-	 * @memberof Controller
-	 */
-	onClickCopyOverview() {
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
-		
-			// format all highlights as a markdown document
-			const tabs = new ChromeTabs(tab.id)
-
-			return tabs.getFormattedOverviewText(
-				ChromeTabs.OVERVIEW_FORMAT.MARKDOWN_NO_FOOTER,
-				tabs.getComparisonFunction(this.scope.sort.value),
-				this.scope.sort.invert
-			)
-		}).then(text => {
-			if (!text) {
-				return
-			}
-
-			return ClipboardUtils.copy(text, window.document)
-		})
-	}
-
-	/**
-	 * Clicked 'remove all highlights' menu item
-	 * 
-	 * @returns {Promise}
-	 * @memberof Controller
-	 */
-	onClickRemoveAllHighlights() {
-		return ChromeTabs.queryActiveTab().then(tab => {
-			if (!tab) {
-				return Promise.reject(new Error('no active tab'))
-			}
-	
-			return new Highlighter(tab.id).deleteMatching(DB.formatMatch(tab.url))
-		}).then(() => {
-			window.close()
-		})
-	}
-
-	// misc event handlers
-
-	/**
-	 * Clicked 'ok got it' button for the offline (file protocol) warning
-	 * 
-	 * @memberof Controller
-	 */
-	onClickDismissFileAccessRequiredWarning() {
-		this.fileAccessRequiredWarningVisible = false
-	}
-}
-
-// static
-
-Controller.SCOPE = {}
-
-Controller.SCOPE.NAME = {
-	// MANIFEST: 'manifest',
-	// COMMANDS: 'commands',
-	SORT: 'sort',
-	// SEARCH: 'search',
-	// FILTERS: 'filters',
-
-	// HIGHLIGHT_DEFINITIONS: 'highlightDefinitions',
-	// POPUP_HIGHLIGHT_TEXT_MAX_LENGTH: 'popupHighlightTextMaxLength',
-	FILE_ACCESS_REQUIRED_WARNING_VISIBLE: 'fileAccessRequiredWarningVisible',
-	// GROUPED_DOCS: 'groupedDocs',
-	// DOCS: 'docs',
-}
-
-Controller.SCOPE.FILTERS = {
-	GROUP: 'group',
-	TEXT: 'text',
-}
-
-Controller.SCOPE.SORT = {
-	VALUE: 'value',
-	INVERT: 'invert',
-}
-
-// Controller.ON_CLICK = {
-// 	EXPAND_HIGHLIGHT: 
-// }
-
-//
-
-// array this is something to do with minification
-angular.module('popupControllers', []).controller('DocumentsController', ["$scope", function ($scope) {
-	var controller = new Controller($scope, window.document)
-
-	// unhandled promise
-	controller.init()
-}]);
+	// TODO: unhandled promise
+	new Controller($scope, window.document).init()
+}])

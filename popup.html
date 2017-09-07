@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="popupApp" ng-csp>
+<html ng-app="app" ng-csp>
 
 <head lang="en">
 	<meta charset="UTF-8">
@@ -26,14 +26,13 @@
 	<script src="js/stylesheet.js"></script>
 	<script src="js/utils.js"></script>
 
-	<script src="js/i18n_filters.js"></script>
+	<script src="js/ng-modules/i18n_filters.js"></script>
 	<script src="js/popup/app.js"></script>
 	<script src="js/popup/controllers.js"></script>
-
 </head>
 
 <body>
-	<div style="min-height: 140px" class="container-fluid" ng-controller="DocumentsController">
+	<div style="min-height: 140px" class="container-fluid" ng-controller="popupController">
 		<!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
 		<!--Header-->
 		<div class="clearfix header">
