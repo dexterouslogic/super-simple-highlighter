@@ -34,11 +34,13 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 		 * Creates an instance of Controller.
 		 * @param {Scope} scope - controller $scope
 		 * @param {number} tabId - id of tab that launched overview
+		 * @param {Document} document - html document
 		 * @memberof Controller
 		 */
-		constructor(scope, tabId) {
+		constructor(scope, tabId, document) {
 			this.scope = scope
 			this.tabId = tabId
+			this.document = document
 
 			this.scope.manifest = chrome.runtime.getManifest()
 
@@ -54,7 +56,7 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 		 * @returns {Promise}
 		 * @memberof Controller
 		 */
-		initAsync(locationURL) {
+		init(locationURL) {
 			const tabs = new ChromeTabs(this.tabId)
 			const db = new DB()
 
@@ -69,18 +71,26 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				
 				return new ChromeHighlightStorage().getAll()
 			}).then(items => {
-				// shared highlight styles
-				if (items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
-						_stylesheet.setHighlightStyle({
-								className: "highlight",
-								style: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
-						})
+				const styleSheet = new SS(this.document)
+				
+				// adds style element to document
+				styleSheet.init()
+
+				// 1 - shared highlight styles
+				let key = ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE
+
+				if (items[key]) {
+					styleSheet.setRule({
+						className: "highlight",
+						style: items[key]
+					})
 				}
-	
-				// must apply per-style rules last
-				if (items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
-						for (const d of items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
-								_stylesheet.setHighlightStyle(d)
+
+				// 2 - must apply per-style rules last
+				key = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
+				if (items[key]) {
+						for (const hd of items[key]) {
+							styleSheet.setRule(hd)
 						}
 				}
 		
@@ -162,5 +172,5 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 	let url = new URL(location.href)
 
 	// unhandled promise
-	new Controller($scope, parseInt(url.searchParams.get('tabId'))).initAsync(url)
+	new Controller($scope, parseInt(url.searchParams.get('tabId')), document).init(url)
 }]);

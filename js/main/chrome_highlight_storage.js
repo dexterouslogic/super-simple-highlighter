@@ -4,6 +4,16 @@
  * @class HighlightDefinitionFactory
  */
 class HighlightDefinitionFactory {
+
+  /**
+   * @typedef {Object} HighlightDefinition
+   * @prop {string} title - highlight title
+   * @prop {string} className - unique class name of this highlight style
+   * @prop {boolean} inherit_style_color
+   * @prop {Object} style - rules of the style expressed as an object
+   * @prop {boolean} [disableBoxShadow]
+   */
+
   /**
    * Create a new highlight definition object
    * 
@@ -15,7 +25,7 @@ class HighlightDefinitionFactory {
    *     backgroundColor = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.INHERIT_STYLE]['background-color'],
    *     color = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.INHERIT_STYLE]['color']
    *   } 
-   * @returns 
+   * @returns {HighlightDefinition}
    * @memberof HighlightDefinitionFactory
    */
   static createObject(title, {
@@ -24,11 +34,11 @@ class HighlightDefinitionFactory {
     color = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['color']
   } = {}) {
     return {
-      [HighlightDefinitionFactory.KEYS.TITLE]: title,
-      [HighlightDefinitionFactory.KEYS.CLASS_NAME]: className,
-      [HighlightDefinitionFactory.KEYS.INHERIT_STYLE_COLOR]:
+      title: title,
+      className: className,
+      inherit_style_color:
         HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.INHERIT_STYLE_COLOR],
-      [HighlightDefinitionFactory.KEYS.STYLE]: {
+      style: {
         'background-color': backgroundColor,
         'color': color,
       }
@@ -72,6 +82,7 @@ class ChromeHighlightStorage extends ChromeStorage {
    * Lazy getter for array of default highlight definitions
    * 
    * @readonly
+   * @return {HighlightDefinitionFactory.HighlightDefinition[]}
    * @memberof HighlightStorage
    */
   get defaultHighlightDefinitions() {
@@ -144,7 +155,7 @@ class ChromeHighlightStorage extends ChromeStorage {
   /**
    * Set/Update a highlight definitions
    * 
-   * @param {Object|Object[]} definitions - single definition or array of definitions to process
+   * @param {HighlightDefinitionFactory.HighlightDefinition|HighlightDefinitionFactory.HighlightDefinition[]} definitions - single definition or array of definitions to process
    * @returns {Promise} - resolves if storage updated OK
    * @memberof HighlightStorage
    */
@@ -227,5 +238,5 @@ ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
   'font': 'inherit',
 
   // "display": "inline-block",
-  'animation': 'fontbulger 0.2s ease-in-out 0s 2 alternate'
+  // 'animation': 'fontbulger 0.2s ease-in-out 0s 2 alternate'
 }

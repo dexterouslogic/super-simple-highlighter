@@ -48,13 +48,16 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
     /**
      * Creates an instance of Controller.
      * @param {Scope} scope 
+     * @param {Document} document - html document 
      * @memberof Controller
      */
-    constructor(scope) {
+    constructor(scope, document) {
       this.scope = scope
 
       this.scope.highlightClassName = StringUtils.newUUID()
       this.scope.highlightDefinitions = []
+
+      this.styleSheet = new SS(document).init()
 
       // always ignore box shadow property of highlight
       this.disableBoxShadow = true
@@ -146,15 +149,15 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
         const highlightClassName = this.scope.highlightClassName
 
         if (change.oldValue) {
-            _stylesheet.clearHighlightStyle(highlightClassName)
+          this.styleSheet.deleteRule(highlightClassName)
         }
 
         if (change.newValue) {
-            _stylesheet.setHighlightStyle({
-                className: highlightClassName,
-                style: change.newValue,
-                disableBoxShadow: this.disableBoxShadow,
-            })
+          this.styleSheet.setRule({
+            className: highlightClassName,
+            style: change.newValue,
+            disableBoxShadow: this.disableBoxShadow,
+          })
         }
       }
 
@@ -169,7 +172,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
 
       if (change.oldValue) {
           for (const {className} of change.oldValue) {
-              _stylesheet.clearHighlightStyle(className)
+            this.styleSheet.deleteRule(className)
           }
       }
 
@@ -226,7 +229,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
       for (const hd of newHighlightDefinitions) {
           hd.disableBoxShadow = this.disableBoxShadow
 
-          _stylesheet.setHighlightStyle(hd)
+          this.styleSheet.setRule(hd)
       }
     }
 
@@ -326,5 +329,5 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
   }
 
   // unhandled promise
-  new Controller($scope).initAsync()
+  new Controller($scope, document).initAsync()
 }])

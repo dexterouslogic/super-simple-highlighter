@@ -20,6 +20,8 @@
 "use strict"
 
 var _contentScript = {
+    // styleSheet: new SS(document),
+
     /**
      * A random string applied as an additional class name to all highlights,
      * allowing .on() event handling, and shared style
@@ -30,6 +32,8 @@ var _contentScript = {
      * Called when the script loads
      */
     init: function () {
+        // _contentScript.styleSheet.init()
+
         "use strict";
         // create a random class name
         _contentScript.highlightClassName = StringUtils.newUUID({ beginWithLetter: true })

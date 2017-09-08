@@ -124,18 +124,26 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 			// async
 			// 1 - get current highlight styles, and apply to DOM
 			return new ChromeHighlightStorage().getAll().then(items => {
-					// shared highlight styles
-					if (items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]) {
-							_stylesheet.setHighlightStyle({
-									className: "highlight",
-									style: items[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
-							});
+					const styleSheet = new SS(this.document)
+
+					// adds style element to document
+					styleSheet.init()
+
+					// 1 - shared highlight styles
+					let key = ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE
+
+					if (items[key]) {
+						styleSheet.setRule({
+							className: "highlight",
+							style: items[key]
+						})
 					}
 
-					// must apply per-style rules last
-					if (items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
-							for (const d of items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]) {
-									_stylesheet.setHighlightStyle(d);
+					// 2 - must apply per-style rules last
+					key = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
+					if (items[key]) {
+							for (const hd of items[key]) {
+								styleSheet.setRule(hd)
 							}
 					}
 			

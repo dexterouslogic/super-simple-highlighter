@@ -15,7 +15,6 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 var _stylesheet = {
 	/**
 	 * The ID of the style element that we use for our rules
@@ -51,15 +50,15 @@ var _stylesheet = {
         return _stylesheet.styleElementId;
     },
 
-    /**
-     * Get the rules selector for the rules of a specific class. This uses
-     * a filtered selector so the style element is the one we can reference
-     */
-    getRulesSelectorForClassName: function (className) {
-        var id = _stylesheet.getStyleElementId();
+    // /**
+    //  * Get the rules selector for the rules of a specific class. This uses
+    //  * a filtered selector so the style element is the one we can reference
+    //  */
+    // getRulesSelectorForClassName: function (className) {
+    //     var id = _stylesheet.getStyleElementId();
 
-        return "#" + id + " {." + className + "}";
-    },
+    //     return "#" + id + " {." + className + "}";
+    // },
 
     /**
      * get the combined CSSText for every rule of the style sheet
