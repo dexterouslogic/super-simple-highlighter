@@ -113,11 +113,11 @@ class ChromeHighlightStorage extends ChromeStorage {
    * Get definitions for all highlights, and the shared highlight style CSS definition
    * 
    * @param {Object} [options={defaults=true}] - options
-   * @returns {Promise<Object>} object with HIGHLIGHT_DEFINITIONS & SHARED_HIGHLIGHT_STYLE defined (unless undefined && !options.defaults)
+   * @returns {Promise<{highlightDefinitions: HighlightDefinition[], sharedHighlightStyle: Object}>} object with HIGHLIGHT_DEFINITIONS & SHARED_HIGHLIGHT_STYLE defined (unless undefined && !options.defaults)
    * @memberof HighlightStorage
    */
   getAll({ defaults = true } = {}) {
-    return this.get({
+    return super.get({
       [ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]: (defaults && this.defaultHighlightDefinitions) || null,
       [ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]: (defaults && ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE) || null
     })
@@ -217,6 +217,7 @@ class ChromeHighlightStorage extends ChromeStorage {
 
 // Static properties
 
+// copy to super's static property
 Object.assign(ChromeHighlightStorage.KEYS, {
   HIGHLIGHT_DEFINITIONS: 'highlightDefinitions',
   SHARED_HIGHLIGHT_STYLE: 'sharedHighlightStyle',
@@ -226,17 +227,17 @@ ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
   'position': "relative",
   'border-radius': "0.2em",
   //"padding": "0.2em",
-  'transition-property': 'color, background-color',
-  'transition-duration': '0.3s',
-  'transition-timing-function': 'ease-in-out',
-
+  // "box-shadow": "0 0 8px #D3D3D3",
+  // "display": "inline-block",
+  
   // color & font-style when highlight is defined by a class which no longer exists
   // each specific style must override these, or inherit default
   'color': '#AAAAAA',
   'background-color': '#EEEEEE',
-  //                        "box-shadow": "0 0 8px #D3D3D3",
   'font': 'inherit',
-
-  // "display": "inline-block",
+  
   // 'animation': 'fontbulger 0.2s ease-in-out 0s 2 alternate'
+  // 'transition-property': 'color, background-color',
+  // 'transition-duration': '0.3s',
+  // 'transition-timing-function': 'ease-in-out',
 }

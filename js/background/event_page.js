@@ -236,7 +236,7 @@ var _eventPage = {
         "use strict";
 
         switch (message.id) {
-            case "on_click_delete_highlight":
+            case "delete_highlight":
                 // message.highlightId is the document id to be deleted
                 return ChromeTabs.queryActiveTab().then(tab => {
                     if (!tab) {

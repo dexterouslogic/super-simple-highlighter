@@ -95,6 +95,8 @@ class ChromeTabs {
     }
 
     return new Promise((resolve, reject) => {
+      console.log(`Executing scripts: ${files}`)
+
       chrome.tabs.executeScript(
         this.tabId,
         Object.assign({file: files}, details), 
@@ -169,13 +171,13 @@ class ChromeTabs {
         }
 
         // all messages must send back a defined result (even if null)
-        if (typeof response !== 'undefined') {
-          resolve(response)
+        // not handling message is a rejection case
+        if (typeof response === 'undefined') {
+          reject(new Error("Undefined response"))
           return
         }
-
-        // not handling message is a rejection case
-        reject(new Error("Undefined response"))
+        
+        resolve(response)
       })
     })
   }
@@ -256,14 +258,14 @@ class ChromeTabs {
   /**
    * Get the text of a range in the content's document
    * 
-   * @param {XRange} xrange - range to query
+   * @param {XRange} range - range to query
    * @returns {Promise<string|Null>} text of selection, or null if not found
    * @memberof ChromeTabs
    */
-  getRangeText(xrange) {
+  getRangeText(range) {
     return this.sendMessage({
       id: ChromeTabs.MESSAGE_ID.GET_RANGE_TEXT,
-      xrange: xrange,
+      range: range,
     })
   }
 
@@ -287,14 +289,15 @@ class ChromeTabs {
   /**
    * Select a range of text in the document
    * 
-   * @param {XRange} [xrange] - range to select. clear selection if undefined
+   * @param {XRange} [range] - range to select. clear selection if undefined
    * @returns {Promise<XRange|Null>} xrange of selected highlight, or null if no highlight was supplied
    * @memberof ChromeTabs
    */
-  selectRange(xrange) {
+  selectRange(range) {
     const message = { id: ChromeTabs.MESSAGE_ID.SELECT_RANGE }
-    if (xrange) {
-      message.xrange = xrange
+    
+    if (range) {
+      message.range = range
     }
     
     return this.sendMessage(message)
@@ -323,8 +326,8 @@ class ChromeTabs {
    */
   scrollToHighlight(highlightId) {
     return this.sendMessage({
-        id: ChromeTabs.MESSAGE_ID.SCROLL_TO,
-        fragment: highlightId
+        id: ChromeTabs.MESSAGE_ID.SCROLL_TO_HIGHLIGHT,
+        highlightId: highlightId
     });
   }
 
@@ -346,25 +349,21 @@ class ChromeTabs {
 
 
   /**
-   * @typedef {Object} BoundingClientRect
+   * @typedef {Object} Offset
    * @prop {number} top 
-   * @prop {number} right 
-   * @prop {number} bottom 
    * @prop {number} left 
-   * @prop {number} width 
-   * @prop {number} height 
    */
 
   /**
    * Get the bounding client rect of a highlight in the document
    * 
    * @param {string} highlightId - #id of highlight (aka 'create' doc _id)
-   * @returns {Promise<BoundingClientRect|Null>}
+   * @returns {Promise<Offset|Null>}
    * @memberof ChromeTabs
    */
-  getHighlightBoundingClientRect(highlightId) {
+  getHighlightOffset(highlightId) {
     return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.GET_BOUNDING_CLIENT_RECT,
+      id: ChromeTabs.MESSAGE_ID.GET_HIGHLIGHT_OFFSET,
       highlightId: highlightId,
     })
   }
@@ -372,7 +371,7 @@ class ChromeTabs {
   /**
    * Get the #id of the highlight that is currently being hovered over
    * 
-   * @returns {Promise<String|Null>} id or null
+   * @returns {Promise<String>} id or empty string if none
    * @memberof ChromeTabs
    */
   getHoveredHighlightID() {
@@ -449,7 +448,7 @@ class ChromeTabs {
 	 * Get a sort comparison function, which takes a document and returns a promise that resolves to a comparable value
    * 
 	 * @param {string} sortby - type of sort
-	 * @return {Function<Promise>} Function that returns a promise that gets a comparable value
+	 * @return {Function<Promise<*>>} Function that returns a promise that gets a comparable value
 	 */
 	getComparisonFunction(sortby) {
 		switch(sortby) {
@@ -462,9 +461,9 @@ class ChromeTabs {
                 // resolve to top of bounding client rect
                 return this.isHighlightInDOM(doc._id).then(isInDOM => {
                     return isInDOM ?
-                      this.getHighlightBoundingClientRect(doc._id) :
+                      this.getHighlightOffset(doc._id) :
                       Promise.reject(new Error())
-                }).then(rect => rect.top)
+                }).then(offset => offset.top)
             }
 
         case "style":
@@ -579,13 +578,19 @@ ChromeTabs.OVERVIEW_FORMAT = {
 }
 
 ChromeTabs.DEFAULT_SCRIPTS = [
-  "js/main/chrome_storage.js", "js/main/chrome_highlight_storage.js",
+  "js/main/chrome_storage.js", 
+  "js/main/chrome_highlight_storage.js",
+  "js/main/chrome_tabs.js", // just for static properties
   
   "js/utils.js",
-  "js/stylesheet.js",
+  // "js/stylesheet.js",
+  "js/style_sheet_manager.js",
   "js/content_script/range_utils.js",
-  "js/content_script/highlighter.js",
-  "js/content_script/content_script.js"
+  
+  // "js/content_script/highlighter.js",
+  "js/content_script/marker.js",
+  "js/content_script/main.js",
+  // "js/content_script/content_script.js"
 ]
 
 ChromeTabs.MESSAGE_ID = {
@@ -597,8 +602,8 @@ ChromeTabs.MESSAGE_ID = {
   SELECT_HIGHLIGHT: 'select_highlight',
   SELECT_RANGE: 'select_range',
   IS_HIGHLIGHT_IN_DOM: 'is_highlight_in_dom',
-  SCROLL_TO: 'scroll_to',
+  SCROLL_TO_HIGHLIGHT: 'scroll_to_highlight',
   GET_NODE_ATTRIBUTE_VALUE: 'get_node_attribute_value',
-  GET_BOUNDING_CLIENT_RECT: 'get_bounding_client_rect',
+  GET_HIGHLIGHT_OFFSET: 'get_highlight_offset',
   GET_HOVERED_HIGHLIGHT_ID: 'get_hovered_highlight_id'
 }

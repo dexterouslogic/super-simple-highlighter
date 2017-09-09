@@ -71,16 +71,16 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				
 				return new ChromeHighlightStorage().getAll()
 			}).then(items => {
-				const styleSheet = new SS(this.document)
+				const styleSheetManager = new StyleSheetManager(this.document)
 				
 				// adds style element to document
-				styleSheet.init()
+				styleSheetManager.init()
 
 				// 1 - shared highlight styles
 				let key = ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE
 
 				if (items[key]) {
-					styleSheet.setRule({
+					styleSheetManager.setRule({
 						className: "highlight",
 						style: items[key]
 					})
@@ -90,7 +90,7 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				key = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
 				if (items[key]) {
 						for (const hd of items[key]) {
-							styleSheet.setRule(hd)
+							styleSheetManager.setRule(hd)
 						}
 				}
 		

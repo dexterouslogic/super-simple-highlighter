@@ -57,7 +57,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
       this.scope.highlightClassName = StringUtils.newUUID()
       this.scope.highlightDefinitions = []
 
-      this.styleSheet = new SS(document).init()
+      this.styleSheetManager = new StyleSheetManager(document).init()
 
       // always ignore box shadow property of highlight
       this.disableBoxShadow = true
@@ -149,11 +149,11 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
         const highlightClassName = this.scope.highlightClassName
 
         if (change.oldValue) {
-          this.styleSheet.deleteRule(highlightClassName)
+          this.styleSheetManager.deleteRule(highlightClassName)
         }
 
         if (change.newValue) {
-          this.styleSheet.setRule({
+          this.styleSheetManager.setRule({
             className: highlightClassName,
             style: change.newValue,
             disableBoxShadow: this.disableBoxShadow,
@@ -172,7 +172,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
 
       if (change.oldValue) {
           for (const {className} of change.oldValue) {
-            this.styleSheet.deleteRule(className)
+            this.styleSheetManager.deleteRule(className)
           }
       }
 
@@ -229,7 +229,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
       for (const hd of newHighlightDefinitions) {
           hd.disableBoxShadow = this.disableBoxShadow
 
-          this.styleSheet.setRule(hd)
+          this.styleSheetManager.setRule(hd)
       }
     }
 

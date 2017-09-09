@@ -26,7 +26,7 @@ var _contentScript = {
      * A random string applied as an additional class name to all highlights,
      * allowing .on() event handling, and shared style
      */
-    highlightClassName: null,
+    sharedHighlightClassName: null,
 
     /**
      * Called when the script loads
@@ -36,10 +36,10 @@ var _contentScript = {
 
         "use strict";
         // create a random class name
-        _contentScript.highlightClassName = StringUtils.newUUID({ beginWithLetter: true })
+        _contentScript.sharedHighlightClassName = StringUtils.newUUID({ beginWithLetter: true })
 
         // the rules for the close button, which must be a child of this class
-        _stylesheet.setCloseButtonStyle(_contentScript.highlightClassName);
+        _stylesheet.setCloseButtonStyle(_contentScript.sharedHighlightClassName);
 
         //        document.body.style.backgroundColor = "#ffd";
 
@@ -56,7 +56,7 @@ var _contentScript = {
         // http://stackoverflow.com/questions/9827095/is-it-possible-to-use-jquery-on-and-hover
 
         function isHighlightElement(e) {
-            return e.classList && e.classList.contains(_contentScript.highlightClassName)
+            return e.classList && e.classList.contains(_contentScript.sharedHighlightClassName)
         }
 
         // shared options
@@ -109,7 +109,7 @@ var _contentScript = {
             if (!(target.classList.contains('close') &&
                 target.parentElement &&
                 target.parentElement.classList.contains('closeable') &&     // only first highlight span is closeable
-                target.parentElement.classList.contains(`${_contentScript.highlightClassName}`)))
+                target.parentElement.classList.contains(`${_contentScript.sharedHighlightClassName}`)))
                 { return }
             
             event.preventDefault();
@@ -123,7 +123,7 @@ var _contentScript = {
 
             // tell event page to delete the highlight
             chrome.runtime.sendMessage({
-                id: "on_click_delete_highlight",
+                id: "delete_highlight",
                 highlightId: highlightId
             });
             // target.style.setProperty('transform', 'scale(5)')
@@ -179,11 +179,23 @@ var _contentScript = {
             return null
         }
 
+        let elms = new Marker(document).mark(range, id, 'span')
+        for (const {classList} of elms) { classList.add(_contentScript.sharedHighlightClassName, className) }
+        if (elms.length === 0) {
+            return null
+        }
+        let firstSpan = elms[0]
+
+        
         // create span(s), with 2 class names
-        let firstSpan = _highlighter.create(range, id, [
-            _contentScript.highlightClassName,
-            className
-        ]);
+        // let firstSpan = _highlighter.create(range, id, [
+        //     _contentScript.highlightClassName,
+        //     className
+        // ]);
+
+        if (!firstSpan) {
+            return null
+        }
 
         // 1 - only the first of the chain of spans should get the closeable class
         firstSpan.setAttribute("tabindex", "0");
@@ -205,7 +217,8 @@ var _contentScript = {
      */
     deleteHighlight: function (id) {
         "use strict";
-        return _highlighter.del(id);
+        return new Marker(document).unmark(id)
+        // return _highlighter.del(id);
     },
 
     /**
@@ -262,8 +275,9 @@ var _contentScript = {
      * @param className class name to replace
      */
     updateHighlight: function (id, className) {
+        return new Marker(document).update(id, className, _contentScript.sharedHighlightClassName)
         // remember to also include the shared highlights class name
-        return _highlighter.update(id, className)
+        // return _highlighter.update(id, className)
     },
 
     /**
@@ -487,7 +501,7 @@ var _contentScript = {
      * Get the ID of the highlight currently being hovered over
      */
     getHoveredHighlightID: function () {
-        const elms = document.querySelectorAll(`.${_contentScript.highlightClassName}:hover`);
+        const elms = document.querySelectorAll(`.${_contentScript.sharedHighlightClassName}:hover`);
         const lastHoveredElement = elms[elms.length - 1]
 
         if (!lastHoveredElement) {
@@ -521,13 +535,13 @@ var _contentScript = {
                 }
 
                 if (c.oldValue) {
-                    _stylesheet.clearHighlightStyle(_contentScript.highlightClassName)
+                    _stylesheet.clearHighlightStyle(_contentScript.sharedHighlightClassName)
                     _stylesheet.updateInnerTextForHighlightStyleElement()
                 }
 
                 if (c.newValue) {
                     return _stylesheet.setHighlightStyle({
-                        [HighlightDefinitionFactory.KEYS.CLASS_NAME]: _contentScript.highlightClassName,
+                        [HighlightDefinitionFactory.KEYS.CLASS_NAME]: _contentScript.sharedHighlightClassName,
                         [HighlightDefinitionFactory.KEYS.STYLE]: c.newValue,
                         [HighlightDefinitionFactory.KEYS.DISABLE_BOX_SHADOW]: !enableHighlightBoxShadow,
                     }).then(() => {

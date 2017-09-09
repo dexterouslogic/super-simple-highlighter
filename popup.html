@@ -24,7 +24,7 @@
 	<script src="js/main/chrome_highlight_storage.js"></script>
 
 	<!-- <script src="js/stylesheet.js"></script> -->
-	<script src="js/ss.js"></script>
+	<script src="js/style_sheet_manager.js"></script>
 	<script src="js/utils.js"></script>
 
 	<script src="js/ng-modules/i18n_filters.js"></script>
@@ -210,7 +210,7 @@
 									<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu2">
 										<li ng-repeat="d in highlightDefinitions" role="presentation">
 											<!-- Index - title -->
-											<a role="menuitem" tabindex="-1" href="" ng-click="doc.isInDOM === false ? null : onClickDefineHighlight(doc,  [$index])">
+											<a role="menuitem" tabindex="-1" href="" ng-click="doc.isInDOM === false ? null : onClickDefineHighlight(doc, highlightDefinitions[$index])">
 														<span class="redefinition-well-sm {{highlightClassName}} {{d.className}}">{{$index + 1}}</span>
 														<span>{{d.title}}</span>
 														

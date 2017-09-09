@@ -17,7 +17,7 @@ class RuntimeCallback {
    * Fired when a message is sent from either an extension process (by runtime.sendMessage) or a content script (by tabs.sendMessage).
    * 
    * @static
-   * @param {any} [message] - The message sent by the calling script.
+   * @param {{id: string}} [message] - The message sent by the calling script.
    * @param {Object} sender 
    * @param {Function} sendResponse - Function to call (at most once) when you have a response. The argument should be any JSON-ifiable object.
    *  If you have more than one onMessage listener in the same document, then only one may send a response.
@@ -26,10 +26,12 @@ class RuntimeCallback {
    * @memberof RuntimeCallback
    */
   static onMessage(message, sender, sendResponse) {
+    let response
+
     switch (message.id) {
       case RuntimeCallback.MESSAGE.DELETE_HIGHLIGHT:
         // message.highlightId is the document id to be deleted
-        return ChromeTabs.queryActiveTab().then(tab => {
+        ChromeTabs.queryActiveTab().then(tab => {
           if (!tab) {
             return
           }
@@ -37,15 +39,24 @@ class RuntimeCallback {
           return new Highlighter(tab.id).delete(message.highlightId)
         })
 
+        response = true
+        break
+
       default:
         throw `Unhandled message: sender=${sender}, id=${message.id}`
     }
+
+    console.assert(typeof response !== 'undefined')
+    sendResponse(response)
+    
+    // synchronous, no response
+    return false
   }
 }
 
 // messages sent to the event page (from content script)
 RuntimeCallback.MESSAGE = {
-  DELETE_HIGHLIGHT: 'on_click_delete_highlight',
+  DELETE_HIGHLIGHT: 'delete_highlight',
 }
 
 //
