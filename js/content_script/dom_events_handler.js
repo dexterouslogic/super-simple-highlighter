@@ -141,11 +141,15 @@ class DOMEventsHandler {
    */
   onClickClose() {
     // id parent element will be the first of the chain of mark elements
-    const firstElm = /** @type {HTMLButtonElement} */ (event.target).parentElement
+    const closeElm = /** @type {HTMLButtonElement} */ (event.target)
+    const firstElm = /** @type {HTMLElement} */ closeElm.parentElement
 
     if (!firstElm || !firstElm.id) {
       return Promise.reject(new Error('unknown highlight id'))
     }
+
+    // if the element still contained a close button it would be left behind when the nodes merge back together
+    closeElm.remove()
 
     // send message to event page
     return ChromeRuntimeHandler.deleteHighlight(firstElm.id)
