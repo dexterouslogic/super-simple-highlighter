@@ -60,6 +60,8 @@ class ChromeStorageHandler {
     if (areaName !== 'sync') {
       return Promise.resolve()
     }
+    
+    let enableHighlightBoxShadow
 
     // if changes isn't defined (which only happens when we manually call this), load values from storage
     return (typeof changes === 'object' ?
@@ -77,7 +79,9 @@ class ChromeStorageHandler {
       }).then(c => changes = c)
     ).then(() => {
       return new ChromeStorage().get(ChromeStorage.KEYS.ENABLE_HIGHLIGHT_BOX_SHADOW)
-    }).then(enableHighlightBoxShadow => {
+    }).then(enable => {
+      enableHighlightBoxShadow = enable 
+      
       // 1 - process shared style first
       return new Promise(resolve => {
         const change = changes[ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]
@@ -99,40 +103,38 @@ class ChromeStorageHandler {
             className: className,
             style: change.newValue,
             disableBoxShadow: !enableHighlightBoxShadow
-          }).then(() => resolve())
-        }
-        // .then(() => {
-        //     _stylesheet.updateInnerTextForHighlightStyleElement()
-        //     resolve()
-        // })
-      }).then(() => {
-        // 2 - process specific highlight styles
-        const change = changes[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
-
-        if (!change) {
-          return
+          }).then(() => {
+            resolve()
+          })
         }
 
-        if (change.oldValue) {
-          for (const highlightDefinition of change.oldValue) {
-            this.styleSheetManager.deleteRule(highlightDefinition.className)
-          }
-
-          // _stylesheet.updateInnerTextForHighlightStyleElement()
-        }
-
-        if (change.newValue) {
-          for (const highlightDefinition of change.newValue) {
-              highlightDefinition.disableBoxShadow = !enableHighlightBoxShadow
-          }
-
-          return Promise.all(change.newValue.map(hd => this.styleSheetManager.setRule(hd)))/*.then(() => {
-              _stylesheet.updateInnerTextForHighlightStyleElement()
-          })*/
-        }
+        resolve()
       })
+    }).then(() => {
+      // 2 - process specific highlight styles
+      const change = changes[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
 
-      // TODO: then updateInnerTextForHighlightStyleElement()
+      if (!change) {
+        return
+      }
+
+      if (change.oldValue) {
+        for (const highlightDefinition of change.oldValue) {
+          this.styleSheetManager.deleteRule(highlightDefinition.className)
+        }
+      }
+
+      if (change.newValue) {
+        for (const highlightDefinition of change.newValue) {
+            highlightDefinition.disableBoxShadow = !enableHighlightBoxShadow
+        }
+
+        return Promise.all(change.newValue.map(hd => this.styleSheetManager.setRule(hd)))
+      }
+    }).then(() => {
+      // the contents of the style element are correct, but currently only in the DOM. To be included
+      // in a saved file they need to be explicitly be made the text node content of the style element.
+      this.styleSheetManager.textualizeStyleElement()
     })
   } // end onStorageChange()
 }
