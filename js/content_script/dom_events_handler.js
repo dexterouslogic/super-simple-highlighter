@@ -57,14 +57,14 @@ class DOMEventsHandler {
       return
     }
 
-    // if the element has a close button we don't need to do anything, unless it had a self destruction timer
     const firstElm = elms[0]
     let closeElm = /** @type {HTMLButtonElement} */ (firstElm.querySelector(`.${StyleSheetManager.CLASS_NAME.CLOSE}`))
-
+    
+    // if the element has a close button we can cancel the timer and leave it be
     if (closeElm) {
-      // if it has a timer, clear it
       const name = DOMEventsHandler.CLOSE_BUTTON.TIMER_ID_ATTRIBUTE_NAME
-
+      
+      // if it has a timer, clear it
       if (closeElm.dataset[name]) {
         clearTimeout(parseInt(closeElm.dataset[name]))
         
@@ -78,7 +78,7 @@ class DOMEventsHandler {
     closeElm = this.document.createElement('button')
 
     closeElm.classList.add(StyleSheetManager.CLASS_NAME.CLOSE)
-    closeElm.addEventListener('click', this.onClickClose, { capture: true, passive: false })
+    closeElm.addEventListener('click', this.onClickClose, { passive: true, capture: true, once: true })
 
     firstElm.appendChild(closeElm)
   }
@@ -116,9 +116,18 @@ class DOMEventsHandler {
 
     // timer to remove close button
     closeElm.dataset[name] = setTimeout(() => {
+      // remove timer id attrbiute
       delete closeElm.dataset[name]
+    
+      // prepare popout
+      closeElm.addEventListener('animationend', (/** @type {AnimationEvent} */ event) => {
+        // remove close button
+        closeElm.remove()
+      }, {once: true, capture: false, passive: true})
+    
+      // start animation
+      closeElm.style.animation = this.styleSheetManager.buttonPopOutAnimation
 
-      closeElm.remove()
     }, DOMEventsHandler.CLOSE_BUTTON.TIMEOUT).toString()
   }
 
@@ -149,5 +158,5 @@ DOMEventsHandler.CLOSE_BUTTON = {
   // name of data attribute containing hysteresis timer id
   TIMER_ID_ATTRIBUTE_NAME: 'timerId',
   // hysteresis time timoout
-  TIMEOUT: 1000
+  TIMEOUT: 500
 }

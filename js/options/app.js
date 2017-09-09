@@ -31,3 +31,19 @@ appModule.config( [ '$compileProvider', function( $compileProvider ) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file|mailto|chrome-extension):/);
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
 }])
+
+// allow tab selection from the location hash
+!function () {
+	const anchorElm = /** @type {HTMLAnchorElement} */ 
+		(location.hash && (document.querySelector(`a[href="${location.hash}"]`))) || null
+
+	if (!anchorElm) {
+		return
+	}
+
+	anchorElm.click()
+		
+	// if (location.hash) {
+	setTimeout(() => window.scrollTo(0, 0), 1)
+	// }
+}()

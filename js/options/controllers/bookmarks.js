@@ -376,12 +376,14 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
      * @memberof Controller
      */
     onMouseEnterBookmarks() {
-      const target = event.target
+      const target = /** @type {HTMLElement} **/ (event.target)
       
-      if (!(target.classList && target.classList.contains('page-text-list-item'))) {
+      if (!target.classList.contains('page-text-list-item')) {
           return
       }
   
+      // TODO: add/remove button elements dynamically
+
       // remove hysteresis timer
       if (typeof target[Controller.HYSTERESIS_TIMER.ID] === 'number') {
           clearTimeout(target[Controller.HYSTERESIS_TIMER.ID])
@@ -390,7 +392,8 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
       }
   
       // show close button
-      target.querySelector('.list-item-close').style.setProperty('opacity', '1')
+      const elm = /** @type {HTMLButtonElement} **/ (target.querySelector('.list-item-close'))
+      elm.style.setProperty('opacity', '1')
     }
 
     /**
@@ -399,13 +402,13 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
      * @memberof Controller
      */
     onMouseLeaveBookmarks() {
-      const target = event.target
+      const target = /** @type {HTMLElement} **/ (event.target)
       
-      if (!(target.classList && target.classList.contains('page-text-list-item'))) {
+      if (!target.classList.contains('page-text-list-item')) {
           return
       }
   
-      const elm = target.querySelector('.list-item-close')
+      const elm = /** @type {HTMLButtonElement} **/ (target.querySelector('.list-item-close'))
   
       // add a timeout once we leave the element. If we return we cancel the transition out
       target[Controller.HYSTERESIS_TIMER.ID] = setTimeout(() => {

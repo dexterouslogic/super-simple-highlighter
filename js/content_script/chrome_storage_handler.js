@@ -95,7 +95,6 @@ class ChromeStorageHandler {
 
         if (change.oldValue) {
           this.styleSheetManager.deleteRule(className)
-            // _stylesheet.updateInnerTextForHighlightStyleElement()
         }
 
         if (change.newValue) {

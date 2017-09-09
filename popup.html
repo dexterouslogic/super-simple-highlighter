@@ -37,7 +37,7 @@
 		<!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
 		<!--Header-->
 		<div class="clearfix header">
-			<div class="dropdown header-brand btn-group">
+			<div class="dropdown btn-group">
 				<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true"
 				 aria-expanded="false">
 					<span class="glyphicon glyphicon-menu-hamburger"></span> 
@@ -86,6 +86,10 @@
 					</li>
 				</ul>
 			</div>
+
+			<a class="btn btn-sm btn-default button-partner mr-auto" href="options.html#bookmarks" target="_blank">
+				<span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+			</a>
 
 			<div class="header-control header-control-group">
 				<!-- <label for="sel1" styl>Sort By</label>  -->
@@ -156,23 +160,19 @@
 				<ol class="list-unstyled">
 					<!--http://stackoverflow.com/questions/13813254/how-do-i-conditionally-apply-css-styles-in-angularjs-->
 					<!--isInDOM defaults to undefined-->
-					<li ng-repeat="doc in filteredDocs = (group.docs | filter:filters.text)" id="{{doc._id}}" class="doc" ng-class="{'not-in-dom': doc.isInDOM === false}"
-					 ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
+					<li ng-repeat="doc in filteredDocs = (group.docs | filter:filters.text)" id="{{doc._id}}" class="doc" 
+						ng-class="{'not-in-dom': doc.isInDOM === false}" ng-mouseenter="doc.hover=true" ng-mouseleave="doc.hover=false">
 						<!--Text and floating button-->
-						<div class="highlight {{doc.className}} highlight-text-container pointer" ng-click="doc.isInDOM === false ? null : onClickHighlight(doc)">
-							<!--Delete Button-->
-							<button type="button" class="close" title="Remove Highlight" ng-click="onClickRemoveHighlight(doc)" ng-class="{'sr-only sr-only-focusable': !doc.hover}">
-								<span aria-hidden="true">&times;</span>
-								<span class="sr-only"> {{ 'close' | i18n }}</span>
-							</button>
+						<div class="highlight highlight-text-container pointer {{doc.className}} {{sharedHighlightClassName}} " 
+							ng-click="onClickHighlight(doc)" ng-mouseenter="onMouseEnterHighlight(doc)" ng-mouseleave="onMouseLeaveHighlight()">
 							<!--Highlight Text Content-->
-							<span class="highlight-text">
+							<p class="highlight-text">
 								{{doc.text && doc.text.substring(0, popupHighlightTextMaxLength) || "&nbsp;"}}
-								<span ng-show="doc.text && doc.text.length > popupHighlightTextMaxLength">
-									&#8230;
-									<a href="#" class="more" data-ng-click="onClickExpandHighlight(doc)">{{ 'more' | i18n }}</a>
+								<!-- text expander -->
+								<span ng-show="doc.text && doc.text.length > popupHighlightTextMaxLength">&#8230;
+									<a href="#" class="more" title="{{ 'more' | i18n }}" ng-click="onClickExpandHighlight(doc)">&#x25BC;</a>
 								</span>
-							</span>
+							</p>
 						</div>
 
 						<!--InfoBar-->
@@ -210,7 +210,7 @@
 									<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu2">
 										<li ng-repeat="d in highlightDefinitions" role="presentation">
 											<!-- Index - title -->
-											<a role="menuitem" tabindex="-1" href="" ng-click="doc.isInDOM === false ? null : onClickDefineHighlight(doc, highlightDefinitions[$index])">
+											<a role="menuitem" tabindex="-1" href="" ng-click="onClickDefineHighlight(doc, highlightDefinitions[$index])">
 														<span class="redefinition-well-sm {{highlightClassName}} {{d.className}}">{{$index + 1}}</span>
 														<span>{{d.title}}</span>
 														

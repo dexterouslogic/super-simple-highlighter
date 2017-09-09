@@ -23,6 +23,7 @@ const controllerModule = angular.module('controller', [])
 controllerModule.controller('popupController', ["$scope", function ($scope) {
 	/**
 	 * @typedef {Object} Scope
+	 * @prop {string} sharedHighlightClassName
 	 * @prop {Object} manifest
 	 * @prop {Object} commands
 	 * @prop {Sort} sort
@@ -60,6 +61,10 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 			this.scope = scope
 			this.document = document
 
+			// not initialized yet
+			this.styleSheetManager = new StyleSheetManager(this.document)
+
+			this.scope.sharedHighlightClassName = this.styleSheetManager.sharedHighlightClassName
 			this.scope.manifest = chrome.runtime.getManifest()
 			this.scope.commands = {}
 			// this.scope.sort = {}
@@ -90,6 +95,9 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 
 			// add function references to scope
 			for (const func of [
+				this.onMouseEnterHighlight,
+				this.onMouseLeaveHighlight,
+
 				this.onClickHighlight,
 				this.onClickExpandHighlight,
 				this.onClickRemoveHighlight,
@@ -120,21 +128,19 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		init() {
 			// required in later promise
 			let activeTabURL
-
+			
+			// adds style element to document
+			this.styleSheetManager.init()
+			
 			// async
 			// 1 - get current highlight styles, and apply to DOM
 			return new ChromeHighlightStorage().getAll().then(items => {
-					const styleSheetManager = new StyleSheetManager(this.document)
-
-					// adds style element to document
-					styleSheetManager.init()
-
 					// 1 - shared highlight styles
 					let key = ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE
 
 					if (items[key]) {
-						styleSheetManager.setRule({
-							className: "highlight",
+						this.styleSheetManager.setRule({
+							className: this.styleSheetManager.sharedHighlightClassName,// "highlight",
 							style: items[key]
 						})
 					}
@@ -143,7 +149,7 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 					key = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
 					if (items[key]) {
 							for (const hd of items[key]) {
-								styleSheetManager.setRule(hd)
+								this.styleSheetManager.setRule(hd)
 							}
 					}
 			
@@ -351,6 +357,91 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 			})
 		} // end func
 
+		// mouse event handlers
+
+		/**
+		 * Mouse entered the 'div' containing the 'span' containing highlight text
+		 * 
+		 * @param {Object} doc 
+		 * @memberof Controller
+		 */
+		onMouseEnterHighlight(doc) {
+			const target = /** @type {HTMLElement} **/ (event.target)
+			
+			// ignore children
+			if (!target.classList.contains('highlight')) {
+				return
+			}
+			
+			console.assert(target.tagName === 'DIV')
+
+			const closeClassName = StyleSheetManager.CLASS_NAME.CLOSE
+			let closeElm = /** @type {HTMLButtonElement} */ (target.querySelector(`.${closeClassName}`))
+
+			// if the element has a close button we can cancel the timer and leave it be
+			if (closeElm) {
+				const name = Controller.CLOSE_BUTTON.TIMER_ID_ATTRIBUTE_NAME
+				
+				// if it has a timer, clear it
+				if (closeElm.dataset[name]) {
+					clearTimeout(parseInt(closeElm.dataset[name]))
+					
+					delete closeElm.dataset[name]
+				}
+	
+				return
+			}
+
+			// add the close button
+			closeElm = this.document.createElement('button')
+			 
+			closeElm.classList.add(closeClassName)
+			closeElm.addEventListener('click', this.onClickRemoveHighlight.bind(this, doc), { passive: true, capture: true, once: true })
+			 
+			target.appendChild(closeElm)
+		}
+
+		/**
+		 * Mouse left the 'div' containing the 'span' containing highlight text
+		 * 
+		 * @memberof Controller
+		 */
+		onMouseLeaveHighlight() {
+			const target = /** @type {HTMLElement} **/ (event.target)
+			
+			// ignore children
+			if (!target.classList.contains('highlight')) {
+				return
+			}
+
+			console.assert(target.tagName === 'DIV')
+
+			let closeElm = /** @type {HTMLButtonElement} */ (target.querySelector(`.${StyleSheetManager.CLASS_NAME.CLOSE}`))
+			
+			if (!closeElm) {
+				return
+			}
+	
+			// name of data attribute storing hysteresis timer id
+			const name = Controller.CLOSE_BUTTON.TIMER_ID_ATTRIBUTE_NAME
+			
+			// timer to remove close button
+			closeElm.dataset[name] = setTimeout(() => {
+				// remove timer id attrbiute
+				delete closeElm.dataset[name]
+	
+				// prepare popout
+				closeElm.addEventListener('animationend', (/** @type {AnimationEvent} */ event) => {
+					// remove close button
+					closeElm.remove()
+				}, {once: true, capture: false, passive: true})
+			
+				// start animation
+				closeElm.style.animation = this.styleSheetManager.buttonPopOutAnimation
+	
+			}, Controller.CLOSE_BUTTON.TIMEOUT).toString()
+		}
+
 		// click onhandlers
 
 		/**
@@ -362,7 +453,9 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		 */
 		onClickHighlight(doc) {
 			// if not in the DOM it shouldn't 
-			console.assert(doc.isInDOM)
+			if (!doc.isInDOM) {
+				return
+			}
 
 			// scroll to the highlight, in the active tab
 			return ChromeTabs.queryActiveTab().then(tab => {
@@ -382,9 +475,7 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		 * @memberof Controller
 		 */
 		onClickRemoveHighlight(doc) {
-			// don't propagate to click handler of parent
-			event.stopPropagation()
-
+			// doc doesn't have to be in DOM to be removed from DB
 			return ChromeTabs.queryActiveTab().then(tab => {
 				if (!tab) {
 					return Promise.reject(new Error('no active tab'))
@@ -420,7 +511,7 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		 */
 		onClickExpandHighlight(doc) {
 			// don't navigate
-			event.preventDefault()
+			event.stopPropagation()
 
 			// replace the inner text of the span associated with the highlight
 			
@@ -454,7 +545,9 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		 * @memberof Controller
 		 */
 		onClickSelectHighlight(doc) {
-			console.assert(doc.isInDOM)
+			if (!doc.isInDOM) {
+				return Promise.reject(new Error('not in DOM'))
+			}
 
 			return ChromeTabs.queryActiveTab().then(tab => {
 				if (!tab) {
@@ -507,6 +600,10 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		 * @memberof Controller
 		 */
 		onClickDefineHighlight(doc, newDefinition) {
+			if (!doc.isInDOM) {
+				return Promise.reject(new Error('not in DOM'))
+			}
+
 			return ChromeTabs.queryActiveTab().then(tab => {
 				if (!tab) {
 					return Promise.reject(new Error('no active tab'))
@@ -694,9 +791,17 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		onClickDismissFileAccessRequiredWarning() {
 			this.fileAccessRequiredWarningVisible = false
 		}
-	}
+	} // end class Controller
 
 	// static properties
+
+	Controller.CLOSE_BUTTON = {
+		// name of data attribute containing hysteresis timer id
+		TIMER_ID_ATTRIBUTE_NAME: 'timerId',
+		// hysteresis time timoout
+		TIMEOUT: 500
+	}
+
 
 	Controller.SCOPE = {
 		NAME: {

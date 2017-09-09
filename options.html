@@ -20,26 +20,6 @@
 	<script src="static/js/pouchdb-6.3.4.min.js"></script>
 	<script src="static/js/pouchdb.replication-stream.min.js"></script>
 	<script src="static/js/pouchdb.load.min.js"></script>
-
-	<script src="js/main/db.js"></script>
-	<script src="js/main/highlighter.js"></script>
-	<script src="js/main/chrome_tabs.js"></script>
-	<script src="js/main/chrome_storage.js"></script>
-	<script src="js/main/chrome_highlight_storage.js"></script>
-
-	<script src="js/style_sheet_manager.js"></script>
-	<script src="js/utils.js"></script>
-
-	<script src="js/ng-modules/i18n_filters.js"></script>
-	<script src="js/options/app.js"></script>
-	<script src="js/options/filters.js"></script>
-	<script src="js/options/controllers/styles.js"></script>
-	<script src="js/options/controllers/bookmarks.js"></script>
-	<script src="js/options/controllers/advanced.js"></script>
-	<script src="js/options/controllers/about.js"></script>
-
-	<script src="js/options/controllers.js"></script>
-
 </head>
 
 <body>
@@ -82,10 +62,14 @@
 			<!--Nav Pills-->
 			<div class="col-xs-2">
 				<ul class="nav nav-pills nav-stacked" role="tablist">
-					<li class="active"><a href="#styles" role="tab" data-toggle="pill">{{ 'styles' | i18n }}</a></li>
-					<li><a href="#bookmarks" role="tab" data-toggle="pill">{{ 'bookmarks' | i18n }}</a></li>
-					<li><a href="#advanced" role="tab" data-toggle="pill">{{ 'advanced' | i18n }}</a></li>
-					<li><a href="#about" role="tab" data-toggle="pill">{{ 'about' | i18n }}</a></li>
+					<li class="active"><a href="#styles" role="tab" data-toggle="pill"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+						{{ 'styles' | i18n }}</a></li>
+					<li><a href="#bookmarks" role="tab" data-toggle="pill"><span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+						{{ 'bookmarks' | i18n }}</a></li>
+					<li><a href="#advanced" role="tab" data-toggle="pill"><span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
+						{{ 'advanced' | i18n }}</a></li>
+					<li><a href="#about" role="tab" data-toggle="pill"><span class="glyphicon glyphicon-education" aria-hidden="true"></span>
+						{{ 'about' | i18n }}</a></li>
 				</ul>
 			</div>
 
@@ -398,6 +382,26 @@
 		</div>
 
 	</div>
+
+
+	<script src="js/main/db.js"></script>
+	<script src="js/main/highlighter.js"></script>
+	<script src="js/main/chrome_tabs.js"></script>
+	<script src="js/main/chrome_storage.js"></script>
+	<script src="js/main/chrome_highlight_storage.js"></script>
+
+	<script src="js/style_sheet_manager.js"></script>
+	<script src="js/utils.js"></script>
+
+	<script src="js/ng-modules/i18n_filters.js"></script>
+	<script src="js/options/app.js"></script>
+	<script src="js/options/filters.js"></script>
+	<script src="js/options/controllers/styles.js"></script>
+	<script src="js/options/controllers/bookmarks.js"></script>
+	<script src="js/options/controllers/advanced.js"></script>
+	<script src="js/options/controllers/about.js"></script>
+
+	<script src="js/options/controllers.js"></script>
 </body>
 
 </html>
