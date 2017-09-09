@@ -585,11 +585,16 @@ ChromeTabs.DEFAULT_SCRIPTS = [
   "js/utils.js",
   // "js/stylesheet.js",
   "js/style_sheet_manager.js",
-  "js/content_script/range_utils.js",
-  
+
   // "js/content_script/highlighter.js",
+  "js/content_script/range_utils.js",
   "js/content_script/marker.js",
+
+  "js/content_script/dom_events_handler.js",
+  "js/content_script/chrome_storage_handler.js",
+  "js/content_script/chrome_runtime_handler.js",
   "js/content_script/main.js",
+
   // "js/content_script/content_script.js"
 ]
 
