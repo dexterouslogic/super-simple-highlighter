@@ -126,32 +126,34 @@ class ChromeTabs {
   //
 
   /**
-   * TODO
+   * Send message to content script
+   * 
    * @typedef {Object} Message
    * @prop {string} id - predefined type of message
-   */
+   * @memberof ChromeTabs
 
-  /**
-   * Send a message synchronously to a tab
-   * Executes default scripts if response implies there was no handler
-   * 
-   * @param {Object} message - message sent to tab content script
-   * @param {Object} [options] [{ executeDefaultScript = false }={}] 
-   * @returns {Promise<*>} message response
+   * @typedef {Object} MessageOptions
+   * @prop {boolean} [ping] - ping the script beforehand
+   * @memberof ChromeTabs
+   *
+   * @param {Message} message - message to send
+   * @param {MessageOptions} [options={ ping = false }] 
+   * @returns 
    * @memberof ChromeTabs
    */
-  sendMessage(message, { executeDefaultScript = false } = {}) {
-    return (executeDefaultScript ? this.executeDefaultScript() : Promise.resolve()).then(() => {
-      return this.sendMessageInternal(message)
-    }).catch(e => {
-      if (!executeDefaultScript) {
-        return this.sendMessage(message, { executeDefaultScript: true })
+  sendMessage(message, { ping = true } = {}) {
+    return (ping ? 
+      this._sendMessage({ id: ChromeTabs.MESSAGE_ID.PING}) :
+      Promise.resolve(true)
+    ).then(pong => {
+      if (!pong) {
+        return this.executeDefaultScript()
       }
-      
-      throw (e)
+    }).then(() => {
+      return this._sendMessage(message)
     })
   }
-  
+
   /**
    * Companion method for `sendMessage()`
    * 
@@ -160,7 +162,7 @@ class ChromeTabs {
    * @returns {Promise<*>} resolves if no last error defined and the result is defined (handled)
    * @memberof ChromeTabs
    */
-  sendMessageInternal(message) {
+  _sendMessage(message) {
     return new Promise((resolve, reject) => {
       // send message to page
       chrome.tabs.sendMessage(this.tabId, message, response => {
@@ -170,13 +172,6 @@ class ChromeTabs {
           return
         }
 
-        // all messages must send back a defined result (even if null)
-        // not handling message is a rejection case
-        if (typeof response === 'undefined') {
-          reject(new Error("Undefined response"))
-          return
-        }
-        
         resolve(response)
       })
     })
@@ -199,16 +194,17 @@ class ChromeTabs {
    * @param {XRange} range - range object with xPath selection range
    * @param {string} className - name of class defining style of highlight
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
+   * @param {MessageOptions} [options] - message options
    * @returns {Promise<boolean>} true if highlight span could be created 
    * @memberof ChromeTabs
    */
-  createHighlight(range, className, highlightId) {
+  createHighlight(range, className, highlightId, options) {
     return this.sendMessage({
       id: ChromeTabs.MESSAGE_ID.CREATE_HIGHLIGHT,
       range: range,
       highlightId: highlightId,
       className: className
-    })
+    }, options)
   }
 
   /**
@@ -216,29 +212,31 @@ class ChromeTabs {
    * 
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
    * @param {string} className - name of class defining style of highlight
+   * @param {MessageOptions} [options] - message options
    * @returns {Promise<boolean>} true if update succeeded
    * @memberof ChromeTabs
    */
-  updateHighlight(highlightId, className) {
+  updateHighlight(highlightId, className, options ) {
     return this.sendMessage({
       id: ChromeTabs.MESSAGE_ID.UPDATE_HIGHLIGHT,
       highlightId: highlightId,
       className: className
-    })
+    }, options)
   }
 
   /**
    * Delete highlight in DOM
    * 
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
+   * @param {MessageOptions} [options] - message options
    * @returns {Promise<boolean>} true if delete succeeded
    * @memberof ChromeTabs
    */
-  deleteHighlight(highlightId) {
+  deleteHighlight(highlightId, options) {
     return this.sendMessage({
       id: ChromeTabs.MESSAGE_ID.DELETE_HIGHLIGHT,
       highlightId: highlightId,
-    })
+    }, options)
   }
 
   //
@@ -599,6 +597,7 @@ ChromeTabs.DEFAULT_SCRIPTS = [
 ]
 
 ChromeTabs.MESSAGE_ID = {
+  PING: 'ping',
   CREATE_HIGHLIGHT: 'create_highlight',
   UPDATE_HIGHLIGHT: 'update_highlight',
   DELETE_HIGHLIGHT: 'delete_highlight',
