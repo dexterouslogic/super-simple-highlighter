@@ -61,10 +61,12 @@ class ChromeRuntimeHandler {
    * @param {Object} sender 
    * @param {Function} sendResponse - Function to call (at most once) when you have a response. 
    *   This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously 
+   * @returns {boolean} false if response is synchronous
    * @memberof ChromeRuntimeHandler
    */
   onMessage(message, sender, sendResponse) {
     let response
+    let asynchronous = false
 
     switch (message.id) {
       case ChromeTabs.MESSAGE_ID.PING:
@@ -156,20 +158,19 @@ class ChromeRuntimeHandler {
         break
 
       case ChromeTabs.MESSAGE_ID.GET_NODE_ATTRIBUTE_VALUE:
-        response = ((xpathExpression, attributeName) => {
+        response = ((expression, name) => {
           const v = document.evaluate(
-            xpathExpression,
+            expression,
             this.document,
             null,
             XPathResult.FIRST_ORDERED_NODE_TYPE,
             null
           ).singleNodeValue
 
-          return (v &&
-            v.attributes &&
-            v.attributes[message.attributeName] &&
-            v.attributes[message.attributeName].nodeValue) ||
-            null
+          // else undefined
+          if (v && v.attributes) {
+            return v.attributes[name]
+          }
         })(message.xpathExpression, message.attributeName)
         break
 
@@ -177,20 +178,17 @@ class ChromeRuntimeHandler {
         response = this.getHoveredHighlightID()
         break
 
-
       default:
         console.error(`Unhandled message`, message)
-
-        response = null
         break
     }
 
-    // an undefined response means nothing handled it, i.e. no content script injected yet
-    console.assert(typeof response !== 'undefined')
-    sendResponse(response)
+    if (!asynchronous) {
+      sendResponse(response)
+    }
 
-    // synchronous
-    return false
+    // default false
+    return asynchronous
   }
 
   //
