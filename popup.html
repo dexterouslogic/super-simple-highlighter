@@ -37,14 +37,15 @@
 		<!--Top (not nav) http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3-->
 		<!--Header-->
 		<div class="clearfix header">
+			<!-- Hamburger Menu -->
 			<div class="dropdown btn-group">
-				<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true"
+				<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="menu-hamburger" title="{{ manifest.name }}" data-toggle="dropdown" aria-haspopup="true"
 				 aria-expanded="false">
 					<span class="glyphicon glyphicon-menu-hamburger"></span> 
 					<!-- <span class="caret" style="margin-left: 6px;"></span> -->
 				</button>
 
-				<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+				<ul class="dropdown-menu" role="menu" aria-labelledby="menu-hamburger">
 					<li role="presentation">
 						<a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
 							{{'undo' | i18n}}
@@ -60,21 +61,15 @@
 
 					<li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
 					<li role="presentation">
-						<a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverview()">
-							{{'open_overview_in_new_tab' | i18n}}
-						</a>
+						<a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverview()">{{'open_overview_in_new_tab' | i18n}}</a>
 					</li>
 
 					<li role="presentation">
-						<a role="menuitem" tabindex="-1" href="" ng-click="onClickSaveOverview()">
-							{{'save_overview' | i18n}}
-						</a>
+						<a role="menuitem" tabindex="-1" href="" ng-click="onClickSaveOverview()">{{'save_overview' | i18n}}</a>
 					</li>
 
 					<li role="presentation">
-						<a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview()">
-							{{'copy_overview' | i18n}}
-						</a>
+						<a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview()">{{'copy_overview' | i18n}}</a>
 					</li>
 
 					<li role="presentation" class="divider"></li>
@@ -87,9 +82,27 @@
 				</ul>
 			</div>
 
-			<a class="btn btn-sm btn-default button-partner mr-auto" href="options.html#bookmarks" target="_blank">
-				<span class="glyphicon glyphicon-book" aria-hidden="true"></span>
-			</a>
+			<!-- options menu -->
+			<div class="dropdown btn-group ml-4 mr-auto">
+				<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="menu-options" data-toggle="dropdown" title="{{'options_page_title_prefix' | i18n}}"
+				 aria-haspopup="true" aria-expanded="false">
+					<span class="glyphicon glyphicon-cog"></span> 
+				</button>
+				<ul class="dropdown-menu" role="menu" aria-labelledby="menu-options">
+						<li role="presentation">
+							<a role="menuitem" tabindex="-1" href="/options.html#styles" target="_blank">{{'styles' | i18n}}</a>
+						</li>
+						<li role="presentation">
+							<a role="menuitem" tabindex="-1" href="/options.html#bookmarks">{{'bookmarks' | i18n}}</a>
+						</li>
+						<li role="presentation">
+							<a role="menuitem" tabindex="-1" href="/options.html#advanced">{{'advanced' | i18n}}</a>
+						</li>
+						<li role="presentation">
+							<a role="menuitem" tabindex="-1" href="/options.html#about">{{'about' | i18n}}</a>
+						</li>
+				</ul>
+			</div>
 
 			<div class="header-control header-control-group">
 				<!-- <label for="sel1" styl>Sort By</label>  -->
@@ -99,7 +112,7 @@
 					<option value="style">{{'sort_by_style' | i18n}}</option>
 				</select>
 
-				<button id="btn-sort-invert" class="btn btn-sm btn-default button-partner" type="button" title="{{'title_sort_direction' | i18n}}"
+				<button id="btn-sort-invert" class="btn btn-sm btn-default ml-4" type="button" title="{{'title_sort_direction' | i18n}}"
 				 ng-class="{'sort-inverted': sort.invert === true}" ng-click="sort.invert = !sort.invert">
 					<span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
 				</button>
