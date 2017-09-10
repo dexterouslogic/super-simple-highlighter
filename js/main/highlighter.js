@@ -178,7 +178,7 @@ class Highlighter {
 
       // ignores errors
       return Promise.all(tabIds.map(tabId => {
-        return new ChromeTabs(tabId).deleteHighlight(docId).catch(() => { /* */ })
+        return new ChromeTabs(tabId).removeHighlight(docId).catch(() => { /* */ })
       }))
     }).then(() => {
       // Get sum of create(+1) & delete(-1) verbs for a specific match
@@ -222,7 +222,7 @@ class Highlighter {
       // We can use id to remove highlights in the DOM (although some won't match)
       return Promise.all(responses
         .filter(r => r.ok)
-        .map(({ id }) => tabs.deleteHighlight(id))
+        .map(({ id }) => tabs.removeHighlight(id))
       )
     })
   }

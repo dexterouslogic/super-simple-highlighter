@@ -264,16 +264,16 @@ class ChromeTabs {
   }
 
   /**
-   * Delete highlight in DOM
+   * remove highlight in DOM
    * 
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
    * @param {MessageOptions} [options] - message options
    * @returns {Promise<boolean>} true if delete succeeded
    * @memberof ChromeTabs
    */
-  deleteHighlight(highlightId, options) {
+  removeHighlight(highlightId, options) {
     return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.DELETE_HIGHLIGHT,
+      id: ChromeTabs.MESSAGE_ID.REMOVE_HIGHLIGHT,
       highlightId: highlightId,
     }, options)
   }
@@ -463,7 +463,7 @@ class ChromeTabs {
             case DB.DOCUMENT.VERB.DELETE:
               sum--
 
-              return this.deleteHighlight(doc[DB.DOCUMENT.NAME.CORRESPONDING_DOC_ID])
+              return this.removeHighlight(doc[DB.DOCUMENT.NAME.CORRESPONDING_DOC_ID])
 
             default:
               console.error('unknown verb')
@@ -639,7 +639,7 @@ ChromeTabs.MESSAGE_ID = {
   PING: 'ping',
   CREATE_HIGHLIGHT: 'create_highlight',
   UPDATE_HIGHLIGHT: 'update_highlight',
-  DELETE_HIGHLIGHT: 'delete_highlight',
+  REMOVE_HIGHLIGHT: 'remove_highlight',
   GET_SELECTION_RANGE: 'get_selection_range',
   GET_RANGE_TEXT: 'get_range_text',
   SELECT_HIGHLIGHT: 'select_highlight',

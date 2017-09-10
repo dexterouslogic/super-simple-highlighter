@@ -78,7 +78,12 @@ class DOMEventsHandler {
     closeElm = this.document.createElement('button')
 
     closeElm.classList.add(StyleSheetManager.CLASS_NAME.CLOSE)
-    closeElm.addEventListener('click', this.onClickClose, { passive: true, capture: true, once: true })
+
+    // identify the new child as something that should be removed before unmark, because it would be merged
+    // back into the reconsituted element
+    closeElm.dataset[ChromeRuntimeHandler.DATA_ATTRIBUTE_NAME.FOREIGN] = ''
+
+    closeElm.addEventListener('click', this.onClickClose.bind(this), { passive: true, capture: true, once: true })
 
     firstElm.appendChild(closeElm)
   }
@@ -136,7 +141,7 @@ class DOMEventsHandler {
   /**
    * Clicked 'close' button of the first mark element in the chain
    * 
-   * @returns {Promise}
+   * @returns {Promise<HTMLElement[]>}
    * @memberof DOMEventsHandler
    */
   onClickClose() {
@@ -149,9 +154,10 @@ class DOMEventsHandler {
     }
 
     // if the element still contained a close button it would be left behind when the nodes merge back together
-    closeElm.remove()
+    console.assert(typeof closeElm.dataset[ChromeRuntimeHandler.DATA_ATTRIBUTE_NAME.FOREIGN] !== 'undefined')
+    // closeElm.remove()
 
-    // send message to event page
+    // send message to event page to both delete highlight from DB and the DOM
     return ChromeRuntimeHandler.deleteHighlight(firstElm.id)
   }
 }

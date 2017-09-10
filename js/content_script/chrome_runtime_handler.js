@@ -100,8 +100,8 @@ class ChromeRuntimeHandler {
         response = this.updateHighlight(message.highlightId, message.className).length > 0
         break
 
-      case ChromeTabs.MESSAGE_ID.DELETE_HIGHLIGHT:
-        response = this.deleteHighlight(message.highlightId).length > 0
+      case ChromeTabs.MESSAGE_ID.REMOVE_HIGHLIGHT:
+        response = this.removeHighlight(message.highlightId).length > 0
         break
 
       case ChromeTabs.MESSAGE_ID.SELECT_HIGHLIGHT:
@@ -242,15 +242,29 @@ class ChromeRuntimeHandler {
   }
 
   /**
-   * Remove a highlight
+   * Remove a highlight from the DOM
+   * NB: this is NOT the static version, which requests the event page delete the highlight from the page and the DB
    * 
    * @private
    * @param {string} highlightId - #id of any mark element
    * @returns {HTMLElement[]} - marked elements (all of which have been deleted)
    * @memberof ChromeRuntimeHandler
    */
-  deleteHighlight(highlightId) {
-    return new Marker(this.document).unmark(highlightId)
+  removeHighlight(highlightId) {
+    const marker = new Marker(this.document)
+
+    // if the first mark element still contained a close button it would be left behind when the nodes merge back together,
+    // so try to remove it
+    const attr = `data-${ChromeRuntimeHandler.DATA_ATTRIBUTE_NAME.FOREIGN.replace(/[A-Z]/g, "-$&")}`.toLowerCase()
+    const sel = `[${attr}]`
+
+    for (const markElm of marker.getMarkElements(highlightId)) {
+      for (const elm of markElm.querySelectorAll(sel)) {
+        elm.remove()
+      }
+    }
+
+    return marker.unmark(highlightId)
   }
 
   //
@@ -415,6 +429,8 @@ class ChromeRuntimeHandler {
 
   /**
    * Send 'delete highlight' message to event page
+   * NB: This is STATIC, and it tells the event page to DELETE the highlight from the PAGE and the DB
+   * (there is an instance version that just operates at the DOM level)
    * 
    * @static
    * @private 
@@ -437,4 +453,9 @@ class ChromeRuntimeHandler {
 // id for messages sent TO background page
 ChromeRuntimeHandler.MESSAGE_ID = {
   DELETE_HIGHLIGHT: 'delete_highlight',
+}
+
+ChromeRuntimeHandler.DATA_ATTRIBUTE_NAME = {
+  // if present the element should be removed before unmark
+  FOREIGN: 'foreign'
 }
