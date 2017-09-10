@@ -31,18 +31,25 @@ class DOMEventsHandler {
   init() {
     const listenerOptions = { capture: true, passive: true }
 
-    this.document.addEventListener('mouseenter', this.onMouseEnter.bind(this), listenerOptions)
-    this.document.addEventListener('mouseleave', this.onMouseLeave.bind(this), listenerOptions)
-    
+    for (const type of ['mouseenter', 'focusin']) {
+      this.document.addEventListener(type, this.onInHighlight.bind(this), listenerOptions)
+    }
+
+    for (const type of ['mouseleave', 'focusout']) {
+      this.document.addEventListener(type, this.onOutHighlight.bind(this), listenerOptions)
+    }
+
     return this
   }
 
   /**
    * Mouse entered the document or ANY of its children
+   * NB: event can be MouseEvent or FocusEvent
    * 
+   * @private
    * @memberof DOMEventsHandler
    */
-  onMouseEnter() {
+  onInHighlight() {
     const target = /** @type {HTMLElement} **/ (event.target)
 
     // the target of the event must be a highlight/mark, which we know because its class contains our style
@@ -90,10 +97,12 @@ class DOMEventsHandler {
 
   /**
    * Mouse left the document or ANY of its children
+   * NB: event can be MouseEvent or FocusEvent
    * 
+   * @private
    * @memberof DOMEventsHandler
    */
-  onMouseLeave() {
+  onOutHighlight() {
     const target = /** @type {HTMLElement} **/ (event.target)
 
     // the target of the event must be a highlight/mark, which we know because its class contains our style
@@ -130,9 +139,18 @@ class DOMEventsHandler {
         closeElm.remove()
       }, {once: true, capture: false, passive: true})
     
-      // start animation
-      closeElm.style.animation = this.styleSheetManager.buttonPopOutAnimation
+      // if the close element has focus, wait until its lost to start the close animation
+      const onFocusOut = () => { 
+        // start animation
+        closeElm.style.animation = this.styleSheetManager.buttonPopOutAnimation
+      }
 
+      if(this.document.activeElement === closeElm) {
+        closeElm.addEventListener('focusout', onFocusOut, { passive: true, capture: false, once: true })
+      } else {
+        onFocusOut()
+      }
+            
     }, DOMEventsHandler.CLOSE_BUTTON.TIMEOUT).toString()
   }
 
