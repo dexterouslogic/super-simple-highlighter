@@ -33,8 +33,15 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   static query(info) {
-    return new Promise(resolve => {
-      chrome.tabs.query(info, tabs => resolve(tabs))
+    return new Promise((resolve, reject) => {
+      chrome.tabs.query(info, tabs => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message))
+          return
+        }
+
+        resolve(tabs)
+      })
     })
   }
 
@@ -63,8 +70,40 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   get() {
-    return new Promise(resolve => {
-      chrome.tabs.get(this.tabId, tab => resolve(tab))
+    return new Promise((resolve, reject) => {
+      chrome.tabs.get(this.tabId, tab => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message))
+          return
+        }
+
+        resolve(tab)
+      })
+    })
+  }
+
+  /**
+   * Creates a new tab
+   * 
+   * @typedef {Object} CreateProperties
+   * @prop {string} [url]
+   * @prop {integer} [openerTabId]
+   * 
+   * @static
+   * @param {CreateProperties} properties 
+   * @returns {Promise<Tab>}
+   * @memberof ChromeTabs
+   */
+  static create(properties) {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.create(properties, tab => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message))
+          return
+        }
+
+        resolve(tab)
+      })
     })
   }
 
