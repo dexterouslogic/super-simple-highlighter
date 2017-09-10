@@ -1,4 +1,37 @@
-class RuntimeCallback {
+/*
+ * This file is part of Super Simple Highlighter.
+ * 
+ * Super Simple Highlighter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Super Simple Highlighter is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Singleton class for chrome.runtime callback methods
+ * 
+ * @class ChromeRuntimeHandler
+ */
+class ChromeRuntimeHandler {
+  /**
+   * Add static methods of this class as listeners
+   * 
+   * @static
+   * @memberof ChromeRuntimeHandler
+   */
+  static addListeners() {
+    chrome.runtime.onStartup.addListener(ChromeRuntimeHandler.onStartup)
+    chrome.runtime.onMessage.addListener(ChromeRuntimeHandler.onMessage)
+  }
+
   /**
    * Fired when a profile that has this extension installed first starts up.
    * This event is not fired when an incognito profile is started, even if this
@@ -6,7 +39,7 @@ class RuntimeCallback {
    * 
    * @static
    * @returns {Promise}
-   * @memberof RuntimeCallback
+   * @memberof ChromeRuntimeHandler
    */
   static onStartup() {
     // remove entries in which the number of 'create' doc == number of 'delete' docs
@@ -23,13 +56,13 @@ class RuntimeCallback {
    *  If you have more than one onMessage listener in the same document, then only one may send a response.
    *  This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a 
    *  response asynchronously (this will keep the message channel open to the other end until sendResponse is called). 
-   * @memberof RuntimeCallback
+   * @memberof ChromeRuntimeHandler
    */
   static onMessage(message, sender, sendResponse) {
     let response
 
     switch (message.id) {
-      case RuntimeCallback.MESSAGE.DELETE_HIGHLIGHT:
+      case ChromeRuntimeHandler.MESSAGE.DELETE_HIGHLIGHT:
         // message.highlightId is the document id to be deleted
         ChromeTabs.queryActiveTab().then(tab => {
           if (!tab) {
@@ -54,14 +87,29 @@ class RuntimeCallback {
   }
 }
 
+// static properties
+
 // messages sent to the event page (from content script)
-RuntimeCallback.MESSAGE = {
+ChromeRuntimeHandler.MESSAGE = {
   DELETE_HIGHLIGHT: 'delete_highlight',
 }
 
-//
+/**
+ * Singleton class for chrome.storage callback methods
+ * 
+ * @class ChromeStorageHandler
+ */
+class ChromeStorageHandler {
+  /**
+   * Add static methods of this class as listeners
+   * 
+   * @static
+   * @memberof ChromeStorageHandler
+   */
+  static addListeners() {
+    chrome.storage.onChanged.addListener(ChromeStorageHandler.onChanged)
+  }
 
-class StorageCallback {
   /**
    * Fired when one or more items change.
    * 
@@ -69,7 +117,7 @@ class StorageCallback {
    * @param {Object} changes - Object mapping each key that changed to its corresponding storage.StorageChange for that item.
    * @param {string} areaName - The name of the storage area ("sync", "local" or "managed") the changes are for.
    * @returns {Promise}
-   * @memberof StorageCallback
+   * @memberof ChromeStorageHandler
    */
   static onChanged(changes, areaName) {
     // Content of context menu depends on the highlight styles
@@ -82,16 +130,29 @@ class StorageCallback {
   }
 }
 
-//
+/**
+ * Singleton class for chrome.commands callback methods
+ * 
+ * @class ChromeCommandsHandler
+ */
+class ChromeCommandsHandler {
+  /**
+   * Add static methods of this class as listeners
+   * 
+   * @static
+   * @memberof ChromeCommandsHandler
+   */
+  static addListeners() {
+    chrome.commands.onCommand.addListener(ChromeCommandsHandler.onCommand)
+  }
 
-class CommandsCallback {
   /**
    * Fired when a registered command is activated using a keyboard shortcut.
    * 
    * @callback
    * @static
    * @param {string} command 
-   * @memberof CommandsCallback
+   * @memberof ChromeCommandsHandler
    */
   static onCommand(command) {
     // all commands require active tab
@@ -104,10 +165,10 @@ class CommandsCallback {
       const highlighter = new Highlighter(activeTab.id)
 
       switch (command) {
-        case CommandsCallback.COMMAND.UNDO:
+        case ChromeCommandsHandler.COMMAND.UNDO:
           return highlighter.undo()
 
-        case CommandsCallback.COMMAND.DELETE:
+        case ChromeCommandsHandler.COMMAND.DELETE:
           return tabs.getHoveredHighlightID().then(docId => {
             if (!docId) {
               return
@@ -118,7 +179,7 @@ class CommandsCallback {
 
         default:
           // parse command id string
-          const re = new RegExp(`^${CommandsCallback.COMMAND.APPLY}\\.(\\d+)$`)
+          const re = new RegExp(`^${ChromeCommandsHandler.COMMAND.APPLY}\\.(\\d+)$`)
           const match = re.exec(command)
 
           if (!match || match.length !== 2) {
@@ -218,9 +279,9 @@ class CommandsCallback {
   }
 } // end class
 
-// static
+// static properties
 
-CommandsCallback.COMMAND = {
+ChromeCommandsHandler.COMMAND = {
   // delete the highlight of the highlight hovered on the currently active tab
   DELETE: 'delete_hovered_highlight',
   UNDO: 'undo_last_create_highlight',
@@ -231,23 +292,43 @@ CommandsCallback.COMMAND = {
 //
 
 /**
- * @typedef Details
- * @prop {number} tabId - The ID of the tab in which the navigation occurs.
- * @prop {string} url 
- * @prop {number} processId - The ID of the process that runs the renderer for this frame.
- * @prop {number} frameId - 0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab.
- * @prop {double} timeStamp - The time when the document finished loading, in milliseconds since the epoch.
- * @memberof WebNavigationCallback
+ * Singleton class for chrome.webNavigation callback methods
+ * 
+ * @class ChromeWebNavigationHandler
  */
+class ChromeWebNavigationHandler {
+  /**
+   * Add static methods of this class as listeners
+   * 
+   * @static
+   * @memberof ChromeWebNavigationHandler
+   */
+  static addListeners() {
+    chrome.webNavigation.onCompleted.addListener(ChromeWebNavigationHandler.onCompleted, {
+      url: [{
+          schemes: [
+            'http',
+            'https',
+            'file'
+          ]
+      }]
+    })
+  }
 
-class WebNavigationCallback {
   /**
    * Fired when a document, including the resources it refers to, is completely loaded and initialized.
+   * 
+   * @typedef Details
+   * @prop {number} tabId - The ID of the tab in which the navigation occurs.
+   * @prop {string} url 
+   * @prop {number} processId - The ID of the process that runs the renderer for this frame.
+   * @prop {number} frameId - 0 indicates the navigation happens in the tab content window; a positive value indicates navigation in a subframe. Frame IDs are unique within a tab.
+   * @prop {double} timeStamp - The time when the document finished loading, in milliseconds since the epoch.
    * 
    * @static
    * @param {Details} details 
    * @return {Promise}
-   * @memberof WebNavigationCallback
+   * @memberof ChromeWebNavigationHandler
    */
   static onCompleted(details) {
     // 0 indicates the navigation happens in the tab content window
@@ -336,42 +417,13 @@ class WebNavigationCallback {
   }
 }
 
-//
+// local 
 
-// runtime
-chrome.runtime.onStartup.addListener(RuntimeCallback.onStartup)
-chrome.runtime.onMessage.addListener(RuntimeCallback.onMessage)
+ChromeRuntimeHandler.addListeners()
+ChromeStorageHandler.addListeners()
+ChromeCommandsHandler.addListeners()
+ChromeWebNavigationHandler.addListeners()
 
-// storage
-chrome.storage.onChanged.addListener(StorageCallback.onChanged)
+// imported
 
-// commands
-chrome.commands.onCommand.addListener(CommandsCallback.onCommand)
-
-// context menus
-chrome.contextMenus.onClicked.addListener(ChromeContextMenus.onClicked)
-
-// web navigation
-chrome.webNavigation.onCompleted.addListener(WebNavigationCallback.onCompleted, {
-  url: [{
-      schemes: [
-        'http',
-        'https',
-        'file'
-      ]
-  }]
-})
-
-// /**
-//  * Singleton class
-//  * 
-//  * @class ChromeEventPage
-//  */
-// class ChromeEventPage {
-//   constructor() {
-
-//   }
-// }
-
-// // singleton instance
-// const $ = new ChromeEventPage()
+ChromeContextMenus.addListeners()

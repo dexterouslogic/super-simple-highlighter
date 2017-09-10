@@ -1,5 +1,3 @@
-/*global angular*/
-
 /*
  * This file is part of Super Simple Highlighter.
  * 

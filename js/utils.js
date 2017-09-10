@@ -16,6 +16,11 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * static utils for string things
+ * 
+ * @class StringUtils
+ */
 class StringUtils {
   /**
    * Create a UUID
@@ -40,13 +45,12 @@ class StringUtils {
   }
 }
 
+/**
+ * Static utils for Promise things
+ * 
+ * @class PromiseUtils
+ */
 class PromiseUtils {
-	// const promiseSerial = funcs =>
-	// funcs.reduce((promise, func) =>
-	// 	promise.then(result => func().then(Array.prototype.concat.bind(result))),
-	// 	Promise.resolve([])
-	// )
-
   /**
    * Promise that runs array of promises sequentially
    * https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
@@ -64,6 +68,11 @@ class PromiseUtils {
   }
 }
 
+/**
+ * Static methods for clipboard things
+ * 
+ * @class ClipboardUtils
+ */
 class ClipboardUtils {
 	/**
 	 * Copy text to clipboard
@@ -101,11 +110,34 @@ class ClipboardUtils {
 	}
 }
 
+/**
+ * Static methods for base64 things
+ * 
+ * @class Base64Utils
+ */
 class Base64Utils {
+  /**
+   * 
+   * 
+   * @static
+   * @param {string} str 
+   * @param {Window} [w=window] 
+   * @returns {string}
+   * @memberof Base64Utils
+   */
   static utf8_to_b64(str, w = window) {
     return w.btoa(unescape(encodeURIComponent(str)));
   }
 
+  /**
+   * 
+   * 
+   * @static
+   * @param {string} str 
+   * @param {Window} [w=window] 
+   * @returns {string}
+   * @memberof Base64Utils
+   */
   static b64_to_utf8(str, w = window) {
     return decodeURIComponent(escape(w.atob(str)));
   }

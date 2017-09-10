@@ -85,7 +85,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
      * @returns {Promise}
      * @memberof Controller
      */
-    initAsync() {
+    init() {
       // copy all shortcut command info into scoped object
       return new Promise(resolve => {
         chrome.commands.getAll(commands => resolve(commands))
@@ -329,5 +329,5 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
   }
 
   // unhandled promise
-  new Controller($scope, document).initAsync()
+  new Controller($scope, document).init()
 }])

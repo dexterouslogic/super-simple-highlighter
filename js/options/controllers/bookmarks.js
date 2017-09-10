@@ -18,7 +18,6 @@
 // 'bookmarksControllers' module containing a single controller, named 'bookmarks'
 angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", function ($scope) {
   class Controller {
-
     /**
      * @typedef {Object} Scope
      * @prop {string} documentFilterText - current text of filter input element
@@ -44,6 +43,7 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
 
     /**
 		 * Creates an instance of Controller.
+     * 
 		 * @param {Scope} scope - controller $scope
 		 * @memberof Controller
 		 */
@@ -93,7 +93,13 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
       this.ungroupedDocs = []
     }
 
-    initAsync() {
+    /**
+     * Asyc initializer
+     * 
+     * @returns {Promise}
+     * @memberof Controller
+     */
+    init() {
       const db = new DB()
 
       // build default options object
@@ -504,5 +510,5 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
 
   // init
   // unhandled promise
-  new Controller($scope).initAsync()
+  new Controller($scope).init()
 }])

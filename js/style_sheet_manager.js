@@ -14,8 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * style sheet access methods
+ * 
+ * @class StyleSheetManager
+ */
 class StyleSheetManager {
-  constructor(document) {
+  /**
+	 * Creates an instance of StyleSheetManager.
+	 * 
+	 * @param {Document} document 
+	 * @memberof StyleSheetManager
+	 */
+	constructor(document) {
 		this.document = document
 
 		// A random class name added to every mark element

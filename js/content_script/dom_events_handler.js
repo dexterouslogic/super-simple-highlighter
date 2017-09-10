@@ -28,6 +28,12 @@ class DOMEventsHandler {
     this.document = document
   }
 
+  /**
+   * Initializer
+   * 
+   * @returns {DOMEventsHandler}
+   * @memberof DOMEventsHandler
+   */
   init() {
     const listenerOptions = { capture: true, passive: true }
 
