@@ -435,7 +435,7 @@ class ChromeRuntimeHandler {
    * @static
    * @private 
    * @param {string} highlightId 
-   * @returns {Promise}
+   * @returns {Promise<boolean>} true if deleted
    * @memberof ChromeRuntimeHandler
    */
   static deleteHighlight(highlightId) {

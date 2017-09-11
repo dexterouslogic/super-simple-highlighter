@@ -3,6 +3,7 @@
 
 <head lang="en" data-ng-controller="overviewController">
 	<meta charset="UTF-8">
+	<title>{{'overview_page_title_prefix' | i18n}} - {{title}}</title>
 	<link href="static/css/angular-csp.css" rel="stylesheet">
 	<link href="static/css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/overview.css" rel="stylesheet">
@@ -13,21 +14,18 @@
 	<script src="static/js/angular.min.js"></script>
 	<script src="static/js/bootstrap.min.js"></script>
 
+	<script src="js/shared/style_sheet_manager.js"></script>
+	<script src="js/shared/utils.js"></script>
+
 	<!-- main -->
-	<script src="js/main/chrome_storage.js"></script>
-	<script src="js/main/chrome_highlight_storage.js"></script>
-	<script src="js/main/db.js"></script>
-	<script src="js/main/chrome_tabs.js"></script>
+	<script src="js/shared/chrome_storage.js"></script>
+	<script src="js/shared/chrome_highlight_storage.js"></script>
+	<script src="js/shared/db.js"></script>
+	<script src="js/shared/chrome_tabs.js"></script>
+	<script src="js/shared/ng-modules/i18n_filters.js"></script>
 
-	<script src="js/style_sheet_manager.js"></script>
-	<script src="js/utils.js"></script>
-
-	<!-- ng -->
-	<script src="js/ng-modules/i18n_filters.js"></script>
 	<script src="js/overview/app.js"></script>
 	<script src="js/overview/controllers.js"></script>
-
-	<title>{{'overview_page_title_prefix' | i18n}} - {{title}}</title>
 </head>
 
 <body data-ng-controller="overviewController">

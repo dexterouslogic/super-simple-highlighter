@@ -36,6 +36,7 @@ class ChromeTabs {
    * @prop {number} id - tab id
    * @prop {string} url - tab url
    * @prop {string} title - tab title
+   * @memberof ChromeTabs
    */
 
   /**
@@ -44,6 +45,7 @@ class ChromeTabs {
    * @prop {string|string[]} [url] - Match tabs against one or more URL patterns. Note that fragment identifiers are not matched.
    * @prop {string} [status] - Whether the tabs have completed loading. ('loading' or 'complete')
    * @prop {boolean} [currentWindow] - Whether the tabs are in the current window.
+   * @memberof ChromeTabs
    */
   
    /**
@@ -156,7 +158,7 @@ class ChromeTabs {
     }
 
     return new Promise((resolve, reject) => {
-      console.log(`Executing scripts: ${files}`)
+      // console.log(`Executing scripts: ${files}`)
 
       chrome.tabs.executeScript(
         this.tabId,
@@ -187,22 +189,22 @@ class ChromeTabs {
   //
 
   /**
-   * Send message to content script
-   * 
-   * @typedef {Object} Message
-   * @prop {string} id - predefined type of message
-   * @memberof ChromeTabs
-
    * @typedef {Object} MessageOptions
-   * @prop {boolean} [ping] - ping the script beforehand
+   * @prop {boolean} [ping] - send ping before each message
    * @memberof ChromeTabs
+   */
+
+  /**
+   * Send message to content script
    *
-   * @param {Message} message - message to send
-   * @param {MessageOptions} [options={ ping = false }] 
+   * @private
+   * @param {string} id - id of message to send
+   * @param {Object} [message] - message to send
+   * @param {MessageOptions} [options={ ping = true }] 
    * @returns 
    * @memberof ChromeTabs
    */
-  sendMessage(message, { ping = true } = {}) {
+  sendMessage(id, message = {}, { ping = true } = {}) {
     return (ping ? 
       this._sendMessage({ id: ChromeTabs.MESSAGE_ID.PING}) :
       Promise.resolve(true)
@@ -211,7 +213,8 @@ class ChromeTabs {
         return this.executeDefaultScript()
       }
     }).then(() => {
-      return this._sendMessage(message)
+      // send message copy with the id set on it
+      return this._sendMessage(Object.assign({ id: id }, message))
     })
   }
 
@@ -260,8 +263,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   createHighlight(range, className, highlightId, options) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.CREATE_HIGHLIGHT,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.CREATE_HIGHLIGHT, {
       range: range,
       highlightId: highlightId,
       className: className
@@ -278,8 +280,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   updateHighlight(highlightId, className, options ) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.UPDATE_HIGHLIGHT,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.UPDATE_HIGHLIGHT, {
       highlightId: highlightId,
       className: className
     }, options)
@@ -294,8 +295,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   removeHighlight(highlightId, options) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.REMOVE_HIGHLIGHT,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.REMOVE_HIGHLIGHT, {
       highlightId: highlightId,
     }, options)
   }
@@ -308,10 +308,8 @@ class ChromeTabs {
    * @returns {Promise<XRange>} - XRange object (even if no selection)
    * @memberof ChromeTabs
    */
-  getSelectionRange() {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.GET_SELECTION_RANGE
-    })
+  getSelectionRange(options) {
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.GET_SELECTION_RANGE)
   }
 
   /**
@@ -322,8 +320,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   getRangeText(range) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.GET_RANGE_TEXT,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.GET_RANGE_TEXT,{
       range: range,
     })
   }
@@ -336,13 +333,13 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   selectHighlight(highlightId) {
-    const message = { id: ChromeTabs.MESSAGE_ID.SELECT_HIGHLIGHT }
+    const message = {}
 
     if (highlightId) {
       message.highlightId = highlightId
     }
 
-    return this.sendMessage(message)
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.SELECT_HIGHLIGHT, message)
   }
 
   /**
@@ -353,13 +350,13 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   selectRange(range) {
-    const message = { id: ChromeTabs.MESSAGE_ID.SELECT_RANGE }
+    const message = {}
     
     if (range) {
       message.range = range
     }
     
-    return this.sendMessage(message)
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.SELECT_RANGE, message)
   }
 
   /**
@@ -370,8 +367,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   isHighlightInDOM(highlightId) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.IS_HIGHLIGHT_IN_DOM,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.IS_HIGHLIGHT_IN_DOM, {
       highlightId: highlightId,
     })
   }
@@ -384,8 +380,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   scrollToHighlight(highlightId) {
-    return this.sendMessage({
-        id: ChromeTabs.MESSAGE_ID.SCROLL_TO_HIGHLIGHT,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.SCROLL_TO_HIGHLIGHT, {
         highlightId: highlightId
     });
   }
@@ -399,8 +394,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   getNodeAttributeValue(xpathExpression, attributeName) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.GET_NODE_ATTRIBUTE_VALUE,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.GET_NODE_ATTRIBUTE_VALUE, {
       xpathExpression: xpathExpression,
       attributeName: attributeName,
     })
@@ -421,8 +415,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   getHighlightOffset(highlightId) {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.GET_HIGHLIGHT_OFFSET,
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.GET_HIGHLIGHT_OFFSET, {
       highlightId: highlightId,
     })
   }
@@ -434,9 +427,7 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   getHoveredHighlightID() {
-    return this.sendMessage({
-      id: ChromeTabs.MESSAGE_ID.GET_HOVERED_HIGHLIGHT_ID
-    })
+    return this.sendMessage(ChromeTabs.MESSAGE_ID.GET_HOVERED_HIGHLIGHT_ID)
   }
 
   // /** 
@@ -637,24 +628,19 @@ ChromeTabs.OVERVIEW_FORMAT = {
 }
 
 ChromeTabs.DEFAULT_SCRIPTS = [
-  "js/main/chrome_storage.js", 
-  "js/main/chrome_highlight_storage.js",
-  "js/main/chrome_tabs.js", // just for static properties
+  "js/shared/chrome_tabs.js", // just for static properties
+
+  "js/shared/chrome_storage.js", 
+  "js/shared/chrome_highlight_storage.js",
   
-  "js/utils.js",
-  // "js/stylesheet.js",
-  "js/style_sheet_manager.js",
+  "js/shared/utils.js",
+  "js/shared/style_sheet_manager.js",
 
-  // "js/content_script/highlighter.js",
-  "js/content_script/range_utils.js",
   "js/content_script/marker.js",
-
   "js/content_script/dom_events_handler.js",
   "js/content_script/chrome_storage_handler.js",
   "js/content_script/chrome_runtime_handler.js",
   "js/content_script/main.js",
-
-  // "js/content_script/content_script.js"
 ]
 
 ChromeTabs.MESSAGE_ID = {

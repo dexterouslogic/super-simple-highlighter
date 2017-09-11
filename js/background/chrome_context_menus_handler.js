@@ -18,17 +18,17 @@
 /**
  * Manager of event page context menu things
  * 
- * @class ChromeContextMenus
+ * @class ChromeContextMenusHandler
  */
-class ChromeContextMenus {
+class ChromeContextMenusHandler {
   /**
    * Add static methods of class as listeners
    * 
    * @static
-   * @memberof ChromeContextMenus
+   * @memberof ChromeContextMenusHandler
    */
   static addListeners() {
-    chrome.contextMenus.onClicked.addListener(ChromeContextMenus.onClicked)
+    chrome.contextMenus.onClicked.addListener(ChromeContextMenusHandler.onClicked)
   }
 
   /**
@@ -36,7 +36,7 @@ class ChromeContextMenus {
    * 
    * @static
    * @returns {Promise}
-   * @memberof ChromeContextMenus
+   * @memberof ChromeContextMenusHandler
    */
   static create() {
     // id of root of context menu
@@ -45,23 +45,21 @@ class ChromeContextMenus {
     let allCommands
     
     // remove all current entries
-    return ChromeContextMenus.removeAll().then(() => {
+    return ChromeContextMenusHandler.removeAll().then(() => {
       // page action menu
-      return ChromeContextMenus._create({
+      return ChromeContextMenusHandler._create({
         contexts: ['page_action'],
-        id: ChromeContextMenus.ID.OPEN_BOOKMARKS,
+        id: ChromeContextMenusHandler.ID.OPEN_BOOKMARKS,
         title: chrome.i18n.getMessage("bookmarks"),
       })
     }).then(() => {
       // get parent context menu item (root)
-      return ChromeContextMenus._create({
-        id: ChromeContextMenus.ID.PARENT,
+      return ChromeContextMenusHandler._create({
+        id: ChromeContextMenusHandler.ID.PARENT,
         title: chrome.runtime.getManifest().name,
         contexts: ["selection"],
       })
-    }).then(id => {
-      parentId = id
-    }).then(() => {
+    }).then(id => parentId = id).then(() => {
       // get commands to get shortcut keys
       return new Promise(resolve => { chrome.commands.getAll(c => resolve(c))} )
     }).then(c => {
@@ -85,8 +83,8 @@ class ChromeContextMenus {
           }
 
           // id of each definition is string of format 'create_highlight.[definition class name]'
-          return ChromeContextMenus._create({
-            id: `${ChromeContextMenus.ID.CREATE_HIGHLIGHT}.${hd.className}`,
+          return ChromeContextMenusHandler._create({
+            id: `${ChromeContextMenusHandler.ID.CREATE_HIGHLIGHT}.${hd.className}`,
             parentId: parentId,
             title: title,
             contexts: ['selection']
@@ -103,7 +101,7 @@ class ChromeContextMenus {
    * 
    * @static
    * @returns {Promise}
-   * @memberof ChromeContextMenus
+   * @memberof ChromeContextMenusHandler
    */
   static removeAll() {
     return new Promise(resolve => { 
@@ -120,7 +118,7 @@ class ChromeContextMenus {
    * @static
    * @param {Object} properties - chrome.contextMenu.createProperties
    * @returns {Promise<string|number>} - id of item 
-   * @memberof ChromeContextMenus
+   * @memberof ChromeContextMenusHandler
    */
   static _create(properties) {
     return new Promise((resolve, reject) => {
@@ -150,11 +148,11 @@ class ChromeContextMenus {
    * @param {Info} info - nformation about the item clicked and the context where the click happened.
    * @param {Object} [tab] - The details of the tab where the click took place. If the click did not take place in a tab, this parameter will be missing.
    * @returns {Promise}
-   * @memberof ChromeContextMenus
+   * @memberof ChromeContextMenusHandler
    */
   static onClicked(info, tab) {
     switch (info.menuItemId) {
-      case ChromeContextMenus.ID.OPEN_BOOKMARKS:
+      case ChromeContextMenusHandler.ID.OPEN_BOOKMARKS:
         return ChromeTabs.create({ 
           openerTabId: tab.id,
           url: 'options.html#bookmarks'
@@ -169,7 +167,7 @@ class ChromeContextMenus {
         }
 
         switch (match[1]) {
-          case ChromeContextMenus.ID.CREATE_HIGHLIGHT:
+          case ChromeContextMenusHandler.ID.CREATE_HIGHLIGHT:
             // states in which a highlight can't be created
             if (info.editable) {
               window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"))
@@ -220,7 +218,7 @@ class ChromeContextMenus {
 
 // static
 
-ChromeContextMenus.ID = {
+ChromeContextMenusHandler.ID = {
   // required (but unused) id of parent menu item
   PARENT: 'sos',
 

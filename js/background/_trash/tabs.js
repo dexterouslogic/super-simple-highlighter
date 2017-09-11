@@ -89,7 +89,7 @@ var _tabs = {
             "js/main/chrome_storage.js", 
             "js/main/chrome_highlight_storage.js",
             
-            "js/utils.js",
+            "js/shared/utils.js",
             "js/stylesheet.js",
             
             "js/content_script/range_utils.js",

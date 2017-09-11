@@ -475,6 +475,9 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 		 * @memberof Controller
 		 */
 		onClickRemoveHighlight(doc) {
+			// don't allow highlight to be scrolled to
+			event.stopPropagation()
+
 			// doc doesn't have to be in DOM to be removed from DB
 			return ChromeTabs.queryActiveTab().then(tab => {
 				if (!tab) {

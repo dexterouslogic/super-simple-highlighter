@@ -17,6 +17,6 @@
 
 // module named 'popupApp', depends on 'controller' and 'i18Filters' modules
 const appModule = angular.module('app', [
-    'controller',
-    'i18nFilters'
+	'controller',
+	'i18nFilters'
 ])

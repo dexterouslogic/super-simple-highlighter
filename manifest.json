@@ -1,113 +1,98 @@
 {
-    "manifest_version": 2,
-
-    "name": "__MSG_extension_name__",
-    "version": "3.13",
-
-    "default_locale": "en",
-    "description": "__MSG_extension_description__",
-    "icons": {
-        "16": "static/images/16.png",
-        "19": "static/images/19.png",
-        "32": "static/images/32.png",
-        "38": "static/images/38.png",
-        "48": "static/images/48.png",
-        "64": "static/images/64.png",
-        "96": "static/images/96.png",
-        "128": "static/images/128.png",
-        "256": "static/images/256.png"
-    },
-
-    "page_action": {
-        "default_popup": "popup.html",
-        "default_title": "__MSG_page_action_default_title__",
-        "default_icon": {
-            "19": "static/images/19.png",
-            "38": "static/images/38.png"
-        }
-    },
-
-    "author": "__MSG_extension_author__",
-    "background": {
-        "scripts": [
-            "static/js/pouchdb-6.3.4.min.js",
+	"manifest_version": 2,
+	"name": "__MSG_extension_name__",
+	"version": "3.13",
+	"default_locale": "en",
+	"description": "__MSG_extension_description__",
+	"icons": {
+		"16": "static/images/16.png",
+		"19": "static/images/19.png",
+		"32": "static/images/32.png",
+		"38": "static/images/38.png",
+		"48": "static/images/48.png",
+		"64": "static/images/64.png",
+		"96": "static/images/96.png",
+		"128": "static/images/128.png",
+		"256": "static/images/256.png"
+	},
+	"page_action": {
+		"default_popup": "popup.html",
+		"default_title": "__MSG_page_action_default_title__",
+		"default_icon": {
+			"19": "static/images/19.png",
+			"38": "static/images/38.png"
+		}
+	},
+	"author": "__MSG_extension_author__",
+	"background": {
+		"scripts": [
+			"static/js/pouchdb-6.3.4.min.js",
 			"static/js/pouchdb.replication-stream.min.js",
 			"static/js/pouchdb.load.min.js",
-            // "js/storage.js", 
-            
-            // "js/background/database.js",
-            "js/main/db.js",
-            "js/main/highlighter.js",
-            "js/main/chrome_tabs.js",
-            "js/main/chrome_storage.js", 
-            "js/main/chrome_highlight_storage.js",
-
-            "js/utils.js",
-            
-            // "js/background/tabs.js",
-
-            
-            // "js/background/context_menus.js",
-            
-            "js/background/chrome_context_menus.js",
-            "js/background/chrome_page_action.js",
-            "js/background/main.js"
-
-            // "js/background/event_page.js"
-        ],
-
-        "persistent": false
-    },
-    "commands": {
-        "apply_highlight.0": {
-            "description": "Apply Highlight #1"
-        },
-        "apply_highlight.1": {
-            "description": "Apply Highlight #2"
-        },
-        "apply_highlight.2": {
-            "description": "Apply Highlight #3"
-        },
-        "apply_highlight.3": {
-            "description": "Apply Highlight #4"
-        },
-        "apply_highlight.4": {
-            "description": "Apply Highlight #5"
-        },
-        "apply_highlight.5": {
-            "description": "Apply Highlight #6"
-        },
-        "apply_highlight.6": {
-            "description": "Apply Highlight #7"
-        },
-        "apply_highlight.7": {
-            "description": "Apply Highlight #8"
-        },
-        "apply_highlight.8": {
-            "description": "Apply Highlight #9"
-        },
-        "apply_highlight.9": {
-            "description": "Apply Highlight #10"
-        },
-			
+			"js/shared/db.js",
+			"js/shared/highlighter.js",
+			"js/shared/chrome_tabs.js",
+			"js/shared/chrome_storage.js",
+			"js/shared/chrome_highlight_storage.js",
+			"js/shared/utils.js",
+			"js/background/chrome_page_action.js",
+			"js/background/chrome_context_menus_handler.js",
+			"js/background/chrome_runtime_handler.js",
+			"js/background/chrome_storage_handler.js",
+			"js/background/chrome_commands_handler.js",
+			"js/background/chrome_web_navigation_handler.js",
+			"js/background/main.js"
+		],
+		"persistent": false
+	},
+	"commands": {
+		"apply_highlight.0": {
+			"description": "Apply Highlight #1"
+		},
+		"apply_highlight.1": {
+			"description": "Apply Highlight #2"
+		},
+		"apply_highlight.2": {
+			"description": "Apply Highlight #3"
+		},
+		"apply_highlight.3": {
+			"description": "Apply Highlight #4"
+		},
+		"apply_highlight.4": {
+			"description": "Apply Highlight #5"
+		},
+		"apply_highlight.5": {
+			"description": "Apply Highlight #6"
+		},
+		"apply_highlight.6": {
+			"description": "Apply Highlight #7"
+		},
+		"apply_highlight.7": {
+			"description": "Apply Highlight #8"
+		},
+		"apply_highlight.8": {
+			"description": "Apply Highlight #9"
+		},
+		"apply_highlight.9": {
+			"description": "Apply Highlight #10"
+		},
 		"undo_last_create_highlight": {
 			"description": "Undo"
-		}, 
-        "delete_hovered_highlight": {
-            "description": "Remove highlight under cursor"
-        }		
-    },
-
-    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-    "options_page": "options.html",
-    "permissions": [
-        "clipboardWrite",
-        "tts",
-        "storage",
-        "contextMenus",
-        "unlimitedStorage",
-        "webNavigation",
-        "tabs",
-        "<all_urls>"
-    ]
+		},
+		"delete_hovered_highlight": {
+			"description": "Remove highlight under cursor"
+		}
+	},
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+	"options_page": "options.html",
+	"permissions": [
+		"clipboardWrite",
+		"tts",
+		"storage",
+		"contextMenus",
+		"unlimitedStorage",
+		"webNavigation",
+		"tabs",
+		"<all_urls>"
+	]
 }

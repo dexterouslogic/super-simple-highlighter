@@ -38,24 +38,24 @@ class DOMEventsHandler {
     const listenerOptions = { capture: true, passive: true }
 
     for (const type of ['mouseenter', 'focusin']) {
-      this.document.addEventListener(type, this.onInHighlight.bind(this), listenerOptions)
+      this.document.addEventListener(type, this.onEnterInDocument.bind(this), listenerOptions)
     }
 
     for (const type of ['mouseleave', 'focusout']) {
-      this.document.addEventListener(type, this.onOutHighlight.bind(this), listenerOptions)
+      this.document.addEventListener(type, this.onLeaveOutDocument.bind(this), listenerOptions)
     }
 
     return this
   }
 
   /**
-   * Mouse entered the document or ANY of its children
-   * NB: event can be MouseEvent or FocusEvent
+   * Mouse entered element or element gained focus (anywhere in document)
+   * event can be MouseEvent or FocusEvent
    * 
    * @private
    * @memberof DOMEventsHandler
    */
-  onInHighlight() {
+  onEnterInDocument() {
     const target = /** @type {HTMLElement} **/ (event.target)
 
     // the target of the event must be a highlight/mark, which we know because its class contains our style
@@ -102,13 +102,13 @@ class DOMEventsHandler {
   }
 
   /**
-   * Mouse left the document or ANY of its children
-   * NB: event can be MouseEvent or FocusEvent
+   * Mouse left element or element lost focus (anywhere in document)
+   * event can be MouseEvent or FocusEvent
    * 
    * @private
    * @memberof DOMEventsHandler
    */
-  onOutHighlight() {
+  onLeaveOutDocument() {
     const target = /** @type {HTMLElement} **/ (event.target)
 
     // the target of the event must be a highlight/mark, which we know because its class contains our style

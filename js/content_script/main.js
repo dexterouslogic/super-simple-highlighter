@@ -16,8 +16,8 @@
  */
 
 // singleton
-const styleSheetManager = new StyleSheetManager(window.document).init()
+const sharedStyleSheetManager = new StyleSheetManager(window.document).init()
 
-new DOMEventsHandler(styleSheetManager, document).init()
-new ChromeRuntimeHandler(styleSheetManager, document).init()
-new ChromeStorageHandler(styleSheetManager).init()
+new DOMEventsHandler(sharedStyleSheetManager, document).init()
+new ChromeRuntimeHandler(sharedStyleSheetManager, document).init()
+new ChromeStorageHandler(sharedStyleSheetManager).init()

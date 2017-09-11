@@ -16,18 +16,19 @@
 	<script src="static/js/bootstrap.min.js"></script>
 	<script src="static/js/pouchdb-6.3.4.min.js"></script>
 
+	<!-- shared -->
+	<script src="js/shared/style_sheet_manager.js"></script>
+	<script src="js/shared/utils.js"></script>
+
 	<!-- main -->
-	<script src="js/main/highlighter.js"></script>
-	<script src="js/main/db.js"></script>
-	<script src="js/main/chrome_tabs.js"></script>
-	<script src="js/main/chrome_storage.js"></script>
-	<script src="js/main/chrome_highlight_storage.js"></script>
-
-	<!-- <script src="js/stylesheet.js"></script> -->
-	<script src="js/style_sheet_manager.js"></script>
-	<script src="js/utils.js"></script>
-
-	<script src="js/ng-modules/i18n_filters.js"></script>
+	<script src="js/shared/highlighter.js"></script>
+	<script src="js/shared/db.js"></script>
+	<script src="js/shared/chrome_tabs.js"></script>
+	<script src="js/shared/chrome_storage.js"></script>
+	<script src="js/shared/chrome_highlight_storage.js"></script>
+	
+	<!-- ng -->
+	<script src="js/shared/ng-modules/i18n_filters.js"></script>
 	<script src="js/popup/app.js"></script>
 	<script src="js/popup/controllers.js"></script>
 </head>
@@ -93,13 +94,13 @@
 							<a role="menuitem" tabindex="-1" href="/options.html#styles" target="_blank">{{'styles' | i18n}}</a>
 						</li>
 						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#bookmarks">{{'bookmarks' | i18n}}</a>
+							<a role="menuitem" tabindex="-1" href="/options.html#bookmarks" target="_blank">{{'bookmarks' | i18n}}</a>
 						</li>
 						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#advanced">{{'advanced' | i18n}}</a>
+							<a role="menuitem" tabindex="-1" href="/options.html#advanced" target="_blank">{{'advanced' | i18n}}</a>
 						</li>
 						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#about">{{'about' | i18n}}</a>
+							<a role="menuitem" tabindex="-1" href="/options.html#about" target="_blank">{{'about' | i18n}}</a>
 						</li>
 				</ul>
 			</div>

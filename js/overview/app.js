@@ -16,12 +16,12 @@
  */
 
 const appModule = angular.module('app', [
-    'controller',
-    'i18nFilters'
+	'controller',
+	'i18nFilters'
 ]);
 
 // http://stackoverflow.com/questions/15606751/angular-changes-urls-to-unsafe-in-extension-page
-appModule.config( [ '$compileProvider', function( $compileProvider ) {
-    // $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file):/);
-    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
+appModule.config(['$compileProvider', function ($compileProvider) {
+	// $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file):/);
+	$compileProvider.imgSrcSanitizationWhitelist(/^\s*(chrome-extension):/);
 }])
