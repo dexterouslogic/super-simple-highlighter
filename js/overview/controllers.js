@@ -131,16 +131,10 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				this.scope.groupedDocs = groupedDocs
 				
 				// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things
-				this.scope.docsCountText = chrome.i18n.getMessage((() => {
-					switch (docs.length) {
-						case 0:
-							return "plural_zero_highlights"
-						case 1:
-							return "plural_one_highlight"
-						default:
-							return "plural_other_highlights"
-					}
-				})(), [docs.length])
+				this.scope.docsCountText = chrome.i18n.getMessage(
+					docs.length === 1 ? "plural_single_highlight" : "plural_multi_highlights",
+					[docs.length]
+				)
 
 				// if the highlight cant be found in DOM, flag that
 				if (!isNaN(this.tabId)) {

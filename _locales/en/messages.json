@@ -211,19 +211,21 @@
   "placeholder_filter": {
     "message": "Search"
   },
-  "plural_one_highlight": {
-    "message": "1 highlight"
-  },
-  "plural_other_highlights": {
-    "message": "$count$ highlights",
+  "plural_single_highlight": {
+    "message": "$count$ Highlight",
     "placeholders": {
       "count": {
         "content": "$1"
       }
     }
   },
-  "plural_zero_highlights": {
-    "message": "No highlights"
+  "plural_multi_highlights": {
+    "message": "$count$ Highlights",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   },
   "redefine_highlight": {
     "message": "Style"
@@ -332,5 +334,8 @@
   },
   "placeholder_filter_highlights": {
     "message": "Search Highlights"
+  },
+  "pageaction_no_highights": {
+    "message": ""
   }
 }

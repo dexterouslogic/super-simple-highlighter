@@ -61,8 +61,9 @@ class ChromeWebNavigationHandler {
     const match = DB.formatMatch(details.url)
 
     let matchedDocs
-
-    return ChromeContextMenusHandler.create().then(() => {
+    // return ChromeContextMenusHandler.createPageActionMenu()
+    // create selection and page action menus (#highlights unknown currently)
+    return ChromeContextMenusHandler.createSelectionMenu().then(() => {
       return db.getMatchingDocuments(match)
     }).then(docs => {
       matchedDocs = docs
@@ -91,13 +92,13 @@ class ChromeWebNavigationHandler {
     }).then(() => {
       // set of ids of 'create' documents that reported errors, and did NOT have a corresponding
       // 'delete' document (i.e. implying it's not really an error)
-      const errorCreateDocIds = new Set()
+      const invalidDocIds = new Set()
 
       return tabs.executeDefaultScript().then(() => {
         return tabs.playbackDocuments(matchedDocs, errorDoc => {
           // method only called if there's an error. called multiple times
           if (errorDoc[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.CREATE) {
-            errorCreateDocIds.add(errorDoc._id)
+            invalidDocIds.add(errorDoc._id)
           }
         })
       }).then(sum => {
@@ -107,19 +108,24 @@ class ChromeWebNavigationHandler {
           pageAction.show()
         }
 
-        if (errorCreateDocIds.size > 0) {
+        // recreate the page action with the correct number of highlights
+        return ChromeContextMenusHandler.createPageActionMenu({highlightsCount : sum}).then(() => {
+          if (invalidDocIds.size === 0) {
+            return
+          }
+
           // remove 'create' docs for which a matching 'delete' doc exists
           for (const doc of matchedDocs.filter(d => d[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.DELETE)) {
-            errorCreateDocIds.delete(doc.correspondingDocumentId)
+            invalidDocIds.delete(doc.correspondingDocumentId)
 
-            if (errorCreateDocIds.size === 0) {
+            if (invalidDocIds.size === 0) {
               break
             }
           }
 
           // any remaining entries are genuinely invalid
-          if (errorCreateDocIds.size > 0) {
-            console.info(`Problem playing ${errorCreateDocIds.size} 'create' doc(s) ${JSON.stringify(Array.from(errorCreateDocIds), null, ' ')}`)
+          if (invalidDocIds.size > 0) {
+            console.info(`Problem playing ${invalidDocIds.size} 'create' doc(s) ${JSON.stringify(Array.from(invalidDocIds), null, ' ')}`)
 
             pageAction.setTitle(chrome.i18n.getMessage("page_action_title_not_in_dom"))
 
@@ -130,7 +136,7 @@ class ChromeWebNavigationHandler {
               }
             })            
           }
-        }
+        })
       })
     })
   }

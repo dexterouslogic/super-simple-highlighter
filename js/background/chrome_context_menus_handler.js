@@ -32,35 +32,62 @@ class ChromeContextMenusHandler {
   }
 
   /**
+   * Create (or recreate) the page action menu
+   * 
+   * @static
+   * @param {Object} options [{containsHighlights=false}={}] 
+   * @returns 
+   * @memberof ChromeContextMenusHandler
+   */
+  static createPageActionMenu({highlightsCount = 0} = {}) {
+    return ChromeContextMenusHandler.remove(Object.values(ChromeContextMenusHandler.ID.PAGE_ACTION)).then(() => {
+      const template = { contexts: ['page_action'] }
+
+      return ChromeContextMenusHandler.create([
+        {
+          id: ChromeContextMenusHandler.ID.PAGE_ACTION.HIGHLIGHTS_COUNT,
+          enabled: false,
+          title: chrome.i18n.getMessage(
+            highlightsCount === 1 ? "plural_single_highlight" : "plural_multi_highlights", 
+            [highlightsCount]
+          ),
+        },
+        { 
+          type: "separator", 
+          id: ChromeContextMenusHandler.ID.PAGE_ACTION.SEPARATOR_HIGHLIGHTS_COUNT,
+        },
+        {
+          id: ChromeContextMenusHandler.ID.PAGE_ACTION.OPEN_BOOKMARKS,
+          title: chrome.i18n.getMessage("bookmarks"),
+        }
+      ].map(i => Object.assign({}, template, i)))
+    })
+  }
+
+  /**
    * Create (or recreate) a context menu, based on currently stored highlight definitions, and commands
    * 
    * @static
    * @returns {Promise}
    * @memberof ChromeContextMenusHandler
    */
-  static create() {
+  static createSelectionMenu() {
     // id of root of context menu
-    let parentId
-    // all commands
-    let allCommands
+    let parentId, allCommands
+
+    const template = { contexts: ['selection'] }
     
     // remove all current entries
-    return ChromeContextMenusHandler.removeAll().then(() => {
-      // page action menu
-      return ChromeContextMenusHandler._create({
-        contexts: ['page_action'],
-        id: ChromeContextMenusHandler.ID.OPEN_BOOKMARKS,
-        title: chrome.i18n.getMessage("bookmarks"),
-      })
-    }).then(() => {
+    return ChromeContextMenusHandler.remove(ChromeContextMenusHandler.ID.SELECTION.PARENT).then(() => {
       // get parent context menu item (root)
-      return ChromeContextMenusHandler._create({
-        id: ChromeContextMenusHandler.ID.PARENT,
+      return ChromeContextMenusHandler.create(Object.assign({}, template, {
+        id: ChromeContextMenusHandler.ID.SELECTION.PARENT,
         title: chrome.runtime.getManifest().name,
-        contexts: ["selection"],
-      })
-    }).then(id => parentId = id).then(() => {
+      }))
+    }).then(([id]) => parentId = id).then(() => {
       // get commands to get shortcut keys
+      console.assert(parentId === ChromeContextMenusHandler.ID.SELECTION.PARENT)
+
       return new Promise(resolve => { chrome.commands.getAll(c => resolve(c))} )
     }).then(c => {
       allCommands = c
@@ -83,17 +110,42 @@ class ChromeContextMenusHandler {
           }
 
           // id of each definition is string of format 'create_highlight.[definition class name]'
-          return ChromeContextMenusHandler._create({
-            id: `${ChromeContextMenusHandler.ID.CREATE_HIGHLIGHT}.${hd.className}`,
+          return ChromeContextMenusHandler.create(Object.assign({}, template, {
+            id: `${ChromeContextMenusHandler.ID.SELECTION.CREATE_HIGHLIGHT}.${hd.className}`,
             parentId: parentId,
             title: title,
-            contexts: ['selection']
-          })
+          }))
         }
       })
 
       return PromiseUtils.serial(pfuncs)
     })
+  }
+
+  /**
+   * Remove context menu items serially
+   * 
+   * @static
+   * @param {string|number|(string|number)[]} menuItemId - items to remove
+   * @param {{catchError: false}} options
+   * @returns {Promise}
+   * @memberof ChromeContextMenusHandler
+   */
+  static remove(menuItemId, {catchError = false} = {}) {
+    const pfuncs = (Array.isArray(menuItemId) ? menuItemId : [menuItemId]).map(id => function() {
+      return new Promise((resolve, reject) => {
+        chrome.contextMenus.remove(id, () => {
+          if (chrome.runtime.lastError && catchError) {
+            reject(new Error(chrome.runtime.lastError.message))
+            return
+          }
+  
+          resolve()
+        })
+      })
+    })
+
+    return PromiseUtils.serial(pfuncs)
   }
 
   /**
@@ -116,21 +168,36 @@ class ChromeContextMenusHandler {
    * 
    * @private
    * @static
-   * @param {Object} properties - chrome.contextMenu.createProperties
-   * @returns {Promise<string|number>} - id of item 
+   * @param {Object|Object[]} properties - chrome.contextMenu.createProperties object OR array of objects (processed sequentially)
+   * @returns {Promise<string|number>[]} - array of promises with id of item 
    * @memberof ChromeContextMenusHandler
    */
-  static _create(properties) {
-    return new Promise((resolve, reject) => {
-      const parentId = chrome.contextMenus.create(properties, () => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message))
-          return
-        }
-
-        resolve(parentId)
+  static create(properties) {
+    const pfuncs = (Array.isArray(properties) ? properties : [properties]).map(p => function() {
+      return new Promise((resolve, reject) => {
+        const id = chrome.contextMenus.create(p, () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message))
+            return
+          }
+  
+          resolve(id)
+        })
       })
     })
+
+    return PromiseUtils.serial(pfuncs)
+
+    // return new Promise((resolve, reject) => {
+    //   const id = chrome.contextMenus.create(properties, () => {
+    //     if (chrome.runtime.lastError) {
+    //       reject(new Error(chrome.runtime.lastError.message))
+    //       return
+    //     }
+
+    //     resolve(id)
+    //   })
+    // })
   }
   //
 
@@ -152,7 +219,7 @@ class ChromeContextMenusHandler {
    */
   static onClicked(info, tab) {
     switch (info.menuItemId) {
-      case ChromeContextMenusHandler.ID.OPEN_BOOKMARKS:
+      case ChromeContextMenusHandler.ID.SELECTION.OPEN_BOOKMARKS:
         return ChromeTabs.create({ 
           openerTabId: tab.id,
           url: 'options.html#bookmarks'
@@ -167,7 +234,7 @@ class ChromeContextMenusHandler {
         }
 
         switch (match[1]) {
-          case ChromeContextMenusHandler.ID.CREATE_HIGHLIGHT:
+          case ChromeContextMenusHandler.ID.SELECTION.CREATE_HIGHLIGHT:
             // states in which a highlight can't be created
             if (info.editable) {
               window.alert(chrome.i18n.getMessage("alert_create_highlight_in_editable"))
@@ -219,12 +286,18 @@ class ChromeContextMenusHandler {
 // static
 
 ChromeContextMenusHandler.ID = {
-  // required (but unused) id of parent menu item
-  PARENT: 'sos',
+  SELECTION: {
+    // required (but unused) id of parent menu item
+    PARENT: 'sos',
+    // prefix of each create highlight menu item ('create_highlight.[className]')
+    CREATE_HIGHLIGHT: 'create_highlight'
+  },
 
-  // open options at bookmarks tab
-  OPEN_BOOKMARKS: 'open_bookmarks',
-  
-  // prefix of each create highlight menu item ('create_highlight.[className]')
-  CREATE_HIGHLIGHT: 'create_highlight'
+  PAGE_ACTION: {
+    HIGHLIGHTS_COUNT: "highlights-count",
+    SEPARATOR_HIGHLIGHTS_COUNT: "separator-highlights-count",
+
+    // open options at bookmarks tab
+    OPEN_BOOKMARKS: 'open_bookmarks',
+  }
 }

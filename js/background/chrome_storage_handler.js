@@ -48,6 +48,6 @@ class ChromeStorageHandler {
 
     // recreate menu
     // unhandled promise
-    return ChromeContextMenusHandler.create()
+    return ChromeContextMenusHandler.createSelectionMenu()
   }
 }
