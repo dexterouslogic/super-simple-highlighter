@@ -183,9 +183,9 @@
 							<p class="highlight-text">
 								{{doc.text && doc.text.substring(0, popupHighlightTextMaxLength) || "&nbsp;"}}
 								<!-- text expander -->
-								<span ng-show="doc.text && doc.text.length > popupHighlightTextMaxLength">&#8230;
-									<a href="#" class="more" title="{{ 'more' | i18n }}" ng-click="onClickExpandHighlight(doc)">&#x25BC;</a>
-								</span>
+								<a href="#" ng-show="doc.text && doc.text.length > popupHighlightTextMaxLength" ng-click="onClickExpandHighlight(doc)">
+									&#8230;{{ 'more' | i18n }}
+								</a>
 							</p>
 						</div>
 

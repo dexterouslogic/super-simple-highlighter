@@ -48,16 +48,7 @@ body {
 }
 
 .pointer {
-cursor: pointer;
-}
-
-.more {
-	float: right;
-}
-
-.more:hover,
-.more:focus {
-	text-decoration: none;
+	cursor: pointer;
 }
 
 .doc {
