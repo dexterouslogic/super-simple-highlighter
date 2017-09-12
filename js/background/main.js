@@ -15,8 +15,14 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// listeners
+
 ChromeRuntimeHandler.addListeners()
 ChromeStorageHandler.addListeners()
 ChromeCommandsHandler.addListeners()
 ChromeWebNavigationHandler.addListeners()
 ChromeContextMenusHandler.addListeners()
+
+// constant menus
+
+ChromeContextMenusHandler.createPageActionMenu()

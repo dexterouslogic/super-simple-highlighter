@@ -65,11 +65,12 @@ class ChromePageAction {
   }
 
   /**
-   * Shows the page action. The page action is shown whenever the tab is selected
+   * Shows or hides the page action. The page action is shown whenever the tab is selected
    * 
+   * @param {boolean} visibility - if true, show. else hide
    * @memberof ChromePageAction
    */
-  show() {
-    chrome.pageAction.show(this.tabId)
+  setVisibility(visibility) {
+    visibility ? chrome.pageAction.show(this.tabId) : chrome.pageAction.hide(this.tabId)
   }
 }

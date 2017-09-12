@@ -39,28 +39,28 @@ class ChromeContextMenusHandler {
    * @returns 
    * @memberof ChromeContextMenusHandler
    */
-  static createPageActionMenu({highlightsCount = 0} = {}) {
+  static createPageActionMenu({containsHighlights = false} = {}) {
     return ChromeContextMenusHandler.remove(Object.values(ChromeContextMenusHandler.ID.PAGE_ACTION)).then(() => {
-      const template = { contexts: ['page_action'] }
-
-      return ChromeContextMenusHandler.create([
-        {
-          id: ChromeContextMenusHandler.ID.PAGE_ACTION.HIGHLIGHTS_COUNT,
-          enabled: false,
-          title: chrome.i18n.getMessage(
-            highlightsCount === 1 ? "plural_single_highlight" : "plural_multi_highlights", 
-            [highlightsCount]
-          ),
-        },
-        { 
-          type: "separator", 
-          id: ChromeContextMenusHandler.ID.PAGE_ACTION.SEPARATOR_HIGHLIGHTS_COUNT,
-        },
-        {
+      const template = { contexts: ['page_action'] },
+        items = [{
           id: ChromeContextMenusHandler.ID.PAGE_ACTION.OPEN_BOOKMARKS,
           title: chrome.i18n.getMessage("bookmarks"),
-        }
-      ].map(i => Object.assign({}, template, i)))
+        }]
+
+      // if (!containsHighlights) {
+      //   items.unshift(
+      //     {
+      //       id: ChromeContextMenusHandler.ID.PAGE_ACTION.HIGHLIGHTS_COUNT,
+      //       enabled: false,
+      //       title: chrome.i18n.getMessage("pageaction_no_highlights"),
+      //     },
+      //     {
+      //       type: "separator",
+      //       id: ChromeContextMenusHandler.ID.PAGE_ACTION.SEPARATOR_HIGHLIGHTS_COUNT,
+      //     })
+      // }
+
+      return ChromeContextMenusHandler.create(items.map(i => Object.assign({}, template, i)))
     })
   }
 
@@ -294,8 +294,8 @@ ChromeContextMenusHandler.ID = {
   },
 
   PAGE_ACTION: {
-    HIGHLIGHTS_COUNT: "highlights-count",
-    SEPARATOR_HIGHLIGHTS_COUNT: "separator-highlights-count",
+    // HIGHLIGHTS_COUNT: "highlights-count",
+    // SEPARATOR_HIGHLIGHTS_COUNT: "separator-highlights-count",
 
     // open options at bookmarks tab
     OPEN_BOOKMARKS: 'open_bookmarks',

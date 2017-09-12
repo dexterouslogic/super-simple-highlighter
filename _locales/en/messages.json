@@ -334,8 +334,5 @@
   },
   "placeholder_filter_highlights": {
     "message": "Search Highlights"
-  },
-  "pageaction_no_highights": {
-    "message": ""
   }
 }

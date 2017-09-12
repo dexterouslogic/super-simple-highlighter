@@ -61,7 +61,7 @@ class ChromeWebNavigationHandler {
     const match = DB.formatMatch(details.url)
 
     let matchedDocs
-    // return ChromeContextMenusHandler.createPageActionMenu()
+
     // create selection and page action menus (#highlights unknown currently)
     return ChromeContextMenusHandler.createSelectionMenu().then(() => {
       return db.getMatchingDocuments(match)
@@ -104,39 +104,34 @@ class ChromeWebNavigationHandler {
       }).then(sum => {
         const pageAction = new ChromePageAction(details.tabId)
 
-        if (sum > 0) {
-          pageAction.show()
+        pageAction.setVisibility(sum > 0)
+
+        if (invalidDocIds.size === 0) {
+          return
         }
 
-        // recreate the page action with the correct number of highlights
-        return ChromeContextMenusHandler.createPageActionMenu({highlightsCount : sum}).then(() => {
+        // remove 'create' docs for which a matching 'delete' doc exists
+        for (const doc of matchedDocs.filter(d => d[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.DELETE)) {
+          invalidDocIds.delete(doc.correspondingDocumentId)
+
           if (invalidDocIds.size === 0) {
-            return
+            break
           }
+        }
 
-          // remove 'create' docs for which a matching 'delete' doc exists
-          for (const doc of matchedDocs.filter(d => d[DB.DOCUMENT.NAME.VERB] === DB.DOCUMENT.VERB.DELETE)) {
-            invalidDocIds.delete(doc.correspondingDocumentId)
+        // any remaining entries are genuinely invalid
+        if (invalidDocIds.size > 0) {
+          console.info(`Problem playing ${invalidDocIds.size} 'create' doc(s) ${JSON.stringify(Array.from(invalidDocIds), null, ' ')}`)
 
-            if (invalidDocIds.size === 0) {
-              break
+          pageAction.setTitle(chrome.i18n.getMessage("page_action_title_not_in_dom"))
+
+          return pageAction.setIcon({
+            path: {
+                19: "static/images/popup/19_warning.png",
+                38: "static/images/popup/38_warning.png",
             }
-          }
-
-          // any remaining entries are genuinely invalid
-          if (invalidDocIds.size > 0) {
-            console.info(`Problem playing ${invalidDocIds.size} 'create' doc(s) ${JSON.stringify(Array.from(invalidDocIds), null, ' ')}`)
-
-            pageAction.setTitle(chrome.i18n.getMessage("page_action_title_not_in_dom"))
-
-            return pageAction.setIcon({
-              path: {
-                  19: "static/images/popup/19_warning.png",
-                  38: "static/images/popup/38_warning.png",
-              }
-            })            
-          }
-        })
+          })            
+        }
       })
     })
   }

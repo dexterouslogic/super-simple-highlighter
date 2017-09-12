@@ -99,7 +99,7 @@ class Highlighter {
       }
 
       // (re) show page action on success
-      chrome.pageAction.show(tabs.tabId)
+      chrome.pageAction.setVisiblity(true)
     })
     
     // .then(() => {
