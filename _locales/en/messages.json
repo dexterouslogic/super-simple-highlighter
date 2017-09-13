@@ -81,7 +81,7 @@
     "message": "Saves a file containing the URL of each highlighted page, the location of the highlights on that page, and all currently defined styles. If you haven't enabled the 'Ask where to save each file before downloading' option in Chrome, the file will probably be saved in your Downloads folder."
   },
   "advanced_database_export_file_name": {
-    "message": "database.ldjson"
+    "message": "Styles and Bookmarks"
   },
   "advanced_database_export_title": {
     "message": "Backup"

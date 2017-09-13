@@ -122,7 +122,7 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
           // create a temporary anchor to navigate to data uri
           const elm = document.createElement("a")
 
-          elm.download = chrome.i18n.getMessage("advanced_database_export_file_name")
+          elm.download = `${chrome.i18n.getMessage("advanced_database_export_file_name")}.ldjson`
           elm.href = "data:text;base64," + Base64Utils.utf8_to_b64(ldjson, window)
 
           // a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
