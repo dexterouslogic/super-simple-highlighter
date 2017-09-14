@@ -17,25 +17,25 @@
 
 // 'aboutControllers' module containing a single controller, named 'about'
 angular.module('advancedControllers', []).controller('advanced', ["$scope", function ($scope) {
-  class Controller {
+	class Controller {
     /**
      * Creates an instance of Controller.
      * @param {Object} scope - controller $scope
      * @memberof Controller
      */
-    constructor(scope) {
-      this.scope = scope
+		constructor(scope) {
+			this.scope = scope
 
-      for (const func of [
-        this.onClickExport,
-        this.onFilesChange
-      ]) {
+			for (const func of [
+				this.onClickExport,
+				this.onFilesChange
+			]) {
 				this.scope[func.name] = func.bind(this)
-      }
-      
-      // TODO: move this to html
+			}
+
+			// TODO: move this to html
 			document.querySelector('#files').addEventListener('change', this.onFilesChange)
-    }
+		}
 
     /**
      * @typedef {Object} Header
@@ -48,101 +48,102 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
      * 
      * @memberof Controller
      */
-    onFilesChange() {
-      const file = event.target.files[0]
-      const reader = new FileReader()
+		onFilesChange() {
+			// @ts-ignore
+			const file = /** @type {DataTransfer} */ (event.target).files[0]
+			const reader = new FileReader()
 
-      // Closure to capture the file information.
-      reader.onload = () => {
-          // newline delimited json
-          const ldjson = event.target.result
-          const jsonObjects = ldjson.split('\n')
-          
-          // newline delimited json
-          return new Promise((resolve, reject) => {
-              // validate header
+			// Closure to capture the file information.
+			reader.onload = () => {
+				// newline delimited json
+				const ldjson = /** @type {FileReader} */ (event.target).result
+				const jsonObjects = ldjson.split('\n')
 
-              /** @type {Header} */
-              const header = JSON.parse(jsonObjects.shift())
-  
-              if (header.magic !== Controller.MAGIC || header.version !== 1) {
-                  reject({
-                      status: 403,
-                      message: "Invalid File"
-                  });
-              } else {
-                  resolve()
-              }
-          }).then(() => {
-          //     return new Promise(resolve => { chrome.runtime.getBackgroundPage(p => resolve(p)) })
-          // }).then(({factory}) => {
-              // the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
-              // remainder is the database
-              return new DB().loadDB(jsonObjects.join('\n'))
-          }).then(() => {
-              // set associated styles. null items are removed (implying default should be used)
-              const items = JSON.parse(jsonObjects.shift())
-              return new ChromeHighlightStorage().setAll(items)
-          }).then(() => {
-              location.reload();
-          }).catch(function (err) {
-              // error loading or replicating tmp db to main db
-              alert(`Status: ${err.status}\nMessage: ${err.message}`)
-          })
-      }
+				// newline delimited json
+				return new Promise((resolve, reject) => {
+					// validate header
 
-      // Read in the image file as a data URL.
-      reader.readAsText(file, "utf-8");
-      // reader.readAsDataURL(file);
-    }
+					/** @type {Header} */
+					const header = JSON.parse(jsonObjects.shift())
 
-    onClickExport() {
-      /** @type {Header} */
-      const header = {
-        magic: Controller.MAGIC,
-        version: 1,
-      }
+					if (header.magic !== Controller.MAGIC || header.version !== 1) {
+						reject({
+							status: 403,
+							message: "Invalid File"
+						});
+					} else {
+						resolve()
+					}
+				}).then(() => {
+					//     return new Promise(resolve => { chrome.runtime.getBackgroundPage(p => resolve(p)) })
+					// }).then(({factory}) => {
+					// the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
+					// remainder is the database
+					return new DB().loadDB(jsonObjects.join('\n'))
+				}).then(() => {
+					// set associated styles. null items are removed (implying default should be used)
+					const items = JSON.parse(jsonObjects.shift())
+					return new ChromeHighlightStorage().setAll(items)
+				}).then(() => {
+					location.reload();
+				}).catch(function (err) {
+					// error loading or replicating tmp db to main db
+					alert(`Status: ${err.status}\nMessage: ${err.message}`)
+				})
+			}
 
-      // start with header
-      let ldjson = JSON.stringify(header)
+			// Read in the image file as a data URL.
+			reader.readAsText(file, "utf-8");
+			// reader.readAsDataURL(file);
+		}
 
-      return new ChromeHighlightStorage().getAll({defaults: false}).then(items => {
-          // the first item is always the highlights object
-          ldjson += `\n${JSON.stringify(items, null, '\t')}\n`
+		onClickExport() {
+			/** @type {Header} */
+			const header = {
+				magic: Controller.MAGIC,
+				version: 1,
+			}
 
-          // the remainder is the dumped database
-          const stream = new window.memorystream();
+			// start with header
+			let ldjson = JSON.stringify(header)
 
-          stream.on('data', chunk => {
-              ldjson += chunk.toString();
-          })
+			return new ChromeHighlightStorage().getAll({ defaults: false }).then(items => {
+				// the first item is always the highlights object
+				ldjson += `\n${JSON.stringify(items, null, '\t')}\n`
 
-          return new DB().dumpDB(stream)
-      }).then(() => {
-          // create a temporary anchor to navigate to data uri
-          const elm = document.createElement("a")
+				// the remainder is the dumped database
+				const stream = new window.memorystream();
 
-          elm.download = `${chrome.i18n.getMessage("advanced_database_export_file_name")}.ldjson`
-          elm.href = "data:text;base64," + Base64Utils.utf8_to_b64(ldjson, window)
+				stream.on('data', chunk => {
+					ldjson += chunk.toString();
+				})
 
-          // a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
-          // a.href = "data:text;base64," + utf8_to_b64(dumpedString);
-          // a.href = "data:text;base64," + utf8_to_b64(dumpedString);
-          //window.btoa(dumpedString);
+				return new DB().dumpDB(stream)
+			}).then(() => {
+				// create a temporary anchor to navigate to data uri
+				const elm = document.createElement("a")
 
-          // create & dispatch mouse event to hidden anchor
-          const event = document.createEvent("MouseEvent")
+				elm.download = `${chrome.i18n.getMessage("advanced_database_export_file_name")}.ldjson`
+				elm.href = "data:text;base64," + Base64Utils.utf8_to_b64(ldjson, window)
 
-          event.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
-          elm.dispatchEvent(event)
-      })
-    }
-  } // end class
+				// a.href = "data:text/plain;charset=utf-8;," + encodeURIComponent(dumpedString);
+				// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+				// a.href = "data:text;base64," + utf8_to_b64(dumpedString);
+				//window.btoa(dumpedString);
 
-  // static properties
+				// create & dispatch mouse event to hidden anchor
+				const event = document.createEvent("MouseEvent")
 
-  Controller.MAGIC = 'Super Simple Highlighter Exported Database'
+				event.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+				elm.dispatchEvent(event)
+			})
+		}
+	} // end class
 
-  // initialize
-  new Controller($scope)
+	// static properties
+
+	Controller.MAGIC = 'Super Simple Highlighter Exported Database'
+
+	// initialize
+	new Controller($scope)
 }])

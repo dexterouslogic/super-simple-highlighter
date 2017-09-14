@@ -56,7 +56,7 @@ class PromiseUtils {
    * https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
    * 
    * @static
-   * @param {Function<Promise>[]} pfuncs - array of functions returning promises to run sequentially
+   * @param {(function(): Promise)[]} pfuncs - array of functions returning promises to run sequentially
    * @returns {Promise<Promise[]>}
    * @memberof PromiseUtils
    */

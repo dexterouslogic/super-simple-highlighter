@@ -85,8 +85,12 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
       // TODO: move to HTML
       const bookmarksElm = document.querySelector('#bookmarks')
 
-      bookmarksElm.addEventListener('mouseenter', this.onMouseEnterBookmarks, { capture: true, passive: true })
-      bookmarksElm.addEventListener('mouseleave', this.onMouseLeaveBookmarks, { capture: true, passive: true })
+      bookmarksElm.addEventListener('mouseenter', this.onMouseEnterBookmarks, 
+        // @ts-ignore
+        { capture: true, passive: true })
+      bookmarksElm.addEventListener('mouseleave', this.onMouseLeaveBookmarks, 
+        // @ts-ignore
+        { capture: true, passive: true })
 
       // docs before grouping
       /** @type {DB.Document[]} */

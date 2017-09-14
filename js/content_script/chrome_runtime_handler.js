@@ -205,7 +205,7 @@ class ChromeRuntimeHandler {
    */
   createHighlight(range, firstHighlightId, className) {
     // 'mark' elements of range
-    let elms = new Marker(document).mark(range, firstHighlightId)
+    let elms = new Marker(this.document).mark(range, firstHighlightId)
     if (elms.length === 0) {
       return []
     }

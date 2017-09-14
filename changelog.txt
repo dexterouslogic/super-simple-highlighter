@@ -1,3 +1,6 @@
+# 3.13
+* A change-the-engine-while-driving rewrite
+
 # 3.12
 * Group pages (now renamed bookmarks) in options page
 * Add style sort to popup, remove style filter

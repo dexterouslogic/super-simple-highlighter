@@ -40,6 +40,7 @@ class ChromeContextMenusHandler {
    * @memberof ChromeContextMenusHandler
    */
   static createPageActionMenu({containsHighlights = false} = {}) {
+    // @ts-ignore
     return ChromeContextMenusHandler.remove(Object.values(ChromeContextMenusHandler.ID.PAGE_ACTION)).then(() => {
       const template = { contexts: ['page_action'] },
         items = [{
@@ -187,18 +188,8 @@ class ChromeContextMenusHandler {
     })
 
     return PromiseUtils.serial(pfuncs)
-
-    // return new Promise((resolve, reject) => {
-    //   const id = chrome.contextMenus.create(properties, () => {
-    //     if (chrome.runtime.lastError) {
-    //       reject(new Error(chrome.runtime.lastError.message))
-    //       return
-    //     }
-
-    //     resolve(id)
-    //   })
-    // })
   }
+  
   //
 
   /**

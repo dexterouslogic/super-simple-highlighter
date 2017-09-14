@@ -24,7 +24,7 @@ class Highlighter {
   /**
    * Creates an instance of Highlight.
    * @param {Array<number>|number} [tabId] - id or (in case of delete method) array, of ids of tabs of associated tabs
-   * @memberof Highlight
+   * @memberof Highlighter
    */
   constructor(tabId) {
     this.tabId = tabId

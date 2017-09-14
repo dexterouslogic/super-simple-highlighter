@@ -434,7 +434,8 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 				closeElm.addEventListener('animationend', (/** @type {AnimationEvent} */ event) => {
 					// remove close button
 					closeElm.remove()
-				}, {once: true, capture: false, passive: true})
+					// @ts-ignore
+				}, { once: true, capture: false, passive: true })
 			
 				// start animation
 				closeElm.style.animation = this.styleSheetManager.buttonPopOutAnimation

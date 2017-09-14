@@ -72,7 +72,8 @@ class ChromeRuntimeHandler {
             return
           }
 
-          return new Highlighter(tab.id).delete(message.highlightId)
+          const highlightId = /** @type {{id: string, highlightId: string}} */ (message).highlightId
+          return new Highlighter(tab.id).delete(highlightId)
         }).then(() => {
           sendResponse(true)
         }).catch(() => {

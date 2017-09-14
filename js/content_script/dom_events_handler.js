@@ -96,7 +96,11 @@ class DOMEventsHandler {
     // back into the reconsituted element
     closeElm.dataset[ChromeRuntimeHandler.DATA_ATTRIBUTE_NAME.FOREIGN] = ''
 
-    closeElm.addEventListener('click', this.onClickClose.bind(this), { passive: true, capture: true, once: true })
+    
+    closeElm.addEventListener('click', this.onClickClose.bind(this), 
+      // @ts-ignore
+      { passive: true, capture: true, once: true }
+    )
 
     firstElm.appendChild(closeElm)
   }
@@ -143,7 +147,8 @@ class DOMEventsHandler {
       closeElm.addEventListener('animationend', (/** @type {AnimationEvent} */ event) => {
         // remove close button
         closeElm.remove()
-      }, {once: true, capture: false, passive: true})
+        // @ts-ignore
+      }, { once: true, capture: false, passive: true })
     
       // if the close element has focus, wait until its lost to start the close animation
       const onFocusOut = () => { 
@@ -152,7 +157,10 @@ class DOMEventsHandler {
       }
 
       if(this.document.activeElement === closeElm) {
-        closeElm.addEventListener('focusout', onFocusOut, { passive: true, capture: false, once: true })
+        closeElm.addEventListener('focusout', onFocusOut, 
+          // @ts-ignore
+          { passive: true, capture: false, once: true }
+        )
       } else {
         onFocusOut()
       }
