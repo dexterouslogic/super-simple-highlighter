@@ -26,7 +26,7 @@
 	"author": "__MSG_extension_author__",
 	"background": {
 		"scripts": [
-			"static/js/pouchdb-6.3.4.min.js",
+			"static/js/pouchdb-6.4.3.min.js",
 			"static/js/pouchdb.replication-stream.min.js",
 			"static/js/pouchdb.load.min.js",
 			"js/shared/db.js",
