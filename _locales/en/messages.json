@@ -57,7 +57,7 @@
     "message": "Copy as Markdown"
   },
   "copyright_year": {
-    "message": "2017"
+    "message": "2012-19"
   },
   "create": {
     "message": "Create"
@@ -107,11 +107,8 @@
   "extension_author_twitter": {
     "message": "dexterouslogic"
   },
-  "extension_author_twitter_url": {
-    "message": "https://twitter.com/dexterouslogic"
-  },
   "extension_author_url": {
-    "message": "http://dexterouslogic.com"
+    "message": "https://www.dexterouslogic.com"
   },
   "extension_description": {
     "message": "Defines & remembers highlights made to text on websites"
@@ -123,7 +120,7 @@
     "message": "https://chrome.google.com/webstore/detail/hhlhjgianpocpoppaiihmlpgcoehlhio"
   },
   "faq_title": {
-    "message": "FAQ"
+    "message": "Help & FAQ"
   },
   "highlight_background_colour": {
     "message": "Background Color"
@@ -153,10 +150,10 @@
     "message": "Unselect text after highlighting"
   },
   "libraries": {
-    "message": "Developer Libraries"
+    "message": "This application is composed of the following libraries"
   },
   "licenses": {
-    "message": "Licenses"
+    "message": "Applicable Licenses"
   },
   "more": {
     "message": "more"
@@ -268,9 +265,6 @@
   },
   "styles": {
     "message": "Styles"
-  },
-  "support": {
-    "message": "Email Support"
   },
   "text_remove_all_pages": {
     "message": "Remove All Bookmarks"
