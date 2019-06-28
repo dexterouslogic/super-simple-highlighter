@@ -53,11 +53,14 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
 			const file = /** @type {DataTransfer} */ (event.target).files[0]
 			const reader = new FileReader()
 
+			// definitions have to be parsed before they're used
+			let highlightDefinitions
+
 			// Closure to capture the file information.
 			reader.onload = () => {
 				// newline delimited json
 				const ldjson = /** @type {FileReader} */ (event.target).result
-				const jsonObjects = ldjson.split('\n')
+				const jsonObjects = ldjson.split('\n').filter(line => line.length > 0)
 
 				// newline delimited json
 				return new Promise((resolve, reject) => {
@@ -77,13 +80,15 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
 				}).then(() => {
 					//     return new Promise(resolve => { chrome.runtime.getBackgroundPage(p => resolve(p)) })
 					// }).then(({factory}) => {
-					// the first line-delimited json object is the storage highlights object. Don't use them until the database loads successfully
-					// remainder is the database
+					// the first line-delimited json object is the storage highlights object. 
+					// Don't use them until the database loads successfully remainder is the database
+					highlightDefinitions = JSON.parse(jsonObjects.shift());						
+
+					// load remainder, which is just the replicated stream
 					return new DB().loadDB(jsonObjects.join('\n'))
 				}).then(() => {
 					// set associated styles. null items are removed (implying default should be used)
-					const items = JSON.parse(jsonObjects.shift())
-					return new ChromeHighlightStorage().setAll(items)
+					return new ChromeHighlightStorage().setAll(highlightDefinitions)
 				}).then(() => {
 					location.reload();
 				}).catch(function (err) {
@@ -108,14 +113,14 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
 			let ldjson = JSON.stringify(header)
 
 			return new ChromeHighlightStorage().getAll({ defaults: false }).then(items => {
-				// the first item is always the highlights object
-				ldjson += `\n${JSON.stringify(items, null, '\t')}\n`
+				// the first item (after header) is always the highlights object
+				ldjson += `\n${JSON.stringify(items)}`
 
 				// the remainder is the dumped database
 				const stream = new window.memorystream();
 
 				stream.on('data', chunk => {
-					ldjson += chunk.toString();
+					ldjson += `\n${chunk.toString()}`;
 				})
 
 				return new DB().dumpDB(stream)
