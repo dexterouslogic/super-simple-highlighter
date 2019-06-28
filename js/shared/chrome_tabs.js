@@ -28,6 +28,11 @@ class ChromeTabs {
    * @memberof ChromeTabs
    */
   constructor(tabId) {
+    /**
+     * id of tab that all instance methods target 
+     * @type {number}
+     * @public
+     */
     this.tabId = tabId
   }
 
