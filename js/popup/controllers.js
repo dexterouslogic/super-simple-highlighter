@@ -490,14 +490,14 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 			}).then(responses => {
 				// response is empty array if no documents needed to be removed, which is still a success
 				if (responses.some(({ ok }) => ok)) {
-					return Promise.reject(new Error())
+					return Promise.resolve();//reject(new Error())
 				}
 
 				// regroup documents in popup controller
 				return this.updateDocs()
 			}).then(docs => {
 				// close popup on last doc removed
-				if (docs.length === 0) {
+				if (typeof docs === 'undefined' || docs.length === 0) {
 					window.close()
 					return
 				}
