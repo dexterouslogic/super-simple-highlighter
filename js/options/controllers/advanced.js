@@ -54,7 +54,7 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
 			const reader = new FileReader()
 
 			// definitions have to be parsed before they're used
-			let highlightDefinitions
+			let storageItems
 
 			// Closure to capture the file information.
 			reader.onload = () => {
@@ -82,18 +82,18 @@ angular.module('advancedControllers', []).controller('advanced', ["$scope", func
 					// }).then(({factory}) => {
 					// the first line-delimited json object is the storage highlights object. 
 					// Don't use them until the database loads successfully remainder is the database
-					highlightDefinitions = JSON.parse(jsonObjects.shift());						
+					storageItems = JSON.parse(jsonObjects.shift());						
 
 					// load remainder, which is just the replicated stream
 					return new DB().loadDB(jsonObjects.join('\n'))
 				}).then(() => {
 					// set associated styles. null items are removed (implying default should be used)
-					return new ChromeHighlightStorage().setAll(highlightDefinitions)
+					return new ChromeHighlightStorage().setAll(storageItems)
 				}).then(() => {
 					location.reload();
 				}).catch(function (err) {
 					// error loading or replicating tmp db to main db
-					alert(`Status: ${err.status}\nMessage: ${err.message}`)
+					alert(`Error importing backup\n\nStatus: ${err.status}\nMessage: ${err.message}`)
 				})
 			}
 
