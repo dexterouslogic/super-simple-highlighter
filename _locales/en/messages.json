@@ -12,7 +12,7 @@
     "message": "Cancel"
   },
   "changelog": {
-    "message": "Changelog"
+    "message": "changelog"
   },
   "close": {
     "message": "Close"
@@ -39,7 +39,7 @@
     "message": "Yellow"
   },
   "confirm_remove_all_highlights": {
-    "message": "Are you sure you wish to every highlight on this page?"
+    "message": "Are you sure you wish to remove every highlight on this page?"
   },
   "confirm_remove_all_pages": {
     "message": "This operation can't be undone. Are you sure you wish to remove every highlight on every page?"
@@ -72,28 +72,28 @@
     "message": "Edit Style"
   },
   "advanced": {
-    "message": "Advanced"
+    "message": "Backup & Restore"
   },
   "advanced_database_export_button_text": {
     "message": "Export…"
   },
   "advanced_database_export_description": {
-    "message": "Saves a file containing the URL of each highlighted page, the location of the highlights on that page, and all currently defined styles. If you haven't enabled the 'Ask where to save each file before downloading' option in Chrome, the file will probably be saved in your Downloads folder."
+    "message": "Saves a file containing every highlight appearance and style currently in the database. If you haven't enabled the 'Ask where to save each file before downloading' option in Chrome, the file will probably be saved in your Downloads folder."
   },
   "advanced_database_export_file_name": {
-    "message": "Styles and Bookmarks"
+    "message": "Super Simple Highlighter Backup"
   },
   "advanced_database_export_title": {
     "message": "Backup"
   },
   "advanced_database_heading": {
-    "message": "Styles, Bookmarks & Highlights"
+    "message": "Experimental - use at your own risk (or a least test beforehand)"
   },
   "advanced_database_import_button_text": {
     "message": "Import…"
   },
   "advanced_database_import_description": {
-    "message": "Replace the highlights and styles with those previously exported into a file. NOTE: ALL existing highlights on ALL pages will be replaced, along with ALL modified highlight styles."
+    "message": "Replace all current highlight and styles with those previously exported into a file. NOTE: ALL existing highlights on ALL pages will be replaced, along with ALL modified highlight styles."
   },
   "advanced_database_import_title": {
     "message": "Restore"
@@ -111,7 +111,7 @@
     "message": "https://www.dexterouslogic.com"
   },
   "extension_description": {
-    "message": "Defines & remembers highlights made to text on websites"
+    "message": "Highlights text on web pages, and tries to restore them on subsequent visits. Sometimes it works!"
   },
   "extension_name": {
     "message": "Super Simple Highlighter"
@@ -120,7 +120,7 @@
     "message": "https://chrome.google.com/webstore/detail/hhlhjgianpocpoppaiihmlpgcoehlhio"
   },
   "faq_title": {
-    "message": "Help & FAQ"
+    "message": "Frequently Asked Questions"
   },
   "highlight_background_colour": {
     "message": "Background Color"
@@ -129,7 +129,7 @@
     "message": "Blur highlight edges"
   },
   "highlight_help_keyboard_shortcut": {
-    "message": "A keyboard shortcut can be assigned to any of the first 10 styles. Use the 'Keyboard shortcuts' option, located at the bottom right of Chrome's main 'Extensions' page (also accessible via the Tools menu)."
+    "message": "A keyboard shortcut can be assigned to any of the first 10 styles. Use the 'Keyboard Shortcuts' facility, located in Chrome's 'Extensions' page (also accessible via the 'More Tools' section of the main menu)."
   },
   "highlight_opacity": {
     "message": "Opacity"
@@ -150,10 +150,10 @@
     "message": "Unselect text after highlighting"
   },
   "libraries": {
-    "message": "This application is composed of the following libraries"
+    "message": "This extension is composed of the following libraries"
   },
   "licenses": {
-    "message": "Applicable Licenses"
+    "message": "Licenses"
   },
   "more": {
     "message": "more"
