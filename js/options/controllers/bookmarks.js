@@ -311,6 +311,11 @@ angular.module('bookmarksControllers', []).controller('bookmarks', ["$scope", fu
               day: 'numeric'
             })
             break
+
+          case 'string':
+            // value is the first letter of group title
+            group.title = group.value
+            break
         }
 
         // no longer need value property
