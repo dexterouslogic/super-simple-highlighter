@@ -87,7 +87,7 @@
     "message": "Backup"
   },
   "advanced_database_heading": {
-    "message": "Experimental - use at your own risk (or a least test beforehand)"
+    "message": "Experimental - use at your own risk (or at least test it beforehand)"
   },
   "advanced_database_import_button_text": {
     "message": "Import…"

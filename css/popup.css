@@ -87,9 +87,15 @@ body {
 	padding: 0.8em 10px;
 }
 
+/* 
 .not-in-dom {
-	/* border: 1px dashed #c66; */
+	border: 1px dashed #c66;
 	text-decoration: line-through;
+} 
+*/
+
+.not-in-dom .highlight {
+	opacity: 0.35;
 }
 
 .not-in-dom .highlight,

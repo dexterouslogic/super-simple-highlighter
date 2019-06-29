@@ -61,7 +61,7 @@ angular.module('aboutControllers', []).controller('about', ["$scope", function (
     },
     {
       href: "http://danielcrisp.github.io/angular-rangeslider/",
-      text: "angular-rangeslider"
+      text: "Angular-Rangeslider"
     },
     {
       href: "http://getbootstrap.com/",

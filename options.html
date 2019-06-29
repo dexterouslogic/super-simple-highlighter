@@ -148,7 +148,7 @@
 					</div>
 
 					<!--Highlight Definitions-->
-					<h4 class="lead">{{ 'options_tab_page_header_sites' | i18n }}</h4>
+					<h2>{{ 'options_tab_page_header_sites' | i18n }}</h2>
 
 					<ul class="list-unstyled">
 						<li ng-repeat="hd in highlightDefinitions" class="token well-sm {{highlightClassName}} {{hd.className}}"
@@ -243,9 +243,9 @@
 					</form>
 
 					<!-- Only show if no items -->
-					<h2 class="pages-no-groups" ng-show="groupedDocs.length === 0">
+					<h1 class="pages-no-groups" ng-show="groupedDocs.length === 0">
 						{{ 'pages_empty' | i18n }}
-					</h2>
+					</h1>
 
 					<ol class="list-unstyled list-grouped-pages">
 						<li ng-repeat="group in groupedDocs | filter:filters.group" class="page-group-list-item">
@@ -337,7 +337,6 @@
 					<p>
 						<small>&copy;{{'copyright_year' | i18n}}</small> <strong><a ng-href="{{'extension_author_url' | i18n}}">{{ 'extension_author' | i18n }}</a></strong>
 					</p>
-					<hr>
 					<h4>{{'libraries' | i18n}}</h4>
 					<ul>
 						<li ng-repeat="library in libraries">
