@@ -15,11 +15,11 @@ input[type="color"] {
 }
 
 .token {
-    margin: 0 0 6pt 0;
+    margin: 0 0 12pt 0;
     font-size: 2rem !important;
  /*   padding: 10px 0 10px 0.3em !important;*/
     cursor: pointer;
-	border-radius: 0.5em !important;
+	/* border-radius: 0.5em !important; */
 
     display: block;
     border: 2px solid black;
@@ -58,6 +58,7 @@ input[type="color"] {
 
 .tab-pane > h2 {
     margin-top: 0;
+    margin-bottom: 1em;
 }
 
 .header {

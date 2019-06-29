@@ -168,7 +168,7 @@
     "message": "Options"
   },
   "options_tab_page_header_sites": {
-    "message": "Select a style to change its title and colors"
+    "message": "Choose a style to change its title and appearance"
   },
   "overview_footer": {
     "message": "Created with [$EXTENSION_NAME$]($EXTENSION_URL$). (C)$COPYRIGHT_YEAR$ [$EXTENSION_AUTHOR$]($EXTENSION_AUTHOR_URL$)",
@@ -200,7 +200,7 @@
     "message": "Some highlights couldn't be restored onto this page"
   },
   "bookmarks": {
-    "message": "Bookmarks"
+    "message": "Highlighted Pages"
   },
   "pages_empty": {
     "message": "Nothing to see here, move along"
