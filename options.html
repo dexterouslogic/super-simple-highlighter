@@ -264,7 +264,7 @@
 									</button>
 
 									<!-- page title -->
-									<h5 class="page-title">
+									<h5 class="page-title" ng-hide="options.groupBy === 'title' && !group.title">
 										<a href="{{doc.match}}" target="_blank">{{doc.title || ('untitled_page_title' | i18n) }}</a>
 									</h5>
 									<!-- page link -->
