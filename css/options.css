@@ -1,12 +1,8 @@
-    
 body {
-/*    font-family: "Lucida Grande", sans-serif;*/
     color: #777;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    /*font-family: "Open Sans", Arial, "Lucida Grande", sans-serif;*/
-/*    font-weight: 600;*/
     color: #000
 }
 
@@ -22,7 +18,7 @@ input[type="color"] {
 	/* border-radius: 0.5em !important; */
 
     display: block;
-    border: 2px solid black;
+    border: 2px solid #444;
     animation: unset !important;
 }
 
@@ -103,12 +99,12 @@ input[type="color"] {
 }
 
 .page-group-header {
-    background-color:#f5f5f5;
+    background-color:rgba(222,222,222, 0.9);
+    color: black;
     border-width: 1px 0;
     border-style: solid;
     border-color: grey;
     padding: 0.6rem 1rem;
-    color: black;
     position: sticky;
     top: 0;
     z-index: 1;
@@ -122,7 +118,7 @@ input[type="color"] {
 }
 
 .page:hover {
-    background-color: #eee;
+    background-color: rgb(0,0,0,0.2);
 }
 
 .page-link {
@@ -190,7 +186,7 @@ input[type="color"] {
     padding: 1em;
     margin-bottom: 1em;
     border: 1px;
-    background-color: #eee;
+    background-color: rgb(0,0,0,0.2);
     width: 65%;
 }
 
@@ -228,4 +224,29 @@ input[readonly] {
 
 #page-container {
     max-width: 1170px;
+}
+
+img .glow {
+    filter: brightness(0) invert(1) blur(5px);
+    z-index: 1;
+}
+
+@media (prefers-color-scheme: dark) { 
+    body { 
+        background: #222; 
+        color: lightgray;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: white
+    }
+
+    .page-group-header {
+        background-color:rgba(16,16,16, 0.9);
+        color: white;
+    }
+
+    .list-group-item {
+        background-color: #222;
+    }
 }
