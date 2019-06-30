@@ -237,6 +237,11 @@ img .glow {
         color: lightgray;
     }
 
+    .navbar-default {
+        background-color: #111111;
+        border-color: #070707;
+    }
+
     h1, h2, h3, h4, h5, h6 {
         color: white
     }

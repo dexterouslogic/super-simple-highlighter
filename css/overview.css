@@ -25,16 +25,16 @@ body {
 }
 
 .group-header {
-    background-color: #f7f7f7;
-    padding: 1rem;
+    background-color:rgba(222,222,222, 0.9);
     color: black;
+    padding: 1rem;
     position: sticky;
     top: 0;
     z-index: 1;
     opacity: 0.9;
     border-width: 1px 0;
     border-style: solid;
-    border-color: grey;
+    border-color: #444;
     /* border-bottom: 1px solid grey;  */
 }
 
@@ -73,4 +73,21 @@ footer {
   margin: 40px 0 20px;
   border-top: 1px solid #eee;
   text-align: right;
+}
+
+
+@media (prefers-color-scheme: dark) { 
+	body { 
+		background: #222; 
+	}
+
+    .navbar-default {
+        background-color: #111111;
+        border-color: #070707;
+    }
+
+	.group-header {
+		background-color:rgba(16,16,16, 0.9);
+		color: white;
+	}	
 }
