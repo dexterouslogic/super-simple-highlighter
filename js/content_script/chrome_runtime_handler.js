@@ -76,7 +76,7 @@ class ChromeRuntimeHandler {
 
       case ChromeTabs.MESSAGE_ID.CREATE_HIGHLIGHT:
         // return true if created
-        response = ( /** @type {function(Object, string, string): boolean} */ (xrange, highlightId, className) => {
+        response = ( /** @type {function(Object, string, string, number): boolean} */ (xrange, highlightId, className, version) => {
           let range
 
           // this is likely to cause exception when the underlying DOM has changed
@@ -90,9 +90,9 @@ class ChromeRuntimeHandler {
             return false
           }
 
-          const elms = this.createHighlight(range, highlightId, className)
+          const elms = this.createHighlight(range, highlightId, className, version)
           return elms.length > 0
-        })(message.range, message.highlightId, message.className)
+        })(message.range, message.highlightId, message.className, message.version || 4)
         break
 
       case ChromeTabs.MESSAGE_ID.UPDATE_HIGHLIGHT:
@@ -200,12 +200,17 @@ class ChromeRuntimeHandler {
    * @param {Range} range - range of document to highlight
    * @param {string} firstHighlightId - #id to add to first mark
    * @param {string} className - class name (aka highlight definiton id) to add to every mark
+   * @param {number} [version=4] - version used to create highlight. If <= 3 it implies it's a recreation, and assume compat behaviour
    * @returns {HTMLElement[]} - mark elements - can be empty
    * @memberof ChromeRuntimeHandler
    */
-  createHighlight(range, firstHighlightId, className) {
+  createHighlight(range, firstHighlightId, className, version = 4) {
+    // new highlights use 'mark' tag
+    const tagName = version <= 3 ? 'span' : 'mark'
+
     // 'mark' elements of range
-    let elms = new Marker(this.document).mark(range, firstHighlightId)
+    let elms = new Marker(this.document)
+      .mark(range, firstHighlightId, tagName)
     if (elms.length === 0) {
       return []
     }
@@ -221,6 +226,11 @@ class ChromeRuntimeHandler {
     // TODO: optional
     elms[0].setAttribute('tabindex', '0')
     // firstSpan.classList.add("closeable");
+
+    if (version <= 3) {
+      // to be compatible with recreated highlights from v3, a dummy 'close' button is needed
+      elms[0].appendChild(document.createElement("span"));
+    }
 
     return elms
   }

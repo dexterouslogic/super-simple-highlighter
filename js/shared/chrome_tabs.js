@@ -263,15 +263,17 @@ class ChromeTabs {
    * @param {XRange} range - range object with xPath selection range
    * @param {string} className - name of class defining style of highlight
    * @param {string} highlightId - unique id for highlight, usually same as 'create' document's Id
+   * @param {number} [version] - 'version' of document used to create tab. If < 4, assumes compat behaviour
    * @param {MessageOptions} [options] - message options
    * @returns {Promise<boolean>} true if highlight span could be created 
    * @memberof ChromeTabs
    */
-  createHighlight(range, className, highlightId, options) {
+  createHighlight(range, className, highlightId, version, options) {
     return this.sendMessage(ChromeTabs.MESSAGE_ID.CREATE_HIGHLIGHT, {
       range: range,
       highlightId: highlightId,
-      className: className
+      className: className,
+      version: version,
     }, options)
   }
 
@@ -471,12 +473,16 @@ class ChromeTabs {
             case DB.DOCUMENT.VERB.CREATE:
               sum++
     
+              // compat (tag name, workarounds) depends on whether it was created with ssh v4+
+              // If not present, assume v3
+              const version = doc[DB.DOCUMENT.NAME.VERSION] || 3;
+
               // each highlight's unique id (#id) is the document's _id
               return this.createHighlight(
                 doc[DB.DOCUMENT.NAME.RANGE],
                 doc[DB.DOCUMENT.NAME.CLASS_NAME],
-                doc._id
-              )
+                doc._id,
+                version)
 
             case DB.DOCUMENT.VERB.DELETE:
               sum--

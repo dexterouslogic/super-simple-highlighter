@@ -311,6 +311,11 @@ class DB {
     date = Date.now(),
   } = {}, options = {}) {
     // the document to be put (put because we specify the _id, which gets used as the DOM highlight id)
+    // naive, but ok for now
+    const components = chrome.runtime.getManifest()
+      .version.split(".");
+    const majorVersion = components.length > 0 ? parseInt(components[0]) : 4
+
     const doc = {
       [DB.DOCUMENT.NAME.VERB]: DB.DOCUMENT.VERB.CREATE,
       [DB.DOCUMENT.NAME.MATCH]: match,
@@ -318,6 +323,7 @@ class DB {
       [DB.DOCUMENT.NAME.CLASS_NAME]: className,
       [DB.DOCUMENT.NAME.TEXT]: text,
       [DB.DOCUMENT.NAME.DATE]: date,
+      [DB.DOCUMENT.NAME.VERSION]: majorVersion
     }
 
     // optionals
@@ -759,5 +765,7 @@ DB.DOCUMENT = {
     TITLE: 'title',
     // id of 'create' doc associated with this `delete` doc
     CORRESPONDING_DOC_ID: 'correspondingDocumentId',
+    // version of ssh used to create document. Only used ssh v4+
+    VERSION: 'v'
   }
 }
