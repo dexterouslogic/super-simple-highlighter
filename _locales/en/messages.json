@@ -111,7 +111,7 @@
     "message": "https://www.dexterouslogic.com"
   },
   "extension_description": {
-    "message": "Highlights text on web pages, and tries to restore them on subsequent visits."
+    "message": "Adds highlights to text on web pages, and tries to restore them on subsequent visits."
   },
   "extension_name": {
     "message": "Super Simple Highlighter"
