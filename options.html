@@ -268,7 +268,9 @@
 										<a href="{{doc.match}}" target="_blank">{{doc.title || ('untitled_page_title' | i18n) }}</a>
 									</h5>
 									<!-- page link -->
-									<cite class="page-link">{{doc.match}}</cite>
+									<cite>
+										<a href="{{doc.match}}" target="_blank" class="page-link">{{doc.match}}</a>
+									</cite>
 
 									<!-- text for all highlights -->
 									<ul class="list-inline page-text-list" ng-show="options.showPageText">
