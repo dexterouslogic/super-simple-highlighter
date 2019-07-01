@@ -219,6 +219,7 @@ StyleSheetManager.DECLARATIONS = {
 		background-origin: border-box;
 		animation-duration: 275ms;
 		animation-timing-function: ease-out;
+		box-shadow: none;
   `,
 
 	CLOSE_HOVER_FOCUS: `

@@ -252,9 +252,10 @@ ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
   'color': '#AAAAAA',
   'background-color': '#EEEEEE',
   'font': 'inherit',
+  'text-shadow': 'none',
   
   // 'animation': 'fontbulger 0.2s ease-in-out 0s 2 alternate'
-  'transition-property': 'color, background-color, box-shadow',
-  'transition-duration': '0.3s',
-  'transition-timing-function': 'ease-in-out',
+  // 'transition-property': 'color, background-color, box-shadow',
+  // 'transition-duration': '0.3s',
+  // 'transition-timing-function': 'ease-in-out',
 }

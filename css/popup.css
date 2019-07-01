@@ -52,7 +52,7 @@ body {
 }
 
 .doc {
-	margin-bottom: 10px;
+	margin-bottom: 1.2rem;
 	/* box-shadow: 0 2px 6px 0px rgba(50,50,50,0.14); */
 	/* padding: 10px; */
 }
@@ -63,11 +63,17 @@ body {
 
 	display: block;
 	animation: initial;
+
+	transition: filter 0.5s;
+}
+
+.doc .highlight:hover {
+	filter: drop-shadow(0px 0px 6px grey) opacity(1.0);
 }
 
 .actions {
-	margin-top: 1rem;
-	font-size: 9pt;
+	margin-top: 0.5rem;
+	font-size: 8pt;
 	/* font-weight: 400; */
 }
 /* 
@@ -95,7 +101,7 @@ body {
 */
 
 .not-in-dom .highlight {
-	opacity: 0.35;
+	filter: opacity(0.4);
 }
 
 .not-in-dom .highlight,
