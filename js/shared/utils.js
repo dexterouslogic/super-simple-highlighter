@@ -45,6 +45,26 @@ class StringUtils {
   }
 }
 
+class DataUtils {
+	/**
+	 * convert data attributeName (camel case) to "data-attribute-name"
+	 * @param {string} camelCase 
+	 * @returns {string} converted string
+	 */
+	static camelCaseToAttribute(camelCase) {
+		return 'data-' + DataUtils.camelCaseToHyphen(camelCase);
+	}
+
+	/**
+	 * convert camelCase value to camel-case value
+	 * @param {string} camelCase 
+	 * @returns {string} converted string
+	 */
+	static camelCaseToHyphen(camelCase) {
+    return camelCase.replace(/([A-Z])/g, '-$1').toLowerCase();
+  }
+}
+
 /**
  * Static utils for Promise things
  * 

@@ -51,15 +51,21 @@ class Marker {
       const elm = /** @type {HTMLElement} */ (templateElm.cloneNode(false))
       const length = elements.length
 
-      // all elements get an id, so they can be linked
-      elm.id = (length === 0 && id) ? id : StringUtils.newUUID()
+      // only give the first element the id, because it may become part of the XPath, and dynamic ids would contaminate it
+      if (length === 0 && id) {
+        elm.id = id
+      }
+
+      // this is how we now identify marks in the chain
+      elm.dataset[Marker.DATASET_KEY.PRIVATE_ID] = StringUtils.newUUID();
+      // elm.id = (length === 0 && id) ? id : StringUtils.newUUID()
 
       if (length > 0) {
         // subsequent marks reference to the first mark
         elm.dataset[Marker.DATASET_KEY.FIRST_MARK_ID] = elements[0].id
 
         // old last element links to new
-        elements[length-1].dataset[Marker.DATASET_KEY.NEXT_MARK_ID] = elm.id
+        elements[length-1].dataset[Marker.DATASET_KEY.NEXT_PRIVATE_ID] = elm.dataset[Marker.DATASET_KEY.PRIVATE_ID];//elm.id
       }
 
       elements.push(elm)
@@ -274,10 +280,13 @@ class Marker {
       return []
     }
 
+    const privateIdAttributeName = `data-${DataUtils.camelCaseToHyphen(Marker.DATASET_KEY.PRIVATE_ID)}`
+
     while (true) {
       // id of the last pushed element's 'nextMarkId' data attribute
-      const nextId = elms[elms.length-1].dataset[Marker.DATASET_KEY.NEXT_MARK_ID]
-      const nextElm = (nextId && this.document.getElementById(nextId)) || null
+      const nextPrivateId = elms[elms.length-1].dataset[Marker.DATASET_KEY.NEXT_PRIVATE_ID]
+      const nextElm = (nextPrivateId && this.document.querySelector(`[${privateIdAttributeName}="${nextPrivateId}"]`)) 
+        || null// this.document.getElementById(nextId)) || null
       
       if (!nextElm) {
         break
@@ -315,10 +324,13 @@ class Marker {
 // static properties
 
 Marker.DATASET_KEY = {
-  // id of the first element in the chain. Added to all except the first
+  // html id of the first element (mark|span) in the chain. Added to all except the first
   FIRST_MARK_ID: 'firstMarkId',
-  // id of the element that is the next part of the chain. Added to all except the last
-  NEXT_MARK_ID: 'nextMarkId',
+
+  // private (non html) id assigned to an element in data (instead of #id) because that id might become part of the XPath, which only works for the first mark in chain
+  PRIVATE_ID: 'privateId',
+  // private (non html) id of the element that is the next part of the chain. Added to all except the last.
+  NEXT_PRIVATE_ID: 'nextPrivateId'
 }
 
 Marker.NODE_CTORS = {
