@@ -118,7 +118,7 @@ input[type="color"] {
 }
 
 .page:hover {
-    background-color: rgb(0,0,0,0.2);
+    background-color: rgb(0, 0, 0, 0.1);
 }
 
 .page-link {
@@ -253,5 +253,9 @@ img .glow {
 
     .list-group-item {
         background-color: #222;
+    }
+
+    .page .close {
+        color: #fff;
     }
 }

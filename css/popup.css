@@ -64,11 +64,12 @@ body {
 	display: block;
 	animation: initial;
 
-	transition: filter 0.5s;
+	transition: filter 0.5s, box-shadow 0.5s;
 }
 
 .doc .highlight:hover {
-	filter: drop-shadow(0px 0px 6px grey) opacity(1.0);
+	filter: opacity(1.0);
+	box-shadow: grey 0px 0px 6px !important;
 }
 
 .actions {
