@@ -243,7 +243,8 @@ Object.assign(ChromeHighlightStorage.KEYS, {
 ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
   'position': "relative",
   'border-radius': "0.2em",
-  //"padding": "0.2em",
+  "padding": "0",
+  "margin": "0",
   // "box-shadow": "0 0 8px #D3D3D3",
   // "display": "inline-block",
   
