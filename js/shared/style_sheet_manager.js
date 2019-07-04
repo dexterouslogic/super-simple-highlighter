@@ -218,7 +218,7 @@ StyleSheetManager.DECLARATIONS = {
 	// styles that all highlights should have, independent of highlight color
 	// font: inherit !important;
 	CONTENT: `
-	  position: relative !important;
+	  position: static !important;
   	border-radius: 0.2em !important;
     padding: 0px !important;
     margin: 0px !important;
