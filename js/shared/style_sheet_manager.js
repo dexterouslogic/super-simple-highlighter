@@ -113,7 +113,7 @@ class StyleSheetManager {
 		}
 
 		if (!highlightDefinition.disableBoxShadow) {
-			rules['box-shadow'] = `0 0 12px ${backgroundColor}`
+			rules['box-shadow'] = `0 0 0.35em ${backgroundColor}`
 		}
 
 		if (highlightDefinition.inherit_style_color) {
