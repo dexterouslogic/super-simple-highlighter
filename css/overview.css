@@ -22,6 +22,7 @@ body {
     animation: none !important;
     margin-bottom: 0.6rem;
     border: 1px solid grey;
+    border-radius: 4px;
 }
 
 .group-header {
