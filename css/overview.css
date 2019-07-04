@@ -58,9 +58,13 @@ body {
 	content: counter(my-counter);
 }  */
 
-.number-of-highlights::before {
-    content: "- ";
+.number-of-highlights {
+    text-align: end;
 }
+
+/* .number-of-highlights::before {
+    content: "- ";
+} */
 
 /* hide automatic url after anchor */
 @media print {
