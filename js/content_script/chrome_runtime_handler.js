@@ -216,7 +216,11 @@ class ChromeRuntimeHandler {
     }
 
     // class names to add to every mark element
-    const classNames = [this.styleSheetManager.sharedHighlightClassName, className]
+    const classNames = [
+      this.styleSheetManager.sharedHighlightClassName,
+      this.styleSheetManager.sharedContentClassName,
+      className
+    ]
 
     for (const { classList } of elms) {
       classList.add(...classNames)

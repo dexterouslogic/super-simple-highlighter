@@ -241,20 +241,20 @@ Object.assign(ChromeHighlightStorage.KEYS, {
 })
 
 ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
-  'position': "relative",
-  'border-radius': "0.2em",
-  "padding": "0",
-  "margin": "0",
-  // "box-shadow": "0 0 8px #D3D3D3",
-  // "display": "inline-block",
-  
   // color & font-style when highlight is defined by a class which no longer exists
   // each specific style must override these, or inherit default
   'color': '#AAAAAA',
   'background-color': '#EEEEEE',
-  'font': 'inherit',
-  'text-shadow': 'none',
-  
+  'text-shadow': 'none !important',
+  // "box-shadow": "0 0 8px #D3D3D3",
+
+  // 'font': 'inherit !important',
+  // 'position': "relative !important",
+  // 'border-radius': "0.2em",
+  // "padding": "0px",
+  // "margin": "0px",  
+
+  // "display": "inline-block",
   // 'animation': 'fontbulger 0.2s ease-in-out 0s 2 alternate'
   // 'transition-property': 'color, background-color, box-shadow',
   // 'transition-duration': '0.3s',

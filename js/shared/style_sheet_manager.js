@@ -30,9 +30,12 @@ class StyleSheetManager {
 	constructor(document) {
 		this.document = document
 
-		// A random class name added to every mark element
+		// A random class name added to every mark element, that defines its colors ONLY
 		// It is styled as 'ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE'
 		this.sharedHighlightClassName = StringUtils.newUUID()
+
+		// As above, but defines the structure (padding, margin etc)
+		this.sharedContentClassName = StringUtils.newUUID()
 		
 		// id of single <style> element
 		this.styleElementId = StringUtils.newUUID()
@@ -64,6 +67,12 @@ class StyleSheetManager {
 		this.buttonPopOutAnimation = `275ms ease-out ${buttonPopOutAnimationName}`
 				
 		const rules = [
+				// non-appearance styles common to highlights
+				`.${this.sharedContentClassName} {
+					${StyleSheetManager.DECLARATIONS.CONTENT}
+				}`,
+
+				// close
 				`.${this.sharedHighlightClassName} .${StyleSheetManager.CLASS_NAME.CLOSE} {
 						${StyleSheetManager.DECLARATIONS.CLOSE}
 						animation-name: ${buttonPopInAnimationName}
@@ -74,6 +83,7 @@ class StyleSheetManager {
 						${StyleSheetManager.DECLARATIONS.CLOSE_HOVER_FOCUS}
 				}`,
 				
+				// animation
 				`@keyframes ${buttonPopInAnimationName} {
 					${StyleSheetManager.ANIMATION_KEYFRAMES.BUTTON_POP_IN}	
 				}`,
@@ -205,6 +215,15 @@ StyleSheetManager.CLASS_NAME = {
 }
 
 StyleSheetManager.DECLARATIONS = {
+	// styles that all highlights should have, independent of highlight color
+	// font: inherit !important;
+	CONTENT: `
+	  position: relative !important;
+  	border-radius: 0.2em !important;
+    padding: 0px !important;
+    margin: 0px !important;
+	`,
+	
 	// padding: 0;
 	// name of animation is dynamic so has to be formatted separately
   CLOSE: `
