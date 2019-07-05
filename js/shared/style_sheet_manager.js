@@ -217,8 +217,9 @@ StyleSheetManager.CLASS_NAME = {
 StyleSheetManager.DECLARATIONS = {
 	// styles that all highlights should have, independent of highlight color
 	// font: inherit !important;
-	// position: static !important;
+	// position: relative needed because close button is a child of the mark, and positions itself relative to it
 	CONTENT: `
+		position: relative !important;
   	border-radius: 0.2em !important;
     padding: 0px !important;
     margin: 0px !important;

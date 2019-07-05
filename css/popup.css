@@ -58,7 +58,8 @@ body {
 }
 
 .doc .highlight {
-	border-radius: 5px;
+	position: relative;
+	border-radius: 0.5em;
 	border: 1px solid grey;
 
 	display: block;
