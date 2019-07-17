@@ -162,7 +162,7 @@
     "message": "OK, got it"
   },
   "open_overview_in_new_tab": {
-    "message": "Open in New Tab"
+    "message": "Open"
   },
   "options_page_title_prefix": {
     "message": "Options"
@@ -228,7 +228,7 @@
     "message": "Style"
   },
   "remove_all_highlights": {
-    "message": "Remove All Highlights"
+    "message": "Remove Highlights"
   },
   "remove_highlight": {
     "message": "Remove Highlight"
