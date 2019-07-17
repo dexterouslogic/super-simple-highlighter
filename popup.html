@@ -209,7 +209,7 @@
 
 								<!--Speak-->
 								<a href="" title="{{ 'tooltip_speak_highlight' | i18n }}" class="highlight-link"
-									ng-click="onClickSpeakHighlight(doc)" ng-class="{'sr-only sr-only-focusable': !doc.hover}">
+									ng-click="onClickSpeakHighlight(doc); $event.currentTarget.blur()" ng-class="{'sr-only sr-only-focusable': !doc.hover}">
 										{{'speak_highlight_text' | i18n}}
 								</a>
 

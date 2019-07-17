@@ -538,7 +538,12 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 				return false
 			}
 
-			return ClipboardUtils.copy(doc.text, window.document)
+			if (ClipboardUtils.copy(doc.text, window.document)) {
+				window.close()
+				return true
+			}
+
+			return false
 		}
 
 		/**
