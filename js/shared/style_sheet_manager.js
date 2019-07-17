@@ -82,7 +82,13 @@ class StyleSheetManager {
 				 .${this.sharedHighlightClassName} .${StyleSheetManager.CLASS_NAME.CLOSE}:focus {
 						${StyleSheetManager.DECLARATIONS.CLOSE_HOVER_FOCUS}
 				}`,
-				
+
+				`@media print {
+					.${this.sharedHighlightClassName} {
+						${StyleSheetManager.DECLARATIONS.MEDIA_PRINT__SHARED_HIGHLIGHT}
+					}
+				}`,
+
 				// animation
 				`@keyframes ${buttonPopInAnimationName} {
 					${StyleSheetManager.ANIMATION_KEYFRAMES.BUTTON_POP_IN}	
@@ -93,7 +99,7 @@ class StyleSheetManager {
 		]
 		
 		for (const rule of rules) {
-				/** @type {CSSStyleSheet} */ (elm.sheet).insertRule(rule)
+				/** @type {CSSStyleSheet} */ (elm.sheet).insertRule(rule, (elm.sheet).cssRules.length)
 		}
 		// elm.appendChild(this.document.createTextNode(rules.join('\n')))
 
@@ -223,6 +229,11 @@ StyleSheetManager.DECLARATIONS = {
   	border-radius: 0.2em !important;
     padding: 0px !important;
     margin: 0px !important;
+	`,
+
+	MEDIA_PRINT__SHARED_HIGHLIGHT: `
+		box-shadow: unset !important;
+		-webkit-print-color-adjust: exact !important;
 	`,
 	
 	// padding: 0;
