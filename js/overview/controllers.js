@@ -71,8 +71,11 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				
 				return new ChromeHighlightStorage().getAll()
 			}).then(items => {
-				const styleSheetManager = new StyleSheetManager(this.document)
-				
+				// array of highlight definitions
+				this.scope.highlightDefinitions = items[ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]
+
+				const styleSheetManager = new StyleSheetManager(this.document, "highlight", "ssh-style")
+
 				// adds style element to document
 				styleSheetManager.init()
 
@@ -90,7 +93,7 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				key = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
 				if (items[key]) {
 						for (const hd of items[key]) {
-							styleSheetManager.setRule(hd)
+							styleSheetManager.setRule(hd, true)
 						}
 				}
 		
@@ -109,25 +112,84 @@ controllerModule.controller('overviewController', ["$scope", function ($scope) {
 				this.docs = docs
 
 				// group by days since epoch
-				const groupedDocs = []
+				let groupedDocs = []
 	
-				for (const d of docs) {
-					const date = new Date(d[DB.DOCUMENT.NAME.DATE])
-					const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+				// for (const d of docs) {
+				// 	const date = new Date(d[DB.DOCUMENT.NAME.DATE])
+				// 	const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
 	
-					// first, or different days since epoch of last group
-					if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
-						// each group defines its days since epoch and an ordered array of docs
-						groupedDocs.push({
-							daysSinceEpoch: daysSinceEpoch,
-							representativeDate: date,
-							docs: []
-						})
-					}
+				// 	// first, or different days since epoch of last group
+				// 	if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length-1].daysSinceEpoch) {
+				// 		// each group defines its days since epoch and an ordered array of docs
+				// 		groupedDocs.push({
+				// 			daysSinceEpoch: daysSinceEpoch,
+				// 			representativeDate: date,
+				// 			docs: []
+				// 		})
+				// 	}
 	
-					groupedDocs[groupedDocs.length-1].docs.push(d)
-				}
+				// 	groupedDocs[groupedDocs.length-1].docs.push(d)
+				// }
+
 				
+				switch (this.scope.sortby) {
+					case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.LOCATION:
+						// a single untitled group containing all items sorted by location
+						groupedDocs.push({ docs: docs })
+						break
+
+					case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.TIME:
+						// a group for each unique day
+						for (const doc of docs) {
+							const date = new Date(doc[DB.DOCUMENT.NAME.DATE])
+							const daysSinceEpoch = Math.floor(date.getTime() / 8.64e7)
+
+							// first, or different days since epoch of last group
+							if (groupedDocs.length === 0 || daysSinceEpoch !== groupedDocs[groupedDocs.length - 1].daysSinceEpoch) {
+								// each group defines its days since epoch and an ordered array of docs
+								groupedDocs.push({
+									daysSinceEpoch: daysSinceEpoch,
+									title: date.toLocaleDateString(undefined, {
+										weekday: 'long',
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric'
+									}),
+									// representativeDate: date,
+									docs: []
+								})
+							}
+
+							groupedDocs[groupedDocs.length - 1].docs.push(doc)
+						}
+						break
+
+					case ChromeStorage.HIGHLIGHT_SORT_BY_VALUES.STYLE:
+						// first map highlight classname to index of definition
+						const m = new Map(this.scope.highlightDefinitions.map((d, idx) => [d.className, idx]))
+
+						// a group for each non-empty style
+						for (const doc of docs) {
+							// docs are already sorted
+							const index = m.get(doc[DB.DOCUMENT.NAME.CLASS_NAME])
+
+							if (groupedDocs.length === 0 || index !== groupedDocs[groupedDocs.length - 1].definitionIndex) {
+								groupedDocs.push({
+									definitionIndex: index,
+									title: this.scope.highlightDefinitions[index].title,
+									docs: []
+								})
+							}
+
+							groupedDocs[groupedDocs.length - 1].docs.push(doc)
+						}
+						break
+
+					default:
+						console.error(`unknown sort_by value "${this.scope.sort.value}"`)
+				}
+
+
 				this.scope.groupedDocs = groupedDocs
 				
 				// we form the plural string in the controller instead of the view, because ngPluralize can't refer to i18n things

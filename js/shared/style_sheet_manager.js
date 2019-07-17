@@ -25,20 +25,22 @@ class StyleSheetManager {
 	 * Creates an instance of StyleSheetManager.
 	 * 
 	 * @param {Document} document 
+	 * @package {String} sharedHighlightClassName optional name that the shared hightlight class should use. defaults to random string
+	 * @package {String} styleElementId optional id that the style element will use. defaults to random string
 	 * @memberof StyleSheetManager
 	 */
-	constructor(document) {
+	constructor(document, sharedHighlightClassName = StringUtils.newUUID(), styleElementId = StringUtils.newUUID()) {
 		this.document = document
 
 		// A random class name added to every mark element, that defines its colors ONLY
 		// It is styled as 'ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE'
-		this.sharedHighlightClassName = StringUtils.newUUID()
+		this.sharedHighlightClassName = sharedHighlightClassName
 
 		// As above, but defines the structure (padding, margin etc)
 		this.sharedContentClassName = StringUtils.newUUID()
 		
 		// id of single <style> element
-		this.styleElementId = StringUtils.newUUID()
+		this.styleElementId = styleElementId
   }
 
   /**
@@ -50,13 +52,21 @@ class StyleSheetManager {
   init() {
 		// Every document needs a stylesheet inside its head element. It will contain the rules for animation and close button.
 		// The shared highlight definition style, and each specific highlight definition style, are added later via the content script.
-		const elm = /** @type {HTMLStyleElement} */ (this.document.createElement('style'))
+		
+		// remove existint
+		let elm = this.document.getElementById(this.styleElementId)
+
+		if (elm) {
+			this.document.head.removeChild(elm)
+		}
+
+		elm = /** @type {HTMLStyleElement} */ (this.document.createElement('style'))
 		
 		elm.type = 'text/css'
 		elm.id = this.styleElementId
 
 		// add to enable sheet property
-		console.assert(!this.document.querySelector(`#${elm.id}`))
+		// console.assert(!this.document.querySelector(`#${elm.id}`))
 		this.document.head.appendChild(elm)
 	
 		// random animation names
@@ -112,10 +122,11 @@ class StyleSheetManager {
    * Insert or replace a style rule for a highlight definition
    * 
    * @param {HighlightDefinitionFactory.HighlightDefinition} highlightDefinition 
+	 * @param {Boolean} important
 	 * @returns {Promise}
    * @memberof StyleSheetManager
    */
-  setRule(highlightDefinition) {
+  setRule(highlightDefinition, important = false) {
 		// copy style (aka rules object)
 		const rules = Object.assign({}, highlightDefinition.style)
 
@@ -136,6 +147,10 @@ class StyleSheetManager {
 			rules['color'] = 'inherit'
 		}
 
+		if (important && rules['color']) {
+			rules['color'] += " !important"
+		}
+
 		return new ChromeStorage().get(ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA).then(a => {
 			// format CSS background color in rgba format
 			rules['background-color'] = `rgba(${[
@@ -143,7 +158,7 @@ class StyleSheetManager {
 				match[2],
 				match[3],
 				a || 1
-			].map(i => (typeof i === 'string' ? parseInt(i, 16) : i)).join(', ')})`
+			].map(i => (typeof i === 'string' ? parseInt(i, 16) : i)).join(', ')})${important ? " !important" : ""}`
 
 			// delete existing rule, if it exists
 			const idx = this.deleteRule(highlightDefinition.className)

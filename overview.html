@@ -79,8 +79,8 @@
 		<section>
 			<ol class="list-unstyled highlights">
 				<li ng-repeat="group in groupedDocs">
-					<h4 class="group-header" ng-show="sortby === 'time'">
-						{{ group.representativeDate | date:'fullDate' }}
+					<h4 class="group-header" ng-show="group.title">
+						{{ group.title }}
 					</h4>
 
 					<ol class="list-unstyled">

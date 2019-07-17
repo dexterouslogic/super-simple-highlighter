@@ -59,7 +59,7 @@ body {
 }  */
 
 .number-of-highlights {
-    text-align: end;
+    text-align: start;
 }
 
 /* .number-of-highlights::before {
@@ -80,6 +80,11 @@ footer {
   text-align: right;
 }
 
+@media print {
+    body {
+        -webkit-print-color-adjust: exact !important;
+    }
+}
 
 @media (prefers-color-scheme: dark) { 
 	body { 
