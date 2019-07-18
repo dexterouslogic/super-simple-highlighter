@@ -128,7 +128,7 @@ class ChromeStorageHandler {
             highlightDefinition.disableBoxShadow = !enableHighlightBoxShadow
         }
 
-        return Promise.all(change.newValue.map(hd => this.styleSheetManager.setRule(hd)))
+        return Promise.all(change.newValue.map(hd => this.styleSheetManager.setRule(hd, true)))
       }
     }).then(() => {
       // the contents of the style element are correct, but currently only in the DOM. To be included

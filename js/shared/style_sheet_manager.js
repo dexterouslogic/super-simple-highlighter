@@ -122,7 +122,7 @@ class StyleSheetManager {
    * Insert or replace a style rule for a highlight definition
    * 
    * @param {HighlightDefinitionFactory.HighlightDefinition} highlightDefinition 
-	 * @param {Boolean} important
+	 * @param {boolean} [important = false] true to make color & background-color rules important, which sometimes helps with -webkit-print*
 	 * @returns {Promise}
    * @memberof StyleSheetManager
    */
@@ -146,9 +146,11 @@ class StyleSheetManager {
 		if (highlightDefinition.inherit_style_color) {
 			rules['color'] = 'inherit'
 		}
-
-		if (important && rules['color']) {
-			rules['color'] += " !important"
+		
+		const suffix = important ? " !important" : ""
+		
+		if (rules['color']) {
+			rules['color'] += suffix
 		}
 
 		return new ChromeStorage().get(ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA).then(a => {
@@ -158,7 +160,7 @@ class StyleSheetManager {
 				match[2],
 				match[3],
 				a || 1
-			].map(i => (typeof i === 'string' ? parseInt(i, 16) : i)).join(', ')})${important ? " !important" : ""}`
+			].map(i => (typeof i === 'string' ? parseInt(i, 16) : i)).join(', ')})${suffix}`
 
 			// delete existing rule, if it exists
 			const idx = this.deleteRule(highlightDefinition.className)
