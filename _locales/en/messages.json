@@ -191,7 +191,7 @@
     }
   },
   "overview_page_title_prefix": {
-    "message": "Summary Page"
+    "message": "Summary"
   },
   "page_action_default_title": {
     "message": "Show highlights"
@@ -228,7 +228,7 @@
     "message": "Style"
   },
   "remove_all_highlights": {
-    "message": "Remove Highlights"
+    "message": "Remove All Highlights"
   },
   "remove_highlight": {
     "message": "Remove Highlight"
@@ -328,5 +328,8 @@
   },
   "placeholder_filter_highlights": {
     "message": "Search Highlights"
+  },
+  "highlights_page_title_prefix": {
+    "message": "Highlights"
   }
 }

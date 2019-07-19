@@ -39,7 +39,7 @@
 		<!--Header-->
 		<div class="clearfix header">
 			<!-- Hamburger Menu -->
-			<div class="dropdown btn-group">
+			<div class="dropdown btn-group mr-auto">
 				<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="menu-hamburger" title="{{ manifest.name }}" data-toggle="dropdown" aria-haspopup="true"
 				 aria-expanded="false">
 					<span class="glyphicon glyphicon-menu-hamburger"></span> 
@@ -47,20 +47,9 @@
 				</button>
 
 				<ul class="dropdown-menu" role="menu" aria-labelledby="menu-hamburger">
-					<li role="presentation">
-						<a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
-							{{'undo' | i18n}}
-
-							<!--hotkey-->
-							<kbd ng-show="{{commands.undo_last_create_highlight.shortcut}}">
-								{{commands.undo_last_create_highlight.shortcut}}
-              </kbd>
-						</a>
-					</li>
-
-					<li role="presentation" class="divider"></li>
-
+					<!-- Summary section -->
 					<li class="dropdown-header">{{'overview_page_title_prefix' | i18n}}</li>
+					
 					<li role="presentation">
 						<a role="menuitem" tabindex="-1" href="" ng-click="onClickOpenOverview()">{{'open_overview_in_new_tab' | i18n}}</a>
 					</li>
@@ -73,35 +62,44 @@
 						<a role="menuitem" tabindex="-1" href="" ng-click="onClickCopyOverview()">{{'copy_overview' | i18n}}</a>
 					</li>
 
+						<!-- highlights section -->
+						<li role="presentation" class="divider"></li>
+						<!-- <li class="dropdown-header">{{'highlights_page_title_prefix' | i18n}}</li> -->
+	
+						<!-- <li role="presentation">
+							<a role="menuitem" tabindex="-1" href="" ng-click="onClickUndoLastHighlight()">
+								{{'undo' | i18n}}
+	
+								<kbd ng-show="{{commands.undo_last_create_highlight.shortcut}}">
+									{{commands.undo_last_create_highlight.shortcut}}
+								</kbd>
+							</a>
+						</li> -->
+		
+						<!-- remove all -->
+						<li role="presentation">
+							<a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target=".bs-example-modal-sm">
+								<span class="text-danger">{{'remove_all_highlights' | i18n}}</span>
+							</a>
+						</li>
+					
+					<!-- options section -->
 					<li role="presentation" class="divider"></li>
-
+					<li class="dropdown-header">{{'options_page_title_prefix' | i18n}}</li>
+					
 					<li role="presentation">
-						<a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target=".bs-example-modal-sm">
-							<span class="text-danger">{{'remove_all_highlights' | i18n}}</span>
-						</a>
+						<a role="menuitem" tabindex="-1" href="/options.html#styles" target="_blank">{{'styles' | i18n}}</a>
 					</li>
-				</ul>
-			</div>
-
-			<!-- options menu -->
-			<div class="dropdown btn-group ml-4 mr-auto">
-				<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="menu-options" data-toggle="dropdown" title="{{'options_page_title_prefix' | i18n}}"
-				 aria-haspopup="true" aria-expanded="false">
-					<span class="glyphicon glyphicon-cog"></span> 
-				</button>
-				<ul class="dropdown-menu" role="menu" aria-labelledby="menu-options">
-						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#styles" target="_blank">{{'styles' | i18n}}</a>
-						</li>
-						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#bookmarks" target="_blank">{{'bookmarks' | i18n}}</a>
-						</li>
-						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#advanced" target="_blank">{{'advanced' | i18n}}</a>
-						</li>
-						<li role="presentation">
-							<a role="menuitem" tabindex="-1" href="/options.html#about" target="_blank">{{'about' | i18n}}</a>
-						</li>
+					<li role="presentation">
+						<a role="menuitem" tabindex="-1" href="/options.html#bookmarks" target="_blank">{{'bookmarks' | i18n}}</a>
+					</li>
+					<li role="presentation">
+						<a role="menuitem" tabindex="-1" href="/options.html#advanced" target="_blank">{{'advanced' | i18n}}</a>
+					</li>
+					<li role="presentation">
+						<a role="menuitem" tabindex="-1" href="/options.html#about" target="_blank">{{'about' | i18n}}</a>
+					</li>
+					
 				</ul>
 			</div>
 
