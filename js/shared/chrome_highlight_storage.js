@@ -248,7 +248,7 @@ ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE = {
   'text-shadow': 'none !important',
   // "box-shadow": "0 0 8px #D3D3D3",
 
-  // 'font': 'inherit !important',
+  'font': 'inherit',
   // 'position': "relative !important",
   // 'border-radius': "0.2em",
   // "padding": "0px",
