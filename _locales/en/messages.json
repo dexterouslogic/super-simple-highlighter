@@ -72,10 +72,10 @@
     "message": "Edit Style"
   },
   "advanced": {
-    "message": "Backup & Restore"
+    "message": "Backups"
   },
   "advanced_database_export_button_text": {
-    "message": "Export…"
+    "message": "Export File…"
   },
   "advanced_database_export_description": {
     "message": "Saves a file containing every highlight appearance and style currently in the database. If you haven't enabled the 'Ask where to save each file before downloading' option in Chrome, the file will probably be saved in your Downloads folder."
@@ -90,10 +90,10 @@
     "message": "Experimental - use at your own risk (or at least test it beforehand)"
   },
   "advanced_database_import_button_text": {
-    "message": "Import…"
+    "message": "Import File…"
   },
   "advanced_database_import_description": {
-    "message": "Replace all current highlight and styles with those previously exported into a file. NOTE: ALL existing highlights on ALL pages will be replaced, along with ALL modified highlight styles."
+    "message": "Replace all current highlights and styles with those previously exported into a file. NB: *ALL* existing highlights on *ALL* pages will be replaced, along with *ALL* modified highlight styles. This can't be undone."
   },
   "advanced_database_import_title": {
     "message": "Restore"
@@ -200,7 +200,7 @@
     "message": "Some highlights couldn't be restored onto this page"
   },
   "bookmarks": {
-    "message": "Highlighted Pages"
+    "message": "Pages"
   },
   "pages_empty": {
     "message": "Nothing to see here, move along"
