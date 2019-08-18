@@ -491,6 +491,30 @@ class DB {
     return this.queryDB(DB.VIEW_NAME.SUM, { key: match }).then(({rows}) => {
       return rows.length === 0 ? 0 : rows[0].value
     })
+/*
+    // ## slow & inefficent, non-eval() version
+
+    // can't fetch docs by 'match', only 'key' (id), which we don't use, so we iterate...
+    return this.getDB()
+      .then(db => db.allDocs({ include_docs: true }))
+      .then(result => result.rows
+        .map(row => row.doc)
+        .filter(doc => match === doc.match)
+        .map(doc => {
+          // the values will be reduced with '_sum'. If that == 0, number of create == delete
+          switch (doc.verb) {
+            case 'create':
+              return 1;
+
+            case 'delete':
+              return -1;
+
+            default:
+              return 0;
+          }
+        }).reduce((acc, val) => acc + val, 0)
+      )
+      */
   }
 
   /**
@@ -505,6 +529,48 @@ class DB {
       group_level: 1,
       include_docs: false
     }).then(({rows}) => { return rows })
+
+    /*
+
+    // ## slow & inefficent, non-eval() version
+    return this.getDB()
+      .then(db => db.allDocs({ include_docs: true }))
+      .then(result => {
+        // build map where key is 'match', value is equivalent of reduced sum
+        const m = new Map()
+        
+        for (const row of result.rows) {
+          const doc = row.doc
+
+          // design docs have no match
+          if (typeof doc.match !== "string") {
+            continue
+          }
+          
+          // accumulate sum
+          let delta
+
+          if (doc.verb === 'create') {
+            delta = 1
+          } else if (doc.verb === 'delete') {
+            delta = -1;
+          } else {
+            continue
+          }
+
+          m.set(doc.match, delta + (m.get(doc.match) || 0))
+        }
+
+        // each entry is an array of [key, value]
+        return(Array.from(m.entries()).map(entry => {
+          return {
+            'key': entry[0],
+            'value': entry[1]
+          }
+        }))
+      })
+
+    */
   }
 
   //
@@ -568,6 +634,67 @@ class DB {
 
       return docs
     })
+
+/*    
+    // ## slow & inefficent, non-eval() version
+
+    // build options
+    const o = {
+      // descending: descending,
+      include_docs: true
+    }
+
+    // can't limit as the design docs are part of the result (so we filter later)
+    // if (typeof limit === 'number') {
+    //   o.limit = limit
+    // }
+
+    // sort function
+    const compareFn = descending 
+      ? (d1, d2) => d2.date - d1.date 
+      : (d1, d2) => d1.date - d2.date 
+
+    return this.getDB()
+      .then(db => db.allDocs(o))
+      .then(result => {
+        // docs that match the parameter
+        let docs = result.rows
+          .map(row => row.doc)
+          .filter(doc => doc.match === match)
+        
+        if (typeof limit === 'number') {
+          docs = docs.slice(0, limit)
+        }
+
+        // sort docs (in-place)
+        docs.sort(compareFn)
+
+        // if true, remove all `create` documents for which a corresponding `delete` document exists.
+        if (excludeDeletedDocs) {
+          // set of ids of documents that can be removed
+          const s = new Set()
+
+          for (const d of docs.filter(doc => doc.verb === DB.DOCUMENT.VERB.DELETE)) {
+            // add the id of the corresponding 'create' doc of this delete doc
+            s.add(d[DB.DOCUMENT.NAME.CORRESPONDING_DOC_ID])
+            // also remove the 'delete' document, as it won't referenceanything
+            s.add(d._id)
+          }
+
+          docs = docs.filter(doc => !s.has(doc._id))
+        }
+
+        // filter by verb
+        if (verbs) {
+          const s = new Set(typeof verbs === 'string' ? [verbs] : verbs)
+          
+          docs = docs.filter(d => s.has(d[DB.DOCUMENT.NAME.VERB]))
+        }
+
+        return docs
+      })
+*/
+
   }
 
   // static
