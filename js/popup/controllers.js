@@ -394,6 +394,8 @@ controllerModule.controller('popupController', ["$scope", function ($scope) {
 
 			// add the close button
 			closeElm = this.document.createElement('button')
+			
+			closeElm.setAttribute('type', 'button')
 			 
 			closeElm.classList.add(closeClassName)
 			closeElm.addEventListener('click', this.onClickRemoveHighlight.bind(this, doc), { passive: true, capture: true, once: true })
